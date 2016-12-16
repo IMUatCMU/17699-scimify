@@ -4,10 +4,10 @@ package schema
 type Attribute struct {
 	Name            string       `json:"name"`
 	Type            string       `json:"type"`
-	SubAttributes   []*Attribute `json:"type"`
+	SubAttributes   []*Attribute `json:"subAttributes"`
 	MultiValued     bool         `json:"multiValued"`
 	Description     string       `json:"description"`
-	Required        string       `json:"required"`
+	Required        bool         `json:"required"`
 	CanonicalValues []string     `json:"canonicalValues"`
 	CaseExact       bool         `json:"caseExact"`
 	Mutability      string       `json:"mutability"`
