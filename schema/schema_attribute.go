@@ -4,7 +4,7 @@ package schema
 type Attribute struct {
 	Name            string       `json:"name"`
 	Type            string       `json:"type"`
-	SubAttributes   []*Attribute `json:"subAttributes"`
+	SubAttributes   []*Attribute `json:"type"`
 	MultiValued     bool         `json:"multiValued"`
 	Description     string       `json:"description"`
 	Required        string       `json:"required"`

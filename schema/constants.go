@@ -1,8 +1,19 @@
 // Constants for the SCIM schema
 package schema
 
-// Schema URN
-const SchemaUrn = "urn:ietf:params:scim:schemas:core:2.0:Schema"
+// URN
+const (
+	UserUrn                  = "urn:ietf:params:scim:schemas:core:2.0:User"
+	GroupUrn                 = "urn:ietf:params:scim:schemas:core:2.0:Group"
+	ResourceTypeUrn          = "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+	ServiceProviderConfigUrn = "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"
+	SchemaUrn                = "urn:ietf:params:scim:schemas:core:2.0:Schema"
+)
+
+// Internally Used Urn
+const (
+	CommonUrn = "urn:ietf:params:scim:schemas:common:2.0:common"
+)
 
 // schema attribute types
 const (
