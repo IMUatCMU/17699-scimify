@@ -1,6 +1,9 @@
 // Constants for the SCIM schema
 package schema
 
+// Schema URN
+const SchemaUrn = "urn:ietf:params:scim:schemas:core:2.0:Schema"
+
 // schema attribute types
 const (
 	String    = "string"
