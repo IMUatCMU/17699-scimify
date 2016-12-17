@@ -22,7 +22,12 @@
         "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig",
         "urn:ietf:params:scim:schemas:core:2.0:Schema"
       ],
-      "subAttributes": []
+      "subAttributes": [],
+      "_assist": {
+        "_jsonName": "schemas",
+        "_path": "schemas",
+        "_arrayIndexKey": ""
+      }
     },
     {
       "name": "id",
@@ -36,7 +41,12 @@
       "uniqueness": "global",
       "referenceTypes": [],
       "canonicalValues": [],
-      "subAttributes": []
+      "subAttributes": [],
+      "_assist": {
+        "_jsonName": "id",
+        "_path": "id",
+        "_arrayIndexKey": ""
+      }
     },
     {
       "name": "externalId",
@@ -50,7 +60,12 @@
       "uniqueness": "none",
       "referenceTypes": [],
       "canonicalValues": [],
-      "subAttributes": []
+      "subAttributes": [],
+      "_assist": {
+        "_jsonName": "externalId",
+        "_path": "externalId",
+        "_arrayIndexKey": ""
+      }
     },
     {
       "name": "meta",
@@ -77,7 +92,12 @@
           "uniqueness": "none",
           "referenceTypes": [],
           "canonicalValues": [],
-          "subAttributes": []
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "resourceType",
+            "_path": "meta.resourceType",
+            "_arrayIndexKey": ""
+          }
         },
         {
           "name": "created",
@@ -91,7 +111,12 @@
           "uniqueness": "none",
           "referenceTypes": [],
           "canonicalValues": [],
-          "subAttributes": []
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "created",
+            "_path": "meta.created",
+            "_arrayIndexKey": ""
+          }
         },
         {
           "name": "lastModified",
@@ -105,7 +130,12 @@
           "uniqueness": "none",
           "referenceTypes": [],
           "canonicalValues": [],
-          "subAttributes": []
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "lastModified",
+            "_path": "meta.lastModified",
+            "_arrayIndexKey": ""
+          }
         },
         {
           "name": "location",
@@ -119,7 +149,12 @@
           "uniqueness": "none",
           "referenceTypes": [ "uri" ],
           "canonicalValues": [],
-          "subAttributes": []
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "location",
+            "_path": "meta.location",
+            "_arrayIndexKey": ""
+          }
         },
         {
           "name": "version",
@@ -133,9 +168,19 @@
           "uniqueness": "none",
           "referenceTypes": [],
           "canonicalValues": [],
-          "subAttributes": []
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "version",
+            "_path": "meta.version",
+            "_arrayIndexKey": ""
+          }
         }
-      ]
+      ],
+      "_assist": {
+        "_jsonName": "meta",
+        "_path": "meta",
+        "_arrayIndexKey": ""
+      }
     }
   ]
 }

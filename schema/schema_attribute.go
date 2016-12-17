@@ -14,4 +14,5 @@ type Attribute struct {
 	Returned        string       `json:"returned"`
 	Uniqueness      string       `json:"uniqueness"`
 	ReferenceTypes  []string     `json:"referenceTypes"`
+	Assist          *Assist      `json:"_assist"`
 }
