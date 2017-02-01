@@ -6,7 +6,7 @@ import "github.com/go-scim/scimify/resource"
 // in a hash map. It only offers functionality to create, delete and get SCIM
 // resource by id.
 type SimpleRepository struct {
-	repo	map[string]*resource.Resource
+	repo map[string]*resource.Resource
 }
 
 // Put the provided resource into the hash map, overwrites existing id
