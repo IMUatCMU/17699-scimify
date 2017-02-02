@@ -1,5 +1,5 @@
 // Internally used fields for attributes
-package schema
+package resource
 
 type Assist struct {
 	JSONName      string `json:"_jsonName"`      // JSON field name used to render this field

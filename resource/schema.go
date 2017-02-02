@@ -1,5 +1,5 @@
 // Model for the SCIM schema and express methods
-package schema
+package resource
 
 import (
 	"encoding/json"

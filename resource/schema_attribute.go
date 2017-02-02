@@ -1,5 +1,5 @@
 // Model for attributes within a SCIM schema
-package schema
+package resource
 
 type Attribute struct {
 	Name            string       `json:"name"`

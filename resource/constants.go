@@ -1,5 +1,5 @@
 // Constants for the SCIM schema
-package schema
+package resource
 
 // URN
 const (
