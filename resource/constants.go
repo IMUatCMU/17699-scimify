@@ -8,6 +8,7 @@ const (
 	ResourceTypeUrn          = "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
 	ServiceProviderConfigUrn = "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"
 	SchemaUrn                = "urn:ietf:params:scim:schemas:core:2.0:Schema"
+	ErrorUrn		 = "urn:ietf:params:scim:api:messages:2.0:Error"
 )
 
 // Internally Used Urn
