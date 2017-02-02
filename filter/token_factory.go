@@ -6,7 +6,7 @@ import (
 )
 
 // Create a structured token based on a token string literal
-func CreateToken(tok string) Token {
+func CreateToken(tok string) (Token, error) {
 	switch strings.ToLower(tok) {
 	case And:
 		return Token{
@@ -16,7 +16,7 @@ func CreateToken(tok string) Token {
 				Associativity: LeftAssociative,
 				Precedence:    NormalPrecedence,
 			},
-		}
+		}, nil
 
 	case Or:
 		return Token{
@@ -26,7 +26,7 @@ func CreateToken(tok string) Token {
 				Associativity: LeftAssociative,
 				Precedence:    NormalPrecedence - 1,
 			},
-		}
+		}, nil
 
 	case Not:
 		return Token{
@@ -36,7 +36,7 @@ func CreateToken(tok string) Token {
 				Associativity: RightAssociative,
 				Precedence:    NormalPrecedence + 1,
 			},
-		}
+		}, nil
 
 	case Eq:
 		return Token{
@@ -47,7 +47,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Ne:
 		return Token{
@@ -58,7 +58,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Sw:
 		return Token{
@@ -69,7 +69,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Ew:
 		return Token{
@@ -80,7 +80,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Co:
 		return Token{
@@ -91,7 +91,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Pr:
 		return Token{
@@ -102,7 +102,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  1,
 			},
-		}
+		}, nil
 
 	case Gt:
 		return Token{
@@ -113,7 +113,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Ge:
 		return Token{
@@ -124,7 +124,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Lt:
 		return Token{
@@ -135,7 +135,7 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case Le:
 		return Token{
@@ -146,21 +146,21 @@ func CreateToken(tok string) Token {
 				Precedence:    HighPrecedence,
 				NumberOfArgs:  2,
 			},
-		}
+		}, nil
 
 	case LeftParenthesis:
 		return Token{
 			Value:  LeftParenthesis,
 			Type:   Parenthesis,
 			Params: nil,
-		}
+		}, nil
 
 	case RightParenthesis:
 		return Token{
 			Value:  RightParenthesis,
 			Type:   Parenthesis,
 			Params: nil,
-		}
+		}, nil
 
 	default:
 		if strings.HasPrefix(tok, "\"") && strings.HasSuffix(tok, "\"") {
@@ -204,7 +204,7 @@ func CreateToken(tok string) Token {
 				Value:  tok,
 				Type:   Path,
 				Params: nil,
-			}
+			}, nil
 		}
 	}
 }
