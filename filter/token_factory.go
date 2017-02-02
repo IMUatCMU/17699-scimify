@@ -202,7 +202,7 @@ func CreateToken(tok string) (Token, error) {
 				},
 			}, nil
 		} else {
-			bracStartIdx, bracEndIdx := strings.Index(tok, "["), strings.Index(tok, "]")
+			bracStartIdx, bracEndIdx := strings.Index(tok, "["), strings.LastIndex(tok, "]")
 			if bracStartIdx > 0 && bracEndIdx == len(tok)-1 {
 				if nestedTokens, err := Tokenize(tok[bracStartIdx+1 : bracEndIdx]); err != nil {
 					return Token{}, err

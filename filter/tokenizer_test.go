@@ -1,13 +1,22 @@
 package filter
 
 import "testing"
-import "github.com/stretchr/testify/assert"
+import (
+	"github.com/go-scim/scimify/resource"
+	"github.com/stretchr/testify/assert"
+)
 
 type tokenizerTest struct {
 	testName         string
 	filter           string
 	expected         []string
 	additionalAssert func(*testing.T, tokenizerTest, []Token)
+}
+
+type tokenizerInvalidTest struct {
+	testName        string
+	filter          string
+	expectedErrType string
 }
 
 func TestTokenize(t *testing.T) {
@@ -60,5 +69,29 @@ func TestTokenize(t *testing.T) {
 		if test.additionalAssert != nil {
 			test.additionalAssert(t, test, tokens)
 		}
+	}
+}
+
+func TestTokenizeInvalid(t *testing.T) {
+	for _, test := range []tokenizerInvalidTest{
+		{
+			"test more than one level of nested path",
+			"foo[bar[type eq \"work\"]] and name sw \"D\"",
+			resource.InvalidFilter,
+		},
+		{
+			"test unbalanced brackets",
+			"foo[bar[type eq \"work\"] and name sw \"D\"",
+			resource.InvalidFilter,
+		},
+		{
+			"test unbalanced parenthesis",
+			"( foo eq bar",
+			resource.InvalidFilter,
+		},
+	} {
+		_, err := Tokenize(test.filter)
+		assert.NotNil(t, err, "[%s] expects an error", test.testName)
+		assert.Equal(t, test.expectedErrType, err.(resource.Error).ScimType, "[%s] expected scimType to be %s", test.testName, test.expectedErrType)
 	}
 }

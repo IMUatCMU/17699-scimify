@@ -51,6 +51,11 @@ func (t *tokenizer) tokenize() error {
 			t.addToBuffer(r)
 			t.textMode = true
 			t.bracketLevel++
+			if t.bracketLevel > 1 {
+				return resource.CreateError(
+					resource.InvalidFilter,
+					"Only one level of nested filter is allowed.")
+			}
 
 		case rightBracketRune:
 			t.addToBuffer(r)
