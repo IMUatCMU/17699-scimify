@@ -37,8 +37,18 @@ func TestTokenize(t *testing.T) {
 		{
 			"test nested filter",
 			"email[type eq \"work\"] and name sw \"D\"",
-			[]string{"email[type eq \"work\"]", "and", "name", "sw", "\"D\""},
-			nil,
+			[]string{"email", "and", "name", "sw", "\"D\""},
+			func(t *testing.T, test tokenizerTest, tokens []Token) {
+				assert.Equal(t, NestedPath, tokens[0].Type, "[%s] token #1 should be a nested path token", test.testName)
+				nestedTokens := tokens[0].Params[NestedTokens].([]Token)
+				assert.NotNil(t, nestedTokens, "[%s] token #1 should have non-nil nested tokens parsed", test.testName)
+				assert.Equal(t, Path, nestedTokens[0].Type, "[%s] nested token #1 should be a path token", test.testName)
+				assert.Equal(t, Relational, nestedTokens[1].Type, "[%s] nested token #2 should be a relational token", test.testName)
+				assert.Equal(t, Constant, nestedTokens[2].Type, "[%s] nested token #3 should be a constant token", test.testName)
+				assert.Equal(t, "type", nestedTokens[0].Value)
+				assert.Equal(t, "eq", nestedTokens[1].Value)
+				assert.Equal(t, "\"work\"", nestedTokens[2].Value)
+			},
 		},
 	} {
 		tokens, err := Tokenize(test.filter)

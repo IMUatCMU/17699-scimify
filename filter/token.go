@@ -13,6 +13,7 @@ const (
 	Parenthesis = "paren"
 	Constant    = "const"
 	Path        = "path"
+	NestedPath  = "nest_path"
 )
 
 // Parameter keys
@@ -22,6 +23,7 @@ const (
 	ConstantType  = "const_type"
 	NumberOfArgs  = "num_args"
 	ParsedValue   = "parsed_val"
+	NestedTokens  = "nest_tok"
 )
 
 // Parameter values

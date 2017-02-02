@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"fmt"
+	"github.com/go-scim/scimify/resource"
 	"strconv"
 	"strings"
 )
@@ -200,11 +202,33 @@ func CreateToken(tok string) (Token, error) {
 				},
 			}, nil
 		} else {
-			return Token{
-				Value:  tok,
-				Type:   Path,
-				Params: nil,
-			}, nil
+			bracStartIdx, bracEndIdx := strings.Index(tok, "["), strings.Index(tok, "]")
+			if bracStartIdx > 0 && bracEndIdx == len(tok)-1 {
+				if nestedTokens, err := Tokenize(tok[bracStartIdx+1 : bracEndIdx]); err != nil {
+					return Token{}, err
+				} else {
+					for _, nestedTok := range nestedTokens {
+						if nestedTok.Type == NestedPath {
+							return Token{}, resource.CreateError(
+								resource.InvalidFilter,
+								fmt.Sprintf("Only one level of nested filter is allowed: %s", tok))
+						}
+					}
+					return Token{
+						Value: tok[0:bracStartIdx],
+						Type:  NestedPath,
+						Params: map[string]interface{}{
+							NestedTokens: nestedTokens,
+						},
+					}, nil
+				}
+			} else {
+				return Token{
+					Value:  tok,
+					Type:   Path,
+					Params: nil,
+				}, nil
+			}
 		}
 	}
 }
