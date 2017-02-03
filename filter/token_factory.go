@@ -17,6 +17,7 @@ func CreateToken(tok string) (Token, error) {
 			Params: map[string]interface{}{
 				Associativity: LeftAssociative,
 				Precedence:    NormalPrecedence,
+				NumberOfArgs:  2,
 			},
 		}, nil
 
@@ -27,6 +28,7 @@ func CreateToken(tok string) (Token, error) {
 			Params: map[string]interface{}{
 				Associativity: LeftAssociative,
 				Precedence:    NormalPrecedence - 1,
+				NumberOfArgs:  2,
 			},
 		}, nil
 
@@ -37,6 +39,7 @@ func CreateToken(tok string) (Token, error) {
 			Params: map[string]interface{}{
 				Associativity: RightAssociative,
 				Precedence:    NormalPrecedence + 1,
+				NumberOfArgs:  1,
 			},
 		}, nil
 
