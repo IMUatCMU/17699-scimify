@@ -6,6 +6,25 @@ import (
 	"testing"
 )
 
+func TestSchema_GetAttribute(t *testing.T) {
+	if path, err := filepath.Abs("../schemas/common_schema.json"); err != nil {
+		t.Fatal(err)
+	} else if schema, err := LoadSchema(path); err != nil {
+		t.Fatal(err)
+	} else {
+		schema.ConstructAttributeIndex()
+		assert.NotNil(t, schema.GetAttribute("schemas"))
+		assert.NotNil(t, schema.GetAttribute("id"))
+		assert.NotNil(t, schema.GetAttribute("meta"))
+		assert.NotNil(t, schema.GetAttribute("meta.resourceType"))
+		assert.NotNil(t, schema.GetAttribute("meta.created"))
+		assert.NotNil(t, schema.GetAttribute("meta.lastModified"))
+		assert.NotNil(t, schema.GetAttribute("meta.location"))
+		assert.NotNil(t, schema.GetAttribute("meta.version"))
+		assert.Nil(t, schema.GetAttribute("foo"))
+	}
+}
+
 func TestLoadSchema(t *testing.T) {
 	if path, err := filepath.Abs("../schemas/common_schema.json"); err != nil {
 		t.Fatal(err)

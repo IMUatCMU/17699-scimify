@@ -26,6 +26,7 @@
       "_assist": {
         "_jsonName": "schemas",
         "_path": "schemas",
+        "_full_path": "schemas",
         "_arrayIndexKey": ""
       }
     },
@@ -45,6 +46,7 @@
       "_assist": {
         "_jsonName": "id",
         "_path": "id",
+        "_full_path": "id",
         "_arrayIndexKey": ""
       }
     },
@@ -64,6 +66,7 @@
       "_assist": {
         "_jsonName": "externalId",
         "_path": "externalId",
+        "_full_path": "externalId",
         "_arrayIndexKey": ""
       }
     },
@@ -96,6 +99,7 @@
           "_assist": {
             "_jsonName": "resourceType",
             "_path": "meta.resourceType",
+            "_full_path": "meta.resourceType",
             "_arrayIndexKey": ""
           }
         },
@@ -115,6 +119,7 @@
           "_assist": {
             "_jsonName": "created",
             "_path": "meta.created",
+            "_full_path": "meta.created",
             "_arrayIndexKey": ""
           }
         },
@@ -134,6 +139,7 @@
           "_assist": {
             "_jsonName": "lastModified",
             "_path": "meta.lastModified",
+            "_full_path": "meta.lastModified",
             "_arrayIndexKey": ""
           }
         },
@@ -153,6 +159,7 @@
           "_assist": {
             "_jsonName": "location",
             "_path": "meta.location",
+            "_full_path": "meta.location",
             "_arrayIndexKey": ""
           }
         },
@@ -172,6 +179,7 @@
           "_assist": {
             "_jsonName": "version",
             "_path": "meta.version",
+            "_full_path": "meta.version",
             "_arrayIndexKey": ""
           }
         }
@@ -179,6 +187,7 @@
       "_assist": {
         "_jsonName": "meta",
         "_path": "meta",
+        "_full_path": "meta",
         "_arrayIndexKey": ""
       }
     }

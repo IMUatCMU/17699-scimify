@@ -1,19 +1,19 @@
 package persistence
 
 import (
-	"github.com/go-scim/scimify/resource"
 	fltr "github.com/go-scim/scimify/filter"
+	"github.com/go-scim/scimify/resource"
 	"gopkg.in/mgo.v2"
 )
 
 func NewMongoRepository(mongoAddress string) *MongoRepository {
 	return &MongoRepository{
-		address:mongoAddress,
+		address: mongoAddress,
 	}
 }
 
 type MongoRepository struct {
-	address 	string
+	address string
 }
 
 func (m *MongoRepository) Create(resource *resource.Resource, context resource.Context) error {
@@ -58,10 +58,10 @@ func (m *MongoRepository) Query(filter string, sortBy string, ascending bool, pa
 		return err
 	}
 
-	if root {	// remove this line
+	if root { // remove this line
 		// TODO transform root to mongo query
 	}
-	
+
 	return nil, nil
 }
 
