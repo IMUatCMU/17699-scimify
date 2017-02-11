@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 type Schema struct {
@@ -17,11 +18,12 @@ type Schema struct {
 }
 
 // Construct an index system from attribute path and full path to attribute itself
+// Indexes are all lower cased to allow case insensitive search (attribute names in user queries can be case insensitive)
 func (s *Schema) ConstructAttributeIndex() {
 	collectIndex := func(attr *Attribute) {
 		if attr.Assist != nil {
 			if len(attr.Assist.FullPath) > 0 {
-				s.attrIndex[attr.Assist.FullPath] = attr
+				s.attrIndex[strings.ToLower(attr.Assist.FullPath)] = attr
 			}
 		}
 	}

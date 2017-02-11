@@ -148,7 +148,7 @@ var (
 	errParenMismatch   = resource.CreateError(resource.InvalidFilter, "Mismatched parenthesis.")
 	errInsufficientArg = func(tok Token) error {
 		return resource.CreateError(
-			resource.InvalidFilter, fmt.Errorf("Operator [%s] has insufficient arguments", tok.Value))
+			resource.InvalidFilter, fmt.Sprintf("Operator [%s] has insufficient arguments", tok.Value))
 	}
 	errTooManyArguments = resource.CreateError(resource.InvalidFilter, "Arguments more than 2 is not supported.")
 )

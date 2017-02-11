@@ -50,15 +50,15 @@ func (m *MongoRepository) Query(filter string, sortBy string, ascending bool, pa
 
 	tokens, err := fltr.Tokenize(filter)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	root, err := fltr.Parse(tokens)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if root { // remove this line
+	if root != nil { // remove this line
 		// TODO transform root to mongo query
 	}
 

@@ -20,6 +20,7 @@ const (
 const (
 	String    = "string"
 	Boolean   = "boolean"
+	Binary    = "binary"
 	Decimal   = "decimal"
 	Integer   = "integer"
 	DateTime  = "dateTime"

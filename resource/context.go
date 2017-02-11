@@ -4,3 +4,6 @@ package resource
 type Context map[string]interface{}
 
 // String based keys used in resource.Context
+const (
+	EffectiveSchema = "EffectiveSchema" // The (original or merged) schema to be used as the lookup for attributes
+)
