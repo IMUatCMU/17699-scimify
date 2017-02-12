@@ -81,6 +81,20 @@ func TestMongoRepository_Query(t *testing.T) {
 			},
 		},
 		{
+			"test sort reversed order",
+			bson.M{},
+			"nickName", false,
+			0, 0,
+			nil,
+			func(resources []*resource.Resource, err error) {
+				assert.Nil(t, err)
+				assert.Equal(t, 3, len(resources))
+				assert.Equal(t, "Tom", resources[0].Attributes["nickName"])
+				assert.Equal(t, "Q", resources[1].Attributes["nickName"])
+				assert.Equal(t, "Babs", resources[2].Attributes["nickName"])
+			},
+		},
+		{
 			"test paging",
 			bson.M{},
 			"nickName", true,
