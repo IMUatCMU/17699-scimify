@@ -3,6 +3,3 @@ sudo: required
 
 go:
 - 1.7
-
-services:
-- docker

@@ -2,9 +2,9 @@
 package resource
 
 type Meta struct {
-	ResourceType string    `json:"resourceType"`
-	Created      string 	`json:"created"`
-	LastModified string 	`json:"lastModified"`
-	Location     string    `json:"location"`
-	Version      string    `json:"version"`
+	ResourceType string `json:"resourceType"`
+	Created      string `json:"created"`
+	LastModified string `json:"lastModified"`
+	Location     string `json:"location"`
+	Version      string `json:"version"`
 }

@@ -7,16 +7,16 @@ import (
 
 func NewMongoRepository(mongoAddress, database, collection string) *MongoRepository {
 	return &MongoRepository{
-		address: mongoAddress,
-		databaseName:database,
-		collectionName:collection,
+		address:        mongoAddress,
+		databaseName:   database,
+		collectionName: collection,
 	}
 }
 
 type MongoRepository struct {
-	address 	string
-	databaseName	string
-	collectionName	string
+	address        string
+	databaseName   string
+	collectionName string
 }
 
 func (m *MongoRepository) Create(resource *resource.Resource, context resource.Context) error {
@@ -88,7 +88,7 @@ func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending boo
 	query.Iter().All(&rawData)
 
 	// parse data
-	resources := make([] *resource.Resource, 0, len(rawData))
+	resources := make([]*resource.Resource, 0, len(rawData))
 	for _, data := range rawData {
 		resources = append(resources, parseResource(data))
 	}
