@@ -1,19 +1,22 @@
 package persistence
 
 import (
-	fltr "github.com/go-scim/scimify/filter"
 	"github.com/go-scim/scimify/resource"
 	"gopkg.in/mgo.v2"
 )
 
-func NewMongoRepository(mongoAddress string) *MongoRepository {
+func NewMongoRepository(mongoAddress, database, collection string) *MongoRepository {
 	return &MongoRepository{
 		address: mongoAddress,
+		databaseName:database,
+		collectionName:collection,
 	}
 }
 
 type MongoRepository struct {
-	address string
+	address 	string
+	databaseName	string
+	collectionName	string
 }
 
 func (m *MongoRepository) Create(resource *resource.Resource, context resource.Context) error {
@@ -44,25 +47,53 @@ func (m *MongoRepository) Delete(id string, context resource.Context) error {
 	return nil
 }
 
-func (m *MongoRepository) Query(filter string, sortBy string, ascending bool, pageStart int32, pageSize int32, context resource.Context) ([]*resource.Resource, error) {
+// Query mongoDB for entries.
+// - filter: mongo styled filters in mgo.M
+// - sortBy: empty or a valid resource full path
+// - ascending: sort order, ignored when sortBy is empty
+// - pageStart: skip how many entries, if less than 0, will be defaulted to 0
+// - pageSize: collect how many entries, if less than 0, will be ignored
+// - context: auxiliary information for the query
+func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context resource.Context) ([]*resource.Resource, error) {
+	// get session
 	session := m.getSession()
 	defer session.Close()
 
-	tokens, err := fltr.Tokenize(filter)
-	if err != nil {
-		return nil, err
+	// prepare query
+	query := m.getCollection(session).Find(filter)
+
+	// sort order
+	if len(sortBy) > 0 {
+		if ascending {
+			query = query.Sort(sortBy)
+		} else {
+			query = query.Sort("-" + sortBy)
+		}
 	}
 
-	root, err := fltr.Parse(tokens)
-	if err != nil {
-		return nil, err
+	// page start
+	if pageStart < 0 {
+		query = query.Skip(0)
+	} else {
+		query = query.Skip(pageStart)
 	}
 
-	if root != nil { // remove this line
-		// TODO transform root to mongo query
+	// page size
+	if pageSize > 0 {
+		query = query.Limit(pageSize)
 	}
 
-	return nil, nil
+	// execute query
+	rawData := make([]map[string]interface{}, 0)
+	query.Iter().All(&rawData)
+
+	// parse data
+	resources := make([] *resource.Resource, 0, len(rawData))
+	for _, data := range rawData {
+		resources = append(resources, parseResource(data))
+	}
+
+	return resources, nil
 }
 
 func (m *MongoRepository) getSession() *mgo.Session {
@@ -71,4 +102,49 @@ func (m *MongoRepository) getSession() *mgo.Session {
 		panic(err)
 	}
 	return session
+}
+
+func (m *MongoRepository) getCollection(session *mgo.Session) *mgo.Collection {
+	return session.DB(m.databaseName).C(m.collectionName)
+}
+
+func parseResource(data map[string]interface{}) *resource.Resource {
+	resource := resource.NewResource()
+
+	if schemas, ok := data["schemas"].([]string); ok {
+		resource.Schemas = schemas
+		delete(data, "schemas")
+	}
+
+	if id, ok := data["id"].(string); ok {
+		resource.Id = id
+		delete(data, "id")
+	}
+
+	if externalId, ok := data["externalId"].(string); ok {
+		resource.ExternalId = externalId
+		delete(data, "externalId")
+	}
+
+	if meta, ok := data["meta"].(map[string]interface{}); ok {
+		if metaResourceType, ok := meta["resourceType"].(string); ok {
+			resource.Meta.ResourceType = metaResourceType
+		}
+		if metaCreated, ok := meta["created"].(string); ok {
+			resource.Meta.Created = metaCreated
+		}
+		if metaLastModified, ok := meta["lastModified"].(string); ok {
+			resource.Meta.LastModified = metaLastModified
+		}
+		if metaLocation, ok := meta["location"].(string); ok {
+			resource.Meta.Location = metaLocation
+		}
+		if metaVersion, ok := meta["version"].(string); ok {
+			resource.Meta.Version = metaVersion
+		}
+		delete(data, "meta")
+	}
+
+	resource.Attributes = data
+	return resource
 }

@@ -17,5 +17,5 @@ type Repository interface {
 	Delete(id string, context resource.Context) error
 
 	// Query a list of SCIM resource by the provided filter, sort and pagination parameters
-	Query(filter string, sortBy string, ascending bool, pageStart int32, pageSize int32, context resource.Context) ([]*resource.Resource, error)
+	Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context resource.Context) ([]*resource.Resource, error)
 }

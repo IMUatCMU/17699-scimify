@@ -32,6 +32,6 @@ func (r *SimpleRepository) Delete(id string, context resource.Context) error {
 }
 
 // Not implemented by design
-func (r *SimpleRepository) Query(filter string, sortBy string, ascending bool, pageStart int32, pageSize int32, context resource.Context) ([]*resource.Resource, error) {
+func (r *SimpleRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context resource.Context) ([]*resource.Resource, error) {
 	return nil, nil
 }

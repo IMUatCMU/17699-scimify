@@ -12,9 +12,9 @@ type Resource struct {
 }
 
 // Create a new resource
-func NewResource(resourceBaseUrn string) *Resource {
+func NewResource(resourceBaseUrn ...string) *Resource {
 	return &Resource{
-		Schemas:    []string{resourceBaseUrn},
+		Schemas:    resourceBaseUrn,
 		Meta:       &Meta{},
 		Attributes: make(map[string]interface{}, 0),
 	}
