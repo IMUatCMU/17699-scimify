@@ -11,6 +11,12 @@ import (
 	"testing"
 )
 
+// This test case requires tester to have a local mongoDB instance
+// - listening on port 32768
+// - a test_db database
+// - user collection
+// The easiest way to setup is to use docker
+
 func TestMongoRepository_Query(t *testing.T) {
 	repo, cleanUp := prepareTestMongoConnection(t)
 	defer cleanUp(repo)
