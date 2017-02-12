@@ -39,7 +39,7 @@ func (s *Schema) ConstructAttributeIndex() {
 
 // Get the attribute from the index constructed, prerequisite is calling ConstructAttributeIndex() method first.
 func (s *Schema) GetAttribute(path string) *Attribute {
-	return s.attrIndex[path]
+	return s.attrIndex[strings.ToLower(path)]
 }
 
 // Load schema from a designated file path
