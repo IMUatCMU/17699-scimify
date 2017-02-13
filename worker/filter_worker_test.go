@@ -1,11 +1,11 @@
 package worker
 
 import (
-	"testing"
-	"gopkg.in/mgo.v2/bson"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/mgo.v2/bson"
 	"reflect"
+	"testing"
 )
 
 var filterWorkerTestMockSchema = &resource.Schema{
@@ -66,9 +66,9 @@ var filterWorkerTestMockSchema = &resource.Schema{
 }
 
 type filterWorkerTest struct {
-	name		string
-	filter 		string
-	assertion	func(result bson.M, err error)
+	name      string
+	filter    string
+	assertion func(result bson.M, err error)
 }
 
 func TestFilterWorker(t *testing.T) {
@@ -140,10 +140,10 @@ func TestFilterWorker(t *testing.T) {
 				}))
 			},
 		},
-	}{
+	} {
 		result := FilterWorker(&FilterWorkerInput{
-			schema:filterWorkerTestMockSchema,
-			filterText:test.filter,
+			schema:     filterWorkerTestMockSchema,
+			filterText: test.filter,
 		}).(*WrappedReturn)
 
 		if nil == result.ReturnData {

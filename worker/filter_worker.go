@@ -2,13 +2,13 @@ package worker
 
 import (
 	"github.com/go-scim/scimify/filter"
-	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/persistence"
+	"github.com/go-scim/scimify/resource"
 )
 
 type FilterWorkerInput struct {
-	filterText 	string
-	schema 		*resource.Schema
+	filterText string
+	schema     *resource.Schema
 }
 
 func FilterWorker(input interface{}) interface{} {

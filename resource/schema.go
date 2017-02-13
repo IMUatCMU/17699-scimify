@@ -17,6 +17,12 @@ type Schema struct {
 	attrIndex   map[string]*Attribute `json:"-"`
 }
 
+func (s *Schema) MergeWith(schemas ...*Schema) {
+	for _, schema := range schemas {
+		s.Attributes = append(s.Attributes, schema.Attributes...)
+	}
+}
+
 // Construct an index system from attribute path and full path to attribute itself
 // Indexes are all lower cased to allow case insensitive search (attribute names in user queries can be case insensitive)
 func (s *Schema) ConstructAttributeIndex() {
