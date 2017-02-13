@@ -35,9 +35,9 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 				}
 			}
 		} else if filter.Relational == token.Type {
-			if filter.Path != root.Left.Data.(filter.Token).Type {
+			if token.Params[filter.NumberOfArgs].(int) > 0 && filter.Path != root.Left.Data.(filter.Token).Type {
 				return nil, resource.CreateError(resource.InvalidFilter, "Expects path name on the left of the operator.")
-			} else if filter.Constant != root.Right.Data.(filter.Token).Type {
+			} else if token.Params[filter.NumberOfArgs].(int) > 1 && filter.Constant != root.Right.Data.(filter.Token).Type {
 				return nil, resource.CreateError(resource.InvalidFilter, "Expects constant value on the right of the operator.")
 			}
 

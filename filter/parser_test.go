@@ -68,6 +68,26 @@ func TestParse(t *testing.T) {
 				assert.Equal(t, "\"Ark\"", root.Right.Data.(Token).Value)
 			},
 		},
+		{
+			"test single argument",
+			"userName pr",
+			func(t *testing.T, test parserTest, root *adt.Node) {
+				assert.Equal(t, Pr, root.Data.(Token).Value)
+				assert.Equal(t, "userName", root.Left.Data.(Token).Value)
+				assert.Nil(t, root.Right)
+			},
+		},
+		{
+			"test negation",
+			"not userName eq \"David\"",
+			func(t *testing.T, test parserTest, root *adt.Node) {
+				assert.Equal(t, Not, root.Data.(Token).Value)
+				assert.Equal(t, Eq, root.Left.Data.(Token).Value)
+				assert.Nil(t, root.Right)
+				assert.Equal(t, "userName", root.Left.Left.Data.(Token).Value)
+				assert.Equal(t, "\"David\"", root.Left.Right.Data.(Token).Value)
+			},
+		},
 	} {
 		tokens, err := Tokenize(test.filter)
 		assert.Nil(t, err)

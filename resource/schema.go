@@ -44,8 +44,15 @@ func (s *Schema) ConstructAttributeIndex() {
 }
 
 // Get the attribute from the index constructed, prerequisite is calling ConstructAttributeIndex() method first.
+// The rule in general is core attributes (i.e. stock User and Group attributes) are indexed with their short names,
+// which means the assist.fullName has their short names; Extension attributes must be defined with their full names
+// to avoid collision
 func (s *Schema) GetAttribute(path string) *Attribute {
-	return s.attrIndex[strings.ToLower(path)]
+	if strings.HasPrefix(path, s.Id+":") {
+		return s.attrIndex[strings.ToLower(path[len(s.Id+":")+1:])]
+	} else {
+		return s.attrIndex[strings.ToLower(path)]
+	}
 }
 
 // Load schema from a designated file path

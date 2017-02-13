@@ -4,66 +4,12 @@ import (
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
+	"math/rand"
+	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 )
-
-var filterWorkerTestMockSchema = &resource.Schema{
-	Id:   resource.UserUrn,
-	Name: "Test Schema",
-	Attributes: []*resource.Attribute{
-		{
-			Name:      "userName",
-			Type:      resource.String,
-			CaseExact: false,
-			Assist: &resource.Assist{
-				JSONName: "userName",
-				Path:     "userName",
-				FullPath: "userName",
-			},
-		},
-		{
-			Name:      "age",
-			Type:      resource.Integer,
-			CaseExact: false,
-			Assist: &resource.Assist{
-				JSONName: "age",
-				Path:     "age",
-				FullPath: "age",
-			},
-		},
-		{
-			Name: "address",
-			Type: resource.Complex,
-			SubAttributes: []*resource.Attribute{
-				{
-					Name:      "city",
-					Type:      resource.String,
-					CaseExact: true,
-					Assist: &resource.Assist{
-						JSONName: "city",
-						Path:     "city",
-						FullPath: "address.city",
-					},
-				},
-			},
-			Assist: &resource.Assist{
-				JSONName: "address",
-				Path:     "address",
-				FullPath: "address",
-			},
-		},
-		{
-			Name: "active",
-			Type: resource.Boolean,
-			Assist: &resource.Assist{
-				JSONName: "active",
-				Path:     "active",
-				FullPath: "active",
-			},
-		},
-	},
-}
 
 type filterWorkerTest struct {
 	name      string
@@ -72,27 +18,93 @@ type filterWorkerTest struct {
 }
 
 func TestFilterWorker(t *testing.T) {
-	filterWorkerTestMockSchema.ConstructAttributeIndex()
+	schema := &resource.Schema{
+		Schemas:    []string{resource.SchemaUrn},
+		Id:         resource.UserUrn,
+		Name:       "User schema",
+		Attributes: make([]*resource.Attribute, 0),
+	}
+	coreSchema, err := loadSchema("../schemas/common_schema.json")
+	userSchema, err := loadSchema("../schemas/user_schema.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	schema.MergeWith(coreSchema, userSchema)
+	schema.ConstructAttributeIndex()
 
 	for _, test := range []filterWorkerTest{
 		{
-			"transpile and filter",
-			"username eq \"david\" and age gt 17",
+			"14",
+			"emails[type eq \"work\" and value co \"@example.com\"] or ims[type eq \"xmpp\" and value co \"@foo.com\"]",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"$or": []interface{}{
+						bson.M{
+							"$and": []interface{}{
+								bson.M{
+									"emails.type": bson.M{
+										"$regex": bson.RegEx{
+											Pattern: "^work$",
+											Options: "i",
+										},
+									},
+								},
+								bson.M{
+									"emails.value": bson.M{
+										"$regex": bson.RegEx{
+											Pattern: "@example.com",
+											Options: "i",
+										},
+									},
+								},
+							},
+						},
+						bson.M{
+							"$and": []interface{}{
+								bson.M{
+									"ims.type": bson.M{
+										"$regex": bson.RegEx{
+											Pattern: "^xmpp$",
+											Options: "i",
+										},
+									},
+								},
+								bson.M{
+									"ims.value": bson.M{
+										"$regex": bson.RegEx{
+											Pattern: "@foo.com",
+											Options: "i",
+										},
+									},
+								},
+							},
+						},
+					},
+				}))
+			},
+		},
+		{
+			"13",
+			"userType eq \"Employee\" and (emails.type eq \"work\")",
 			func(result bson.M, err error) {
 				assert.Nil(t, err)
 				assert.True(t, reflect.DeepEqual(result, bson.M{
 					"$and": []interface{}{
 						bson.M{
-							"userName": bson.M{
+							"userType": bson.M{
 								"$regex": bson.RegEx{
-									Pattern: "^david$",
+									Pattern: "^Employee$",
 									Options: "i",
 								},
 							},
 						},
 						bson.M{
-							"age": bson.M{
-								"$gt": int64(17),
+							"emails.type": bson.M{
+								"$regex": bson.RegEx{
+									Pattern: "^work$",
+									Options: "i",
+								},
 							},
 						},
 					},
@@ -100,49 +112,199 @@ func TestFilterWorker(t *testing.T) {
 			},
 		},
 		{
-			"transpile nested filter",
-			"address[city sw \"Sh\"]",
+			"12",
+			"userType eq \"Employee\" and not emails.value co \"example.org\"",
 			func(result bson.M, err error) {
 				assert.Nil(t, err)
 				assert.True(t, reflect.DeepEqual(result, bson.M{
-					"address.city": bson.M{
-						"$regex": bson.RegEx{
-							Pattern: "^Sh",
-							Options: "",
+					"$and": []interface{}{
+						bson.M{
+							"userType": bson.M{
+								"$regex": bson.RegEx{
+									Pattern: "^Employee$",
+									Options: "i",
+								},
+							},
+						},
+						bson.M{
+							"$nor": []interface{}{
+								bson.M{
+									"emails.value": bson.M{
+										"$regex": bson.RegEx{
+											Pattern: "example.org",
+											Options: "i",
+										},
+									},
+								},
+							},
 						},
 					},
 				}))
 			},
 		},
 		{
-			"transpile string attribute starts with number",
-			"username sw 3",
-			func(result bson.M, err error) {
-				assert.NotNil(t, err)
-			},
-		},
-		{
-			"transpile comparison on complex",
-			"address eq \"foo\"",
-			func(result bson.M, err error) {
-				assert.NotNil(t, err)
-			},
-		},
-		{
-			"transpile boolean",
-			"active eq false",
+			"11",
+			"schemas eq \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\"",
 			func(result bson.M, err error) {
 				assert.Nil(t, err)
 				assert.True(t, reflect.DeepEqual(result, bson.M{
-					"active": bson.M{
-						"$eq": false,
+					"schemas": bson.M{
+						"$eq": "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+					},
+				}))
+			},
+		},
+		{
+			"10",
+			"title pr and userType eq \"Employee\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"$and": []interface{}{
+						bson.M{
+							"title": bson.M{
+								"$exists": true,
+								"$ne":     nil,
+								"$not":    bson.M{"$size": 0},
+							},
+						},
+						bson.M{
+							"userType": bson.M{
+								"$regex": bson.RegEx{
+									Pattern: "^Employee$",
+									Options: "i",
+								},
+							},
+						},
+					},
+				}))
+			},
+		},
+		{
+			"9",
+			"meta.lastModified le \"2011-05-13T04:42:34Z\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"meta.lastModified": bson.M{
+						"$lte": "2011-05-13T04:42:34Z",
+					},
+				}))
+			},
+		},
+		{
+			"8",
+			"meta.lastModified lt \"2011-05-13T04:42:34Z\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"meta.lastModified": bson.M{
+						"$lt": "2011-05-13T04:42:34Z",
+					},
+				}))
+			},
+		},
+		{
+			"7",
+			"meta.lastModified ge \"2011-05-13T04:42:34Z\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"meta.lastModified": bson.M{
+						"$gte": "2011-05-13T04:42:34Z",
+					},
+				}))
+			},
+		},
+		{
+			"6",
+			"meta.lastModified gt \"2011-05-13T04:42:34Z\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"meta.lastModified": bson.M{
+						"$gt": "2011-05-13T04:42:34Z",
+					},
+				}))
+			},
+		},
+		{
+			"5",
+			"title pr",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"title": bson.M{
+						"$exists": true,
+						"$ne":     nil,
+						"$not":    bson.M{"$size": 0},
+					},
+				}))
+			},
+		},
+		{
+			"4",
+			"urn:ietf:params:scim:schemas:core:2.0:User:userName sw \"J\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"userName": bson.M{
+						"$regex": bson.RegEx{
+							Pattern: "^J",
+							Options: "i",
+						},
+					},
+				}))
+			},
+		},
+		{
+			"3",
+			"userName sw \"J\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"userName": bson.M{
+						"$regex": bson.RegEx{
+							Pattern: "^J",
+							Options: "i",
+						},
+					},
+				}))
+			},
+		},
+		{
+			"2",
+			"name.familyName co \"O'Malley\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"name.familyName": bson.M{
+						"$regex": bson.RegEx{
+							Pattern: "O'Malley",
+							Options: "i",
+						},
+					},
+				}))
+			},
+		},
+		{
+			"1",
+			"userName eq \"john\"",
+			func(result bson.M, err error) {
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(result, bson.M{
+					"userName": bson.M{
+						"$regex": bson.RegEx{
+							Pattern: "^john$",
+							Options: "i",
+						},
 					},
 				}))
 			},
 		},
 	} {
 		result := FilterWorker(&FilterWorkerInput{
-			schema:     filterWorkerTestMockSchema,
+			schema:     schema,
 			filterText: test.filter,
 		}).(*WrappedReturn)
 
@@ -151,5 +313,60 @@ func TestFilterWorker(t *testing.T) {
 		} else {
 			test.assertion(result.ReturnData.(bson.M), result.Err)
 		}
+	}
+}
+
+func BenchmarkFilterWorker(b *testing.B) {
+	testFilters := []string{
+		"userName eq \"john\"",
+		"name.familyName co \"O'Malley\"",
+		"userName sw \"J\"",
+		"urn:ietf:params:scim:schemas:core:2.0:User:userName sw \"J\"",
+		"title pr",
+		"meta.lastModified gt \"2011-05-13T04:42:34Z\"",
+		"meta.lastModified ge \"2011-05-13T04:42:34Z\"",
+		"meta.lastModified lt \"2011-05-13T04:42:34Z\"",
+		"meta.lastModified le \"2011-05-13T04:42:34Z\"",
+		"title pr and userType eq \"Employee\"",
+		"title pr or userType eq \"Intern\"",
+		"schemas eq \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\"",
+		"userType eq \"Employee\" and (emails co \"example.com\" or emails.value co \"example.org\")",
+		"userType ne \"Employee\" and not (emails co \"example.com\" or emails.value co \"example.org\")",
+		"userType eq \"Employee\" and (emails.type eq \"work\")",
+		"userType eq \"Employee\" and emails[type eq \"work\" and value co \"@example.com\"]",
+		"emails[type eq \"work\" and value co \"@example.com\"] or ims[type eq \"xmpp\" and value co \"@foo.com\"]",
+	}
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+
+	schema := &resource.Schema{
+		Schemas:    []string{resource.SchemaUrn},
+		Id:         resource.UserUrn,
+		Name:       "User schema",
+		Attributes: make([]*resource.Attribute, 0),
+	}
+	coreSchema, err := loadSchema("../schemas/common_schema.json")
+	userSchema, err := loadSchema("../schemas/user_schema.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+	schema.MergeWith(coreSchema, userSchema)
+	schema.ConstructAttributeIndex()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		FilterWorker(&FilterWorkerInput{
+			schema:     schema,
+			filterText: testFilters[r.Intn(len(testFilters))],
+		})
+	}
+}
+
+func loadSchema(filePath string) (*resource.Schema, error) {
+	if path, err := filepath.Abs(filePath); err != nil {
+		return nil, err
+	} else if schema, err := resource.LoadSchema(path); err != nil {
+		return nil, err
+	} else {
+		return schema, nil
 	}
 }
