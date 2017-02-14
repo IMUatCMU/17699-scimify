@@ -162,10 +162,16 @@ func TestFilterWorker(t *testing.T) {
 				assert.True(t, reflect.DeepEqual(result, bson.M{
 					"$and": []interface{}{
 						bson.M{
-							"title": bson.M{
-								"$exists": true,
-								"$ne":     nil,
-								"$not":    bson.M{"$size": 0},
+							"$and": []interface{}{
+								bson.M{
+									"title": bson.M{"$exists": true},
+								},
+								bson.M{
+									"title": bson.M{"$ne": nil},
+								},
+								bson.M{
+									"title": bson.M{"$ne": ""},
+								},
 							},
 						},
 						bson.M{
@@ -234,10 +240,16 @@ func TestFilterWorker(t *testing.T) {
 			func(result bson.M, err error) {
 				assert.Nil(t, err)
 				assert.True(t, reflect.DeepEqual(result, bson.M{
-					"title": bson.M{
-						"$exists": true,
-						"$ne":     nil,
-						"$not":    bson.M{"$size": 0},
+					"$and": []interface{}{
+						bson.M{
+							"title": bson.M{"$exists": true},
+						},
+						bson.M{
+							"title": bson.M{"$ne": nil},
+						},
+						bson.M{
+							"title": bson.M{"$ne": ""},
+						},
 					},
 				}))
 			},

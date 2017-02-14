@@ -1,19 +1,18 @@
 package worker
 
 import (
-	"github.com/jeffail/tunny"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
-	"sync"
+	"github.com/jeffail/tunny"
 )
 
 type RepoQueryWorkerInput struct {
-	filter interface{}
-	sortBy string
+	filter    interface{}
+	sortBy    string
 	ascending bool
 	pageStart int
-	pageSize int
-	context resource.Context
+	pageSize  int
+	context   resource.Context
 }
 
 type repoQueryWorker struct {
@@ -45,9 +44,9 @@ func (w *repoQueryWorker) initialize(numProcs int) {
 
 func (w *repoQueryWorker) Do(job interface{}) (interface{}, error) {
 	if r, err := w.pool.SendWork(job); err != nil {
-		return nil, err
+		return make([]*resource.Resource, 0), err
 	} else if r.(*wrappedReturn).Err != nil {
-		return nil, r.(*wrappedReturn).Err
+		return make([]*resource.Resource, 0), r.(*wrappedReturn).Err
 	} else {
 		return r.(*wrappedReturn).ReturnData, nil
 	}

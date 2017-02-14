@@ -228,13 +228,25 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 			}, nil
 
 		case filter.Pr:
-			return bson.M{
-				attribute.Assist.FullPath: bson.M{
-					"$exists": true,
-					"$ne":     nil,
-					"$not":    bson.M{"$size": 0},
-				},
-			}, nil
+			existsCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$exists": true}}
+			nullCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$ne": nil}}
+			emptyStringCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$ne": ""}}
+			emptyArrayCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$not": bson.M{"$size": 0}}}
+			emptyObjectCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$ne": bson.M{}}}
+
+			criterion := make([]interface{}, 0)
+			criterion = append(criterion, existsCriteria, nullCriteria)
+			if attribute.MultiValued {
+				criterion = append(criterion, emptyArrayCriteria)
+			} else {
+				if resource.String == attribute.Type {
+					criterion = append(criterion, emptyStringCriteria)
+				} else if resource.Complex == attribute.Type {
+					criterion = append(criterion, emptyObjectCriteria)
+				}
+			}
+
+			return bson.M{"$and": criterion}, nil
 
 		default:
 			return nil, resource.CreateError(resource.InvalidFilter, fmt.Sprintf("Invalid operator %s", token.Value))

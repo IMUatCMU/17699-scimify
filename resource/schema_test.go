@@ -56,7 +56,7 @@ func TestLoadSchema(t *testing.T) {
 			Assist: &Assist{
 				JSONName:      "schemas",
 				Path:          "schemas",
-				ArrayIndexKey: "",
+				ArrayIndexKey: []string{},
 			},
 		}, schema.Attributes[0])
 		assertAttribute(t, &Attribute{
@@ -74,7 +74,7 @@ func TestLoadSchema(t *testing.T) {
 			Assist: &Assist{
 				JSONName:      "id",
 				Path:          "id",
-				ArrayIndexKey: "",
+				ArrayIndexKey: []string{},
 			},
 		}, schema.Attributes[1])
 		assertAttribute(t, &Attribute{
@@ -92,7 +92,7 @@ func TestLoadSchema(t *testing.T) {
 			Assist: &Assist{
 				JSONName:      "externalId",
 				Path:          "externalId",
-				ArrayIndexKey: "",
+				ArrayIndexKey: []string{},
 			},
 		}, schema.Attributes[2])
 		assertAttribute(t, &Attribute{
@@ -122,7 +122,7 @@ func TestLoadSchema(t *testing.T) {
 					Assist: &Assist{
 						JSONName:      "resourceType",
 						Path:          "meta.resourceType",
-						ArrayIndexKey: "",
+						ArrayIndexKey: []string{},
 					},
 				},
 				{
@@ -140,7 +140,7 @@ func TestLoadSchema(t *testing.T) {
 					Assist: &Assist{
 						JSONName:      "created",
 						Path:          "meta.created",
-						ArrayIndexKey: "",
+						ArrayIndexKey: []string{},
 					},
 				},
 				{
@@ -158,7 +158,7 @@ func TestLoadSchema(t *testing.T) {
 					Assist: &Assist{
 						JSONName:      "lastModified",
 						Path:          "meta.lastModified",
-						ArrayIndexKey: "",
+						ArrayIndexKey: []string{},
 					},
 				},
 				{
@@ -176,7 +176,7 @@ func TestLoadSchema(t *testing.T) {
 					Assist: &Assist{
 						JSONName:      "location",
 						Path:          "meta.location",
-						ArrayIndexKey: "",
+						ArrayIndexKey: []string{},
 					},
 				},
 				{
@@ -194,14 +194,14 @@ func TestLoadSchema(t *testing.T) {
 					Assist: &Assist{
 						JSONName:      "version",
 						Path:          "meta.version",
-						ArrayIndexKey: "",
+						ArrayIndexKey: []string{},
 					},
 				},
 			},
 			Assist: &Assist{
 				JSONName:      "meta",
 				Path:          "meta",
-				ArrayIndexKey: "",
+				ArrayIndexKey: []string{},
 			},
 		}, schema.Attributes[3])
 	}

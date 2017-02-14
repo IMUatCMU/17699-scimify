@@ -1,9 +1,9 @@
 package worker
 
 import (
-	"sync"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/spf13/viper"
+	"sync"
 )
 
 // Common interface for a worker that can do some work
@@ -41,7 +41,7 @@ var repoUserQueryWorkerInstance, repoGroupQueryWorkerInstance *repoQueryWorker
 func GetRepoUserQueryWorker() Worker {
 	once.Do(func() {
 		repoUserQueryWorkerInstance = &repoQueryWorker{
-			Repo:persistence.NewMongoRepository(
+			Repo: persistence.NewMongoRepository(
 				viper.GetString("mongo.address"),
 				viper.GetString("mongo.database"),
 				viper.GetString("mongo.userCollectionName")),
@@ -54,7 +54,7 @@ func GetRepoUserQueryWorker() Worker {
 func GetRepoGroupQueryWorker() Worker {
 	once.Do(func() {
 		repoGroupQueryWorkerInstance = &repoQueryWorker{
-			Repo:persistence.NewMongoRepository(
+			Repo: persistence.NewMongoRepository(
 				viper.GetString("mongo.address"),
 				viper.GetString("mongo.database"),
 				viper.GetString("mongo.groupCollectionName")),

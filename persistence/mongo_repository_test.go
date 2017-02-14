@@ -3,6 +3,7 @@ package persistence
 import (
 	"encoding/json"
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
@@ -18,7 +19,11 @@ import (
 // The easiest way to setup is to use docker
 
 func TestMongoRepository_Query(t *testing.T) {
-	repo, cleanUp := prepareTestMongoConnection(t)
+	viper.Set("mongo.address", "localhost:32768")
+	viper.Set("mongo.database", "test_db")
+	viper.Set("mongo.userCollectionName", "users")
+
+	repo, cleanUp := PrepareTestMongoConnection(t)
 	defer cleanUp(repo)
 
 	for _, test := range []struct {
@@ -111,7 +116,7 @@ func TestMongoRepository_Query(t *testing.T) {
 	}
 }
 
-func prepareTestMongoConnection(t *testing.T) (*MongoRepository, func(*MongoRepository)) {
+func PrepareTestMongoConnection(t *testing.T) (*MongoRepository, func(*MongoRepository)) {
 	cleanUp := func(r *MongoRepository) {
 		r.getCollection(r.getSession()).RemoveAll(nil)
 	}
@@ -138,7 +143,10 @@ func prepareTestMongoConnection(t *testing.T) (*MongoRepository, func(*MongoRepo
 	}
 	assert.NotEmpty(t, testData["data"], "Test data must not be empty")
 
-	repo := NewMongoRepository("localhost:32768", "test_db", "users")
+	repo := NewMongoRepository(
+		viper.GetString("mongo.address"),
+		viper.GetString("mongo.database"),
+		viper.GetString("mongo.userCollectionName"))
 	c := repo.getCollection(repo.getSession())
 	cleanUp(repo)
 
