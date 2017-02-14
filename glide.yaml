@@ -2,6 +2,7 @@ package: github.com/go-scim/scimify
 import:
 - package: gopkg.in/mgo.v2
 - package: github.com/jeffail/tunny
+- package: github.com/spf13/viper
 testImport:
 - package: github.com/stretchr/testify
   version: ^1.1.4

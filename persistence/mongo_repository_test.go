@@ -117,7 +117,7 @@ func prepareTestMongoConnection(t *testing.T) (*MongoRepository, func(*MongoRepo
 	}
 
 	testData := make(map[string]interface{})
-	if path, err := filepath.Abs("../test_data/test_users.json"); err != nil {
+	if path, err := filepath.Abs("../test_data/test_users_1.json"); err != nil {
 		t.Fatal(err)
 	} else {
 		file, err := os.Open(path)
