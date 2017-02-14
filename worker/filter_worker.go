@@ -4,6 +4,8 @@ import (
 	"github.com/go-scim/scimify/filter"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
+	"github.com/jeffail/tunny"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type FilterWorkerInput struct {
@@ -11,27 +13,43 @@ type FilterWorkerInput struct {
 	schema     *resource.Schema
 }
 
-func FilterWorker(input interface{}) interface{} {
-	result := &WrappedReturn{}
+type filterWorker struct {
+	pool *tunny.WorkPool
+}
 
-	tokens, err := filter.Tokenize(input.(*FilterWorkerInput).filterText)
-	if err != nil {
-		result.Err = err
-		return result
+func (w *filterWorker) initialize(numProcs int) {
+	if pool, err := tunny.CreatePool(numProcs, func(input interface{}) interface{} {
+		r := &wrappedReturn{}
+		if tokens, err := filter.Tokenize(input.(*FilterWorkerInput).filterText); err != nil {
+			r.Err = err
+			return r
+		} else if root, err := filter.Parse(tokens); err != nil {
+			r.Err = err
+			return r
+		} else if bson, err := persistence.TranspileToMongoQuery(root, input.(*FilterWorkerInput).schema); err != nil {
+			r.Err = err
+			return r
+		} else {
+			r.ReturnData = bson
+			return r
+		}
+	}).Open(); err != nil {
+		panic("Failed to initialize filter worker pool")
+	} else {
+		w.pool = pool
 	}
+}
 
-	root, err := filter.Parse(tokens)
-	if err != nil {
-		result.Err = err
-		return result
+func (w *filterWorker) Do(job interface{}) (interface{}, error) {
+	if r, err := w.pool.SendWork(job); err != nil {
+		return bson.M{}, err
+	} else if r.(*wrappedReturn).Err != nil {
+		return bson.M{}, r.(*wrappedReturn).Err
+	} else {
+		return r.(*wrappedReturn).ReturnData, nil
 	}
+}
 
-	bson, err := persistence.TranspileToMongoQuery(root, input.(*FilterWorkerInput).schema)
-	if err != nil {
-		result.Err = err
-		return result
-	}
-
-	result.ReturnData = bson
-	return result
+func (w *filterWorker) Close() {
+	w.pool.Close()
 }

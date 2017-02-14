@@ -303,16 +303,12 @@ func TestFilterWorker(t *testing.T) {
 			},
 		},
 	} {
-		result := FilterWorker(&FilterWorkerInput{
+		worker := GetFilterWorker()
+		result, err := worker.Do(&FilterWorkerInput{
 			schema:     schema,
 			filterText: test.filter,
-		}).(*WrappedReturn)
-
-		if nil == result.ReturnData {
-			test.assertion(nil, result.Err)
-		} else {
-			test.assertion(result.ReturnData.(bson.M), result.Err)
-		}
+		})
+		test.assertion(result.(bson.M), err)
 	}
 }
 
@@ -352,13 +348,18 @@ func BenchmarkFilterWorker(b *testing.B) {
 	schema.MergeWith(coreSchema, userSchema)
 	schema.ConstructAttributeIndex()
 
+	worker := GetFilterWorker()
+
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		FilterWorker(&FilterWorkerInput{
-			schema:     schema,
-			filterText: testFilters[r.Intn(len(testFilters))],
-		})
-	}
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			worker.Do(&FilterWorkerInput{
+				schema:     schema,
+				filterText: testFilters[r.Intn(len(testFilters)-1)],
+			})
+		}
+
+	})
 }
 
 func loadSchema(filePath string) (*resource.Schema, error) {
