@@ -189,6 +189,7 @@ func TestRepoQueryWorker(t *testing.T) {
 	PrepareTestMongoConnection(t, "../test_data/test_users_2.json")
 
 	worker := GetRepoUserQueryWorker()
+	defer worker.Close()
 	for _, test := range []repoQueryWorkerTest{
 		{
 			"title pr or userType eq \"Intern\"",
@@ -297,11 +298,14 @@ func BenchmarkRepoQueryWorker(b *testing.B) {
 
 	PrepareTestMongoConnection(b, "../test_data/test_users_2.json")
 	worker := GetRepoUserQueryWorker()
+	defer worker.Close()
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			worker.Do(repoQueryWorkerTestParams[r.Intn(len(repoQueryWorkerTestParams)-1)])
+			n := r.Intn(len(repoQueryWorkerTestParams))
+			b.Logf("%d\n", n)
+			worker.Do(repoQueryWorkerTestParams[n])
 		}
 	})
 }

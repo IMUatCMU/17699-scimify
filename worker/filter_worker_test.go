@@ -361,13 +361,16 @@ func BenchmarkFilterWorker(b *testing.B) {
 	schema.ConstructAttributeIndex()
 
 	worker := GetFilterWorker()
+	defer worker.Close()
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
+			n := r.Intn(len(testFilters))
+			b.Logf("%d\n", n)
 			worker.Do(&FilterWorkerInput{
 				schema:     schema,
-				filterText: testFilters[r.Intn(len(testFilters)-1)],
+				filterText: testFilters[n],
 			})
 		}
 
