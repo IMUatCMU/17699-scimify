@@ -6,7 +6,6 @@ import (
 	"github.com/go-scim/scimify/filter"
 	"github.com/go-scim/scimify/resource"
 	"gopkg.in/mgo.v2/bson"
-	"strings"
 )
 
 func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, error) {
@@ -42,13 +41,14 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 			}
 
 			pathName := root.Left.Data.(filter.Token).Value
-			if strings.HasPrefix(strings.ToLower(pathName), strings.ToLower(resource.UserUrn+":")) {
-				pathName = pathName[len(resource.UserUrn+":"):]
-			} else if strings.HasPrefix(strings.ToLower(pathName), strings.ToLower(resource.GroupUrn+":")) {
-				pathName = pathName[len(resource.GroupUrn+":"):]
-			}
+			//if strings.HasPrefix(strings.ToLower(pathName), strings.ToLower(resource.UserUrn+":")) {
+			//	pathName = pathName[len(resource.UserUrn+":"):]
+			//} else if strings.HasPrefix(strings.ToLower(pathName), strings.ToLower(resource.GroupUrn+":")) {
+			//	pathName = pathName[len(resource.GroupUrn+":"):]
+			//}
 
-			attribute = schema.GetAttribute(strings.ToLower(pathName))
+			//attribute = schema.GetAttribute(strings.ToLower(pathName))
+			attribute = schema.GetAttribute(pathName)
 			if nil == attribute {
 				return nil, resource.CreateError(resource.InvalidFilter, fmt.Sprintf("Unknown path name '%s'", pathName))
 			} else if attribute.Type == resource.Complex && token.Value != filter.Pr {
@@ -84,13 +84,13 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 		case filter.Eq:
 			if attribute.CaseExact || attribute.Type != resource.String {
 				return bson.M{
-					attribute.Assist.FullPath: bson.M{
+					attribute.Assist.Path: bson.M{
 						"$eq": root.Right.Data.(filter.Token).Params[filter.ParsedValue],
 					},
 				}, nil
 			} else {
 				return bson.M{
-					attribute.Assist.FullPath: bson.M{
+					attribute.Assist.Path: bson.M{
 						"$regex": bson.RegEx{
 							Pattern: fmt.Sprintf("^%s$", root.Right.Data.(filter.Token).Params[filter.ParsedValue]),
 							Options: "i",
@@ -102,7 +102,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 		case filter.Ne:
 			if attribute.CaseExact || attribute.Type != resource.String {
 				return bson.M{
-					attribute.Assist.FullPath: bson.M{
+					attribute.Assist.Path: bson.M{
 						"ne": root.Right.Data.(filter.Token).Params[filter.ParsedValue],
 					},
 				}, nil
@@ -110,7 +110,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 				return bson.M{
 					"$nor": []interface{}{
 						bson.M{
-							attribute.Assist.FullPath: bson.M{
+							attribute.Assist.Path: bson.M{
 								"$regex": bson.RegEx{
 									Pattern: fmt.Sprintf("^%x$", root.Right.Data.(filter.Token).Params[filter.ParsedValue]),
 									Options: "i",
@@ -129,7 +129,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 			} else {
 				if attribute.CaseExact {
 					return bson.M{
-						attribute.Assist.FullPath: bson.M{
+						attribute.Assist.Path: bson.M{
 							"$regex": bson.RegEx{
 								Pattern: parsedValue,
 							},
@@ -137,7 +137,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 					}, nil
 				} else {
 					return bson.M{
-						attribute.Assist.FullPath: bson.M{
+						attribute.Assist.Path: bson.M{
 							"$regex": bson.RegEx{
 								Pattern: parsedValue,
 								Options: "i",
@@ -155,7 +155,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 			} else {
 				if attribute.CaseExact {
 					return bson.M{
-						attribute.Assist.FullPath: bson.M{
+						attribute.Assist.Path: bson.M{
 							"$regex": bson.RegEx{
 								Pattern: "^" + parsedValue,
 							},
@@ -163,7 +163,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 					}, nil
 				} else {
 					return bson.M{
-						attribute.Assist.FullPath: bson.M{
+						attribute.Assist.Path: bson.M{
 							"$regex": bson.RegEx{
 								Pattern: "^" + parsedValue,
 								Options: "i",
@@ -181,7 +181,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 			} else {
 				if attribute.CaseExact {
 					return bson.M{
-						attribute.Assist.FullPath: bson.M{
+						attribute.Assist.Path: bson.M{
 							"$regex": bson.RegEx{
 								Pattern: parsedValue + "$",
 							},
@@ -189,7 +189,7 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 					}, nil
 				} else {
 					return bson.M{
-						attribute.Assist.FullPath: bson.M{
+						attribute.Assist.Path: bson.M{
 							"$regex": bson.RegEx{
 								Pattern: parsedValue + "$",
 								Options: "i",
@@ -201,38 +201,38 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 
 		case filter.Gt:
 			return bson.M{
-				attribute.Assist.FullPath: bson.M{
+				attribute.Assist.Path: bson.M{
 					"$gt": root.Right.Data.(filter.Token).Params[filter.ParsedValue],
 				},
 			}, nil
 
 		case filter.Ge:
 			return bson.M{
-				attribute.Assist.FullPath: bson.M{
+				attribute.Assist.Path: bson.M{
 					"$gte": root.Right.Data.(filter.Token).Params[filter.ParsedValue],
 				},
 			}, nil
 
 		case filter.Lt:
 			return bson.M{
-				attribute.Assist.FullPath: bson.M{
+				attribute.Assist.Path: bson.M{
 					"$lt": root.Right.Data.(filter.Token).Params[filter.ParsedValue],
 				},
 			}, nil
 
 		case filter.Le:
 			return bson.M{
-				attribute.Assist.FullPath: bson.M{
+				attribute.Assist.Path: bson.M{
 					"$lte": root.Right.Data.(filter.Token).Params[filter.ParsedValue],
 				},
 			}, nil
 
 		case filter.Pr:
-			existsCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$exists": true}}
-			nullCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$ne": nil}}
-			emptyStringCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$ne": ""}}
-			emptyArrayCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$not": bson.M{"$size": 0}}}
-			emptyObjectCriteria := bson.M{attribute.Assist.FullPath: bson.M{"$ne": bson.M{}}}
+			existsCriteria := bson.M{attribute.Assist.Path: bson.M{"$exists": true}}
+			nullCriteria := bson.M{attribute.Assist.Path: bson.M{"$ne": nil}}
+			emptyStringCriteria := bson.M{attribute.Assist.Path: bson.M{"$ne": ""}}
+			emptyArrayCriteria := bson.M{attribute.Assist.Path: bson.M{"$not": bson.M{"$size": 0}}}
+			emptyObjectCriteria := bson.M{attribute.Assist.Path: bson.M{"$ne": bson.M{}}}
 
 			criterion := make([]interface{}, 0)
 			criterion = append(criterion, existsCriteria, nullCriteria)

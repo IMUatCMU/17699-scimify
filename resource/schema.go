@@ -44,14 +44,22 @@ func (s *Schema) ConstructAttributeIndex() {
 }
 
 // Get the attribute from the index constructed, prerequisite is calling ConstructAttributeIndex() method first.
-// The rule in general is core attributes (i.e. stock User and Group attributes) are indexed with their short names,
-// which means the assist.fullName has their short names; Extension attributes must be defined with their full names
-// to avoid collision
+// If $path starts with a valid resource URN, convert to lower case and get from index
+// If $path does not start with a valid resource URN, append id (which is a resource URN) of this schema and get from index
+// If $path are keys from the core schema (i.e. id, externalId, meta, and so on) convert to lower case and get from index
 func (s *Schema) GetAttribute(path string) *Attribute {
-	if strings.HasPrefix(path, s.Id+":") {
-		return s.attrIndex[strings.ToLower(path[len(s.Id+":")+1:])]
-	} else {
+	switch strings.ToLower(path) {
+	case "schemas",
+		"id", "externalid",
+		"meta", "meta.resourcetype", "meta.created", "meta.lastmodified", "meta.location", "meta.version":
 		return s.attrIndex[strings.ToLower(path)]
+	default:
+		for _, resourceUrn := range AllResourceUrns {
+			if strings.HasPrefix(strings.ToLower(path), strings.ToLower(resourceUrn+":")) {
+				return s.attrIndex[strings.ToLower(path)]
+			}
+		}
+		return s.attrIndex[strings.ToLower(s.Id)+":"+strings.ToLower(path)]
 	}
 }
 

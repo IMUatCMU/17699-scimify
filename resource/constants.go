@@ -11,6 +11,11 @@ const (
 	ErrorUrn                 = "urn:ietf:params:scim:api:messages:2.0:Error"
 )
 
+// TODO consider make this a configuration options
+var AllResourceUrns = []string{
+	UserUrn, GroupUrn, ResourceTypeUrn, ServiceProviderConfigUrn, SchemaUrn,
+}
+
 // Internally Used Urn
 const (
 	CommonUrn = "urn:ietf:params:scim:schemas:common:2.0:common"

@@ -28,7 +28,7 @@ var testSchema = &resource.Schema{
 			Assist: &resource.Assist{
 				JSONName: "userName",
 				Path:     "userName",
-				FullPath: "userName",
+				FullPath: "urn:ietf:params:scim:schemas:core:2.0:User:userName",
 			},
 		},
 		{
@@ -38,7 +38,7 @@ var testSchema = &resource.Schema{
 			Assist: &resource.Assist{
 				JSONName: "age",
 				Path:     "age",
-				FullPath: "age",
+				FullPath: "urn:ietf:params:scim:schemas:core:2.0:User:age",
 			},
 		},
 		{
@@ -51,15 +51,15 @@ var testSchema = &resource.Schema{
 					CaseExact: true,
 					Assist: &resource.Assist{
 						JSONName: "city",
-						Path:     "city",
-						FullPath: "address.city",
+						Path:     "address.city",
+						FullPath: "urn:ietf:params:scim:schemas:core:2.0:User:address.city",
 					},
 				},
 			},
 			Assist: &resource.Assist{
 				JSONName: "address",
 				Path:     "address",
-				FullPath: "address",
+				FullPath: "urn:ietf:params:scim:schemas:core:2.0:User:address",
 			},
 		},
 		{
@@ -68,7 +68,7 @@ var testSchema = &resource.Schema{
 			Assist: &resource.Assist{
 				JSONName: "active",
 				Path:     "active",
-				FullPath: "active",
+				FullPath: "urn:ietf:params:scim:schemas:core:2.0:User:active",
 			},
 		},
 	},
