@@ -8,13 +8,14 @@ type MapEntryProcessor func(key string, value interface{}) (interface{}, error)
 type SliceElementProcessor func(idx int, elem interface{}) (interface{}, error)
 
 type Aggregator interface {
-	Aggregate(interface{})
+	Aggregate(key, value interface{})
 	Result() interface{}
 }
 
 type result struct {
-	Value	interface{}
-	Err 	error
+	Key   interface{}
+	Value interface{}
+	Err   error
 }
 
 func WalkSliceInParallel(target []interface{}, processFunc SliceElementProcessor, aggregator Aggregator) (interface{}, error) {
@@ -26,14 +27,14 @@ func WalkSliceInParallel(target []interface{}, processFunc SliceElementProcessor
 		if r.Err != nil {
 			return nil, r.Err
 		} else {
-			aggregator.Aggregate(r.Value)
+			aggregator.Aggregate(r.Key, r.Value)
 		}
 	}
 
 	return aggregator.Result(), nil
 }
 
-func processSliceElement(done <-chan struct{}, target []interface{}, processFunc SliceElementProcessor) (<-chan result) {
+func processSliceElement(done <-chan struct{}, target []interface{}, processFunc SliceElementProcessor) <-chan result {
 	c := make(chan result)
 
 	go func() {
@@ -48,7 +49,7 @@ func processSliceElement(done <-chan struct{}, target []interface{}, processFunc
 			go func() {
 				r, err := processFunc(index, element)
 				select {
-				case c <- result{r, err}:
+				case c <- result{i, r, err}:
 				case <-done:
 				}
 				wg.Done()
@@ -82,14 +83,14 @@ func WalkStringMapInParallel(target map[string]interface{}, processFunc MapEntry
 		if r.Err != nil {
 			return nil, r.Err
 		} else {
-			aggregator.Aggregate(r.Value)
+			aggregator.Aggregate(r.Key, r.Value)
 		}
 	}
 
 	return aggregator.Result(), nil
 }
 
-func processStringMapEntry(done <-chan struct{}, target map[string]interface{}, processFunc MapEntryProcessor) (<-chan result) {
+func processStringMapEntry(done <-chan struct{}, target map[string]interface{}, processFunc MapEntryProcessor) <-chan result {
 	c := make(chan result)
 
 	go func() {
@@ -103,8 +104,11 @@ func processStringMapEntry(done <-chan struct{}, target map[string]interface{}, 
 			// walk entry
 			go func() {
 				r, err := processFunc(key, val)
+				//if err != nil {
+				//	panic(err)
+				//}
 				select {
-				case c <- result{r, err}:
+				case c <- result{k, r, err}:
 				case <-done:
 				}
 				wg.Done()

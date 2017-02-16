@@ -28,7 +28,7 @@ const (
 	Binary    = "binary"
 	Decimal   = "decimal"
 	Integer   = "integer"
-	DateTime  = "dateTime"
+	DateTime  = "datetime"
 	Reference = "reference"
 	Complex   = "complex"
 )

@@ -1,16 +1,17 @@
 package helper
 
 import (
-	"testing"
-	"strings"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"strings"
+	"testing"
 )
 
 type testMapAggregator struct {
-	state 	[]string
+	state []string
 }
-func (g *testMapAggregator) Aggregate(input interface{}) {
+
+func (g *testMapAggregator) Aggregate(key, input interface{}) {
 	if nil == g.state {
 		g.state = make([]string, 0)
 	}
@@ -21,9 +22,10 @@ func (g *testMapAggregator) Result() interface{} {
 }
 
 type testSliceAggregator struct {
-	state	[]string
+	state []string
 }
-func (g *testSliceAggregator) Aggregate(input interface{}) {
+
+func (g *testSliceAggregator) Aggregate(key, input interface{}) {
 	if nil == g.state {
 		g.state = make([]string, 0)
 	}
@@ -34,12 +36,12 @@ func (g *testSliceAggregator) Result() interface{} {
 }
 
 func TestWalkSliceInParallel(t *testing.T) {
-	for _, test := range []struct{
-		name 		string
-		target 		[]interface{}
-		processFunc	SliceElementProcessor
-		aggregator	Aggregator
-		assertion	func(interface{}, error)
+	for _, test := range []struct {
+		name        string
+		target      []interface{}
+		processFunc SliceElementProcessor
+		aggregator  Aggregator
+		assertion   func(interface{}, error)
 	}{
 		{
 			"process simple slice",
@@ -47,7 +49,7 @@ func TestWalkSliceInParallel(t *testing.T) {
 			func(_ int, elem interface{}) (interface{}, error) {
 				return elem, nil
 			},
-			&testSliceAggregator{state:make([]string, 0)},
+			&testSliceAggregator{state: make([]string, 0)},
 			func(result interface{}, err error) {
 				assert.Nil(t, err)
 				assert.True(t, result == "[1,2,3]" ||
@@ -64,25 +66,25 @@ func TestWalkSliceInParallel(t *testing.T) {
 			func(_ int, elem interface{}) (interface{}, error) {
 				return elem, nil
 			},
-			&testSliceAggregator{state:make([]string, 0)},
+			&testSliceAggregator{state: make([]string, 0)},
 			func(result interface{}, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, "[]", result.(string))
 			},
 		},
-	}{
+	} {
 		result, err := WalkSliceInParallel(test.target, test.processFunc, test.aggregator)
 		test.assertion(result, err)
 	}
 }
 
 func TestWalkStringMapInParallel(t *testing.T) {
-	for _, test := range []struct{
-		name 		string
-		target		map[string]interface{}
-		processFunc	MapEntryProcessor
-		aggregator	Aggregator
-		assertion	func(interface{}, error)
+	for _, test := range []struct {
+		name        string
+		target      map[string]interface{}
+		processFunc MapEntryProcessor
+		aggregator  Aggregator
+		assertion   func(interface{}, error)
 	}{
 		{
 			"process simple map",
@@ -93,7 +95,7 @@ func TestWalkStringMapInParallel(t *testing.T) {
 			func(key string, value interface{}) (interface{}, error) {
 				return fmt.Sprintf("%s:%v", key, value), nil
 			},
-			&testMapAggregator{state:make([]string, 0)},
+			&testMapAggregator{state: make([]string, 0)},
 			func(result interface{}, err error) {
 				assert.Nil(t, err)
 				assert.True(t, result == "{foo:bar,bar:3}" || result == "{bar:3,foo:bar}")
@@ -105,13 +107,13 @@ func TestWalkStringMapInParallel(t *testing.T) {
 			func(key string, value interface{}) (interface{}, error) {
 				return fmt.Sprintf("%s:%v", key, value), nil
 			},
-			&testMapAggregator{state:make([]string, 0)},
+			&testMapAggregator{state: make([]string, 0)},
 			func(result interface{}, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, "{}", result.(string))
 			},
 		},
-	}{
+	} {
 		result, err := WalkStringMapInParallel(test.target, test.processFunc, test.aggregator)
 		test.assertion(result, err)
 	}
