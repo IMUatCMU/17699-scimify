@@ -2,6 +2,7 @@ package worker
 
 import (
 	"github.com/go-scim/scimify/persistence"
+	"github.com/go-scim/scimify/serialize"
 	"github.com/spf13/viper"
 	"sync"
 )
@@ -24,22 +25,24 @@ type wrappedReturn struct {
 	Err        error
 }
 
-var once sync.Once
-
+var oneFilterWorker sync.Once
 var filterWorkerInstance *filterWorker
 
 func GetFilterWorker() Worker {
-	once.Do(func() {
+	oneFilterWorker.Do(func() {
 		filterWorkerInstance = &filterWorker{}
 		filterWorkerInstance.initialize(2)
 	})
 	return filterWorkerInstance
 }
 
+var (
+	oneRepoUserQueryWorker, oneRepoGroupQueryWorker sync.Once
+)
 var repoUserQueryWorkerInstance, repoGroupQueryWorkerInstance *repoQueryWorker
 
 func GetRepoUserQueryWorker() Worker {
-	once.Do(func() {
+	oneRepoUserQueryWorker.Do(func() {
 		repoUserQueryWorkerInstance = &repoQueryWorker{
 			Repo: persistence.NewMongoRepository(
 				viper.GetString("mongo.address"),
@@ -52,7 +55,7 @@ func GetRepoUserQueryWorker() Worker {
 }
 
 func GetRepoGroupQueryWorker() Worker {
-	once.Do(func() {
+	oneRepoGroupQueryWorker.Do(func() {
 		repoGroupQueryWorkerInstance = &repoQueryWorker{
 			Repo: persistence.NewMongoRepository(
 				viper.GetString("mongo.address"),
@@ -62,4 +65,29 @@ func GetRepoGroupQueryWorker() Worker {
 		repoGroupQueryWorkerInstance.initialize(2)
 	})
 	return repoGroupQueryWorkerInstance
+}
+
+var (
+	oneDefaultJsonSerializer, oneSchemaAssistedJsonSerializer sync.Once
+)
+var defaultJsonSerializerInstance, schemaAssistedJsonSerializerInstance *jsonWorker
+
+func GetDefaultJsonSerializerWorker() Worker {
+	oneDefaultJsonSerializer.Do(func() {
+		defaultJsonSerializerInstance = &jsonWorker{
+			Serializer: &serialize.DefaultJsonSerializer{},
+		}
+		defaultJsonSerializerInstance.initialize(2)
+	})
+	return defaultJsonSerializerInstance
+}
+
+func GetSchemaAssistedJsonSerializerWorker() Worker {
+	oneSchemaAssistedJsonSerializer.Do(func() {
+		schemaAssistedJsonSerializerInstance = &jsonWorker{
+			Serializer: &serialize.SchemaJsonSerializer{},
+		}
+		schemaAssistedJsonSerializerInstance.initialize(9)
+	})
+	return schemaAssistedJsonSerializerInstance
 }

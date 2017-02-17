@@ -18,6 +18,7 @@ type SchemaJsonSerializer struct{}
 
 func (s *SchemaJsonSerializer) Serialize(resource *resource.Resource, context interface{}) ([]byte, error) {
 	data := resource.Attributes
+
 	if len(resource.Schemas) > 0 {
 		resource.Attributes["schemas"] = resource.Schemas
 	}
