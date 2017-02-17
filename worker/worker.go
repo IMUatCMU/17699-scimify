@@ -87,7 +87,7 @@ func GetSchemaAssistedJsonSerializerWorker() Worker {
 		schemaAssistedJsonSerializerInstance = &jsonWorker{
 			Serializer: &serialize.SchemaJsonSerializer{},
 		}
-		schemaAssistedJsonSerializerInstance.initialize(9)
+		schemaAssistedJsonSerializerInstance.initialize(1)
 	})
 	return schemaAssistedJsonSerializerInstance
 }
