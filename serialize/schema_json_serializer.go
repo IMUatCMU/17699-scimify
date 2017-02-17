@@ -196,7 +196,7 @@ func serializeMap(target map[string]interface{}, attrGuide resource.AttributeGet
 	}
 
 	aggregator := &jsonMapEntryAggregator{state: make([]string, 0)}
-	_, err := helper.WalkStringMapInParallel(target, processor, aggregator)
+	_, err := helper.WalkStringMapInSerial(target, processor, aggregator)
 	if err != nil {
 		return "", err
 	}
