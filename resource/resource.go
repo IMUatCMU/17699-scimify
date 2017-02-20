@@ -3,7 +3,10 @@
 // core attributes and extension attributes are modelled as map
 package resource
 
+import "sync"
+
 type Resource struct {
+	sync.RWMutex
 	Schemas    []string `json:"schemas"`
 	Id         string   `json:"id"`
 	ExternalId string   `json:"externalId"`
