@@ -101,7 +101,6 @@ func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribu
 				subObject, _ := getObjectByKey(object, subAttr.Assist.JSONName)
 				if nil != subObject {
 					if ok, err := v.validate(subObject, subAttr, context); !ok {
-						fmt.Println(subAttr.Assist.FullPath, subObject)
 						return false, err
 					}
 				}

@@ -16,8 +16,9 @@ type ValidatorContext struct {
 
 // Reserved keys in ValidatorContext
 const (
-	ReferenceResource = "ReferenceResource"
-	Schema            = "Schema"
+	ReferenceResource    = "ReferenceResource"
+	Schema               = "Schema"
+	FailReadOnlyRequired = "FailReadOnlyRequired" // readOnly attribute value missing, ok in POST, not ok in PUT
 )
 
 // Validation Error
@@ -33,5 +34,6 @@ func (e *validationError) Error() string {
 
 // Constant for violation type
 const (
-	typeCheck = "type_check"
+	typeCheck       = "type_check"
+	requiredMissing = "required_missing"
 )

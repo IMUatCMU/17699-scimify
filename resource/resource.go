@@ -24,8 +24,11 @@ func NewResource(resourceBaseUrn ...string) *Resource {
 func NewResourceFromMap(data map[string]interface{}) *Resource {
 	resource := NewResource()
 
-	if schemas, ok := data["schemas"].([]string); ok {
-		resource.Schemas = schemas
+	if schemas, ok := data["schemas"].([]interface{}); ok {
+		resource.Schemas = make([]string, 0)
+		for _, elem := range schemas {
+			resource.Schemas = append(resource.Schemas, elem.(string))
+		}
 		delete(data, "schemas")
 	}
 

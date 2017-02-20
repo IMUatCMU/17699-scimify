@@ -1,0 +1,125 @@
+{
+  "id" : "urn:ietf:params:scim:schemas:core:2.0:Dummy",
+  "name" : "Dummy",
+  "attributes" : [
+    {
+      "name": "a",
+      "type": "string",
+      "multiValued": false,
+      "required": true,
+      "mutability": "readWrite",
+      "subAttributes": [],
+      "_assist": {
+        "_jsonName": "a",
+        "_path": "a",
+        "_full_path": "a",
+        "_arrayIndexKey": []
+      }
+    },
+    {
+      "name": "b",
+      "type": "string",
+      "multiValued": true,
+      "required": true,
+      "mutability": "readWrite",
+      "subAttributes": [],
+      "_assist": {
+        "_jsonName": "b",
+        "_path": "b",
+        "_full_path": "b",
+        "_arrayIndexKey": []
+      }
+    },
+    {
+      "name": "c",
+      "type": "complex",
+      "multiValued": false,
+      "required": true,
+      "mutability": "readWrite",
+      "subAttributes": [
+        {
+          "name": "c1",
+          "type": "string",
+          "multiValued": false,
+          "required": true,
+          "mutability": "readWrite",
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "c1",
+            "_path": "c.c1",
+            "_full_path": "c.c1",
+            "_arrayIndexKey": []
+          }
+        }
+      ],
+      "_assist": {
+        "_jsonName": "c",
+        "_path": "c",
+        "_full_path": "c",
+        "_arrayIndexKey": []
+      }
+    },
+    {
+      "name": "d",
+      "type": "complex",
+      "multiValued": false,
+      "required": false,
+      "mutability": "readWrite",
+      "subAttributes": [
+        {
+          "name": "d1",
+          "type": "string",
+          "multiValued": false,
+          "required": true,
+          "mutability": "readWrite",
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "d1",
+            "_path": "d.d1",
+            "_full_path": "d.d1",
+            "_arrayIndexKey": []
+          }
+        }
+      ],
+      "_assist": {
+        "_jsonName": "d",
+        "_path": "d",
+        "_full_path": "d",
+        "_arrayIndexKey": []
+      }
+    },
+    {
+      "name": "e",
+      "type": "complex",
+      "multiValued": true,
+      "required": false,
+      "mutability": "readWrite",
+      "subAttributes": [
+        {
+          "name": "e1",
+          "type": "string",
+          "multiValued": false,
+          "required": true,
+          "mutability": "readWrite",
+          "subAttributes": [],
+          "_assist": {
+            "_jsonName": "e1",
+            "_path": "e.e1",
+            "_full_path": "e.e1",
+            "_arrayIndexKey": []
+          }
+        }
+      ],
+      "_assist": {
+        "_jsonName": "e",
+        "_path": "e",
+        "_full_path": "e",
+        "_arrayIndexKey": []
+      }
+    }
+  ],
+  "meta" : {
+    "resourceType" : "Schema",
+    "location" : "/Schemas/urn:ietf:params:scim:schemas:core:2.0:User"
+  }
+}
