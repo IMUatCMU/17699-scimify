@@ -16,6 +16,10 @@ func NewQueue(cap int) *queue {
 	return &queue{data: make([]interface{}, 0, cap)}
 }
 
+func NewQueueWithoutLimit() *queue {
+	return &queue{data: make([]interface{}, 0)}
+}
+
 func (q *queue) Offer(item interface{}) {
 	q.data = append(q.data, item)
 }
