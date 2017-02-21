@@ -19,6 +19,7 @@ const (
 	ReferenceResource    = "ReferenceResource"
 	Schema               = "Schema"
 	FailReadOnlyRequired = "FailReadOnlyRequired" // readOnly attribute value missing, ok in POST, not ok in PUT
+	ValidationReference  = "ValidationReference"
 )
 
 // Validation Error
@@ -36,4 +37,5 @@ func (e *validationError) Error() string {
 const (
 	typeCheck       = "type_check"
 	requiredMissing = "required_missing"
+	mutabilityCheck = "mutability_check"
 )
