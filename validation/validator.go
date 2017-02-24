@@ -38,5 +38,5 @@ const (
 	typeCheck       = "type_check"
 	requiredMissing = "required_missing"
 	mutabilityCheck = "mutability_check"
-	unknown		= "unknown"
+	unknown         = "unknown"
 )

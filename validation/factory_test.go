@@ -1,20 +1,20 @@
 package validation
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/go-scim/scimify/resource"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestValidator(t *testing.T) {
 	validator := GetValidator()
 	assert.NotNil(t, validator)
 
-	for _, test := range []struct{
-		name 			string
-		resourcePath		string
-		contextDecorator	func(*ValidatorContext) *ValidatorContext
-		assertion 		func(bool, error)
+	for _, test := range []struct {
+		name             string
+		resourcePath     string
+		contextDecorator func(*ValidatorContext) *ValidatorContext
+		assertion        func(bool, error)
 	}{
 		{
 			"correct resource",
@@ -203,11 +203,11 @@ func TestValidator(t *testing.T) {
 				return ctx
 			},
 			func(ok bool, err error) {
-				assert.True(t, ok)	// defaults will overwrite the original nil
+				assert.True(t, ok) // defaults will overwrite the original nil
 				assert.Nil(t, err)
 			},
 		},
-	}{
+	} {
 		schema, err := loadSchema("../test_data/test_user_schema_all.json")
 		if err != nil {
 			t.Fatal(err)
@@ -217,8 +217,8 @@ func TestValidator(t *testing.T) {
 		resource := resource.NewResourceFromMap(data)
 
 		context := &ValidatorContext{
-			Data:map[string]interface{}{
-				Schema:schema,
+			Data: map[string]interface{}{
+				Schema: schema,
 			},
 		}
 		if nil != test.contextDecorator {

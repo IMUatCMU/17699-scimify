@@ -5,6 +5,7 @@ type Aggregator interface {
 	Result() interface{}
 }
 
-type DoNothingAggregator struct {}
+type DoNothingAggregator struct{}
+
 func (d *DoNothingAggregator) Aggregate(key, value interface{}) {}
-func (d *DoNothingAggregator) Result() interface{} { return true }
+func (d *DoNothingAggregator) Result() interface{}              { return true }

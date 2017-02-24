@@ -2,8 +2,8 @@
 package resource
 
 import (
-	"strings"
 	"reflect"
+	"strings"
 )
 
 type AttributeGetter interface {

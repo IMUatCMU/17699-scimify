@@ -1,13 +1,13 @@
 package validation
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/helper"
+	"github.com/go-scim/scimify/resource"
 )
 
 type delegateValidator struct {
-	Delegates	[]interface{}
-	Concurrent	bool
+	Delegates  []interface{}
+	Concurrent bool
 }
 
 func (v *delegateValidator) Validate(resource *resource.Resource, context *ValidatorContext) (ok bool, err error) {
@@ -15,9 +15,9 @@ func (v *delegateValidator) Validate(resource *resource.Resource, context *Valid
 		if r := recover(); r != nil {
 			ok = false
 			err = &validationError{
-				ViolationType:unknown,
-				Message:r.(error).Error(),
-				FullPath:"",
+				ViolationType: unknown,
+				Message:       r.(error).Error(),
+				FullPath:      "",
 			}
 		}
 	}()
@@ -41,4 +41,3 @@ func (v *delegateValidator) Validate(resource *resource.Resource, context *Valid
 	}
 	return
 }
-
