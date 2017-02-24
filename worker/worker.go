@@ -3,6 +3,7 @@ package worker
 import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/serialize"
+	"github.com/go-scim/scimify/validation"
 	"github.com/spf13/viper"
 	"sync"
 )
@@ -90,4 +91,29 @@ func GetSchemaAssistedJsonSerializerWorker() Worker {
 		schemaAssistedJsonSerializerInstance.initialize(1)
 	})
 	return schemaAssistedJsonSerializerInstance
+}
+
+var (
+	oneCreationValidator, oneUpdateValidator           sync.Once
+	creationValidatorInstance, updateValidatorInstance *validateWorker
+)
+
+func GetCreationValidatorWorker() Worker {
+	oneCreationValidator.Do(func() {
+		creationValidatorInstance = &validateWorker{
+			Validator: validation.GetResourceCreationValidator(),
+		}
+		creationValidatorInstance.initialize(9)
+	})
+	return creationValidatorInstance
+}
+
+func GetUpdateValidatorWorker() Worker {
+	oneUpdateValidator.Do(func() {
+		updateValidatorInstance = &validateWorker{
+			Validator: validation.GetResourceUpdateValidator(),
+		}
+		updateValidatorInstance.initialize(1)
+	})
+	return updateValidatorInstance
 }
