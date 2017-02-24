@@ -3,6 +3,7 @@ package resource
 
 import (
 	"strings"
+	"reflect"
 )
 
 type AttributeGetter interface {
@@ -32,6 +33,43 @@ func (a *Attribute) GetAttribute(path string) *Attribute {
 		}
 	}
 	return nil
+}
+
+func (a *Attribute) IsUnassigned(object interface{}) bool {
+	if a.MultiValued {
+		if nil == object {
+			return true
+		} else if value := reflect.ValueOf(object); value.Kind() == reflect.Slice {
+			return value.Len() == 0
+		} else {
+			return false
+		}
+	}
+
+	switch a.Type {
+	case String, Reference, DateTime, Binary:
+		return nil == object || "" == object
+	case Integer:
+		return nil == object
+	case Decimal:
+		return nil == object
+	case Complex:
+		if nil == object {
+			return true
+		} else if m, ok := object.(map[string]interface{}); ok {
+			return len(m) == 0
+		} else if meta, ok := object.(*Meta); ok {
+			return len(meta.Created) == 0 &&
+				len(meta.LastModified) == 0 &&
+				len(meta.Location) == 0 &&
+				len(meta.ResourceType) == 0 &&
+				len(meta.Version) == 0
+		} else {
+			return false
+		}
+	default:
+		return false
+	}
 }
 
 func (a *Attribute) Clone() *Attribute {

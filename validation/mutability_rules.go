@@ -14,8 +14,12 @@ type mutabilityRulesValidator struct{}
 func (v *mutabilityRulesValidator) Validate(r *resource.Resource, ctx *ValidatorContext) (bool, error) {
 	ctx.RLock()
 	schema := ctx.Data[Schema].(*resource.Schema)
-	ref := ctx.Data[ValidationReference]
+	ref := ctx.Data[ReferenceResource]
 	ctx.RUnlock()
+	if nil == ref {
+		return true, nil
+	}
+
 	for _, attr := range schema.Attributes {
 		object, _ := getObjectByKey(r, attr.Assist.JSONName)
 		reference, _ := getObjectByKey(ref, attr.Assist.JSONName)
@@ -27,14 +31,12 @@ func (v *mutabilityRulesValidator) Validate(r *resource.Resource, ctx *Validator
 }
 
 func (v *mutabilityRulesValidator) validate(obj interface{}, ref interface{}, attr *resource.Attribute, context *ValidatorContext) (bool, error) {
-	if nil == ref {
-		return true, nil
-	}
-
 	switch attr.Mutability {
 	// Immutable attributes must have same value
 	case resource.Immutable:
-		if !v.equal(obj, ref, attr) {
+		if attr.IsUnassigned(ref) && v.bypassNilImmutable(context) {
+			return true, nil
+		} else if !v.equal(obj, ref, attr) {
 			return false, &validationError{
 				ViolationType: mutabilityCheck,
 				FullPath:      attr.Assist.FullPath,
@@ -58,9 +60,10 @@ func (v *mutabilityRulesValidator) validate(obj interface{}, ref interface{}, at
 
 func (v *mutabilityRulesValidator) equal(obj interface{}, ref interface{}, attr *resource.Attribute) bool {
 	if attr.MultiValued {
-		if nil == obj && nil == ref {
+		objUnassigned, refUnassigned := attr.IsUnassigned(obj), attr.IsUnassigned(ref)
+		if objUnassigned && refUnassigned {
 			return true
-		} else if (nil != obj && nil == ref) || (nil == obj && nil != ref) {
+		} else if objUnassigned != refUnassigned {
 			return false
 		}
 
@@ -107,6 +110,17 @@ func (v *mutabilityRulesValidator) equal(obj interface{}, ref interface{}, attr 
 		default:
 			return ref == obj
 		}
+	}
+}
+
+func (v *mutabilityRulesValidator) bypassNilImmutable(ctx *ValidatorContext) bool {
+	ctx.RLock()
+	val := ctx.Data[IgnoreNilImmutable]
+	ctx.RUnlock()
+	if nil == val {
+		return false
+	} else {
+		return val.(bool)
 	}
 }
 

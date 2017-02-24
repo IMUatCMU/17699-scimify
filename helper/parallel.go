@@ -7,11 +7,6 @@ import (
 type MapEntryProcessor func(key string, value interface{}) (interface{}, error)
 type SliceElementProcessor func(idx int, elem interface{}) (interface{}, error)
 
-type Aggregator interface {
-	Aggregate(key, value interface{})
-	Result() interface{}
-}
-
 type result struct {
 	Key   interface{}
 	Value interface{}

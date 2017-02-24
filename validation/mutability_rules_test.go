@@ -57,7 +57,7 @@ func TestMutabilityRulesValidator_Validate(t *testing.T) {
 		ok, err := validator.Validate(resource, &ValidatorContext{
 			Data: map[string]interface{}{
 				Schema:              schema,
-				ValidationReference: reference,
+				ReferenceResource: reference,
 			},
 		})
 		test.assertion(ok, err)

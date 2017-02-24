@@ -22,13 +22,11 @@ func (v *requiredRulesValidator) Validate(r *resource.Resource, ctx *ValidatorCo
 }
 
 func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Attribute, context *ValidatorContext) (bool, error) {
-	if !attr.Required && (resource.Complex != attr.Type || nil == object) {
-		return true, nil
-	} else if attr.Required && nil == object {
-		// required attribute with nil value could only be spared
-		// if the attribute is readOnly and the validator is set to
-		// not fail missing readOnly attributes
-		if resource.ReadOnly != attr.Mutability || !v.shouldFailMissingReadOnly(context) {
+	if attr.Required && attr.IsUnassigned(object) {
+		switch {
+		case resource.ReadOnly == attr.Mutability && !v.shouldFailMissingReadOnly(context):
+			return true, nil
+		default:
 			return false, &validationError{
 				ViolationType: requiredMissing,
 				FullPath:      attr.Assist.FullPath,
@@ -38,7 +36,9 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 	}
 
 	if attr.MultiValued {
-		if reflect.Slice != reflect.TypeOf(object).Kind() {
+		if attr.IsUnassigned(object) {
+			return true, nil
+		} else if reflect.Slice != reflect.TypeOf(object).Kind() {
 			return false, &validationError{
 				ViolationType: requiredMissing,
 				FullPath:      attr.Assist.FullPath,
@@ -47,14 +47,6 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 		}
 
 		slice := reflect.ValueOf(object)
-		if attr.Required && slice.Len() == 0 {
-			return false, &validationError{
-				ViolationType: requiredMissing,
-				FullPath:      attr.Assist.FullPath,
-				Message:       fmt.Sprintf("required but unassigned array attribute at [%s]", attr.Assist.FullPath),
-			}
-		}
-
 		clonedAttr := attr.Clone()
 		clonedAttr.MultiValued = false
 		if resource.Complex == attr.Type {
@@ -64,27 +56,21 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 				}
 			}
 		}
-	} else {
-
-		if resource.Complex == attr.Type && nil != object {
-			if m, ok := object.(map[string]interface{}); ok && len(m) == 0 {
-				if attr.Required {
-					return false, &validationError{
-						ViolationType: requiredMissing,
-						FullPath:      attr.Assist.FullPath,
-						Message:       fmt.Sprintf("required but empty complex attribute value at [%s]", attr.Assist.FullPath),
-					}
-				} else {
-					return true, nil
-				}
+	} else if resource.Complex == attr.Type {
+		switch object.(type) {
+		case map[string]interface{}, *resource.Meta:
+		default:
+			return false, &validationError{
+				ViolationType: requiredMissing,
+				FullPath:      attr.Assist.FullPath,
+				Message:       fmt.Sprintf("failed to check required rule for [%s]: not a complex object", attr.Assist.FullPath),
 			}
+		}
 
-			// check a non-empty complex object, regardless of required attribute
-			for _, subAttr := range attr.SubAttributes {
-				subObject, _ := getObjectByKey(object, subAttr.Assist.JSONName)
-				if ok, err := v.validate(subObject, subAttr, context); !ok {
-					return false, err
-				}
+		for _, subAttr := range attr.SubAttributes {
+			subObject, _ := getObjectByKey(object, subAttr.Assist.JSONName)
+			if ok, err := v.validate(subObject, subAttr, context); !ok {
+				return false, err
 			}
 		}
 	}

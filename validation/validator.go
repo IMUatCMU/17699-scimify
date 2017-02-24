@@ -19,7 +19,7 @@ const (
 	ReferenceResource    = "ReferenceResource"
 	Schema               = "Schema"
 	FailReadOnlyRequired = "FailReadOnlyRequired" // readOnly attribute value missing, ok in POST, not ok in PUT
-	ValidationReference  = "ValidationReference"
+	IgnoreNilImmutable   = "IgnoreNilImmutable"   // bypass check for mutability if attribute is immutable and value is unassigned
 )
 
 // Validation Error
@@ -38,4 +38,5 @@ const (
 	typeCheck       = "type_check"
 	requiredMissing = "required_missing"
 	mutabilityCheck = "mutability_check"
+	unknown		= "unknown"
 )
