@@ -1,6 +1,7 @@
 package serialize
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func BenchmarkSchemaJsonSerializer_Serialize(b *testing.B) {
 	schema.ConstructAttributeIndex()
 
 	// prepare data
-	resource, _, err := loadResource("../test_data/single_test_user_david.json")
+	r, _, err := loadResource("../test_data/single_test_user_david.json")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -35,12 +36,9 @@ func BenchmarkSchemaJsonSerializer_Serialize(b *testing.B) {
 	// serializer
 	b.ResetTimer()
 	serializer := &SchemaJsonSerializer{}
+	context := context.WithValue(context.Background(), resource.CK_Schema, schema)
 	for i := 0; i < b.N; i++ {
-		serializer.Serialize(resource, &SchemaJsonSerializerContext{
-			InclusionPaths: make([]string, 0),
-			ExclusionPaths: make([]string, 0),
-			Schema:         schema,
-		})
+		serializer.Serialize(r, []string{}, []string{}, context)
 	}
 }
 
@@ -61,18 +59,15 @@ func TestSchemaJsonSerializer_Serialize(t *testing.T) {
 	schema.ConstructAttributeIndex()
 
 	// prepare data
-	resource, origJson, err := loadResource("../test_data/single_test_user_david.json")
+	r, origJson, err := loadResource("../test_data/single_test_user_david.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// serializer
 	serializer := &SchemaJsonSerializer{}
-	json, err := serializer.Serialize(resource, &SchemaJsonSerializerContext{
-		InclusionPaths: make([]string, 0),
-		ExclusionPaths: make([]string, 0),
-		Schema:         schema,
-	})
+	context := context.WithValue(context.Background(), resource.CK_Schema, schema)
+	json, err := serializer.Serialize(r, []string{}, []string{}, context)
 	assert.Nil(t, err)
 	assert.JSONEq(t, origJson, string(json))
 }
@@ -94,21 +89,18 @@ func TestSchemaJsonSerializer_Serialize_Error(t *testing.T) {
 	schema.ConstructAttributeIndex()
 
 	// prepare data
-	resource, _, err := loadResource("../test_data/single_test_user_david.json")
+	r, _, err := loadResource("../test_data/single_test_user_david.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// slightly alter resource in a wrong way
-	resource.Attributes["addresses"] = make(map[string]interface{}, 0)
+	r.Attributes["addresses"] = make(map[string]interface{}, 0)
 
 	// serializer
 	serializer := &SchemaJsonSerializer{}
-	result, err := serializer.Serialize(resource, &SchemaJsonSerializerContext{
-		InclusionPaths: make([]string, 0),
-		ExclusionPaths: make([]string, 0),
-		Schema:         schema,
-	})
+	context := context.WithValue(context.Background(), resource.CK_Schema, schema)
+	result, err := serializer.Serialize(r, []string{}, []string{}, context)
 	assert.NotNil(t, err)
 	t.Log(string(result))
 }

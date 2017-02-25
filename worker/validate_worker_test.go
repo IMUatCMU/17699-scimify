@@ -1,7 +1,9 @@
 package worker
 
 import (
+	"context"
 	"github.com/go-scim/scimify/helper"
+	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/validation"
 	"testing"
 )
@@ -19,18 +21,15 @@ func BenchmarkValidateWorker(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	resource, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
+	r, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
 	if err != nil {
 		b.Fatal(err)
 	}
 
 	input := &ValidationInput{
-		Resource: resource,
-		Context: &validation.ValidatorContext{
-			Data: map[string]interface{}{
-				validation.Schema: schema,
-			},
-		},
+		Resource: r,
+		Option:   validation.ValidationOptions{ReadOnlyIsMandatory: false, UnassignedImmutableIsIgnored: false},
+		Context:  context.WithValue(context.Background(), resource.CK_Schema, schema),
 	}
 
 	b.ResetTimer()

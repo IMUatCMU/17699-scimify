@@ -9,10 +9,10 @@ import (
 
 type Resource struct {
 	sync.RWMutex
-	Schemas    []string `json:"schemas"`
-	Id         string   `json:"id"`
-	ExternalId string   `json:"externalId"`
-	Meta       *Meta    `json:"meta"`
+	Schemas    []interface{} `json:"schemas"`
+	Id         string        `json:"id"`
+	ExternalId string        `json:"externalId"`
+	Meta       *Meta         `json:"meta"`
 	Attributes map[string]interface{}
 }
 
@@ -31,9 +31,9 @@ func (r *Resource) ToMap() map[string]interface{} {
 }
 
 // Create a new resource
-func NewResource(resourceBaseUrn ...string) *Resource {
+func NewResource(resourceBaseUrn ...interface{}) *Resource {
 	return &Resource{
-		Schemas:    resourceBaseUrn,
+		Schemas:    append([]interface{}{}, resourceBaseUrn...),
 		Meta:       &Meta{},
 		Attributes: make(map[string]interface{}, 0),
 	}
@@ -44,10 +44,7 @@ func NewResourceFromMap(data map[string]interface{}) *Resource {
 	resource := NewResource()
 
 	if schemas, ok := data["schemas"].([]interface{}); ok {
-		resource.Schemas = make([]string, 0)
-		for _, elem := range schemas {
-			resource.Schemas = append(resource.Schemas, elem.(string))
-		}
+		resource.Schemas = schemas
 		delete(data, "schemas")
 	}
 

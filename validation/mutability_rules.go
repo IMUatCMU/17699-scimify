@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
@@ -11,30 +12,31 @@ import (
 // and requirements for case insensitive keys - for another day
 type mutabilityRulesValidator struct{}
 
-func (v *mutabilityRulesValidator) Validate(r *resource.Resource, ctx *ValidatorContext) (bool, error) {
-	ctx.RLock()
-	schema := ctx.Data[Schema].(*resource.Schema)
-	ref := ctx.Data[ReferenceResource]
-	ctx.RUnlock()
-	if nil == ref {
-		return true, nil
+func (v *mutabilityRulesValidator) Validate(r *resource.Resource, opt ValidationOptions, ctx context.Context) (bool, error) {
+	schema, ok := ctx.Value(resource.CK_Schema).(*resource.Schema)
+	if !ok {
+		panic("missing required context parameter: CK_Schema")
+	}
+	ref, ok := ctx.Value(resource.CK_Reference).(*resource.Resource)
+	if !ok {
+		panic("missing required context parameter: CK_Reference")
 	}
 
 	for _, attr := range schema.Attributes {
 		object, _ := getObjectByKey(r, attr.Assist.JSONName)
 		reference, _ := getObjectByKey(ref, attr.Assist.JSONName)
-		if ok, err := v.validate(object, reference, attr, ctx); !ok {
+		if ok, err := v.validate(object, reference, attr, opt, ctx); !ok {
 			return false, err
 		}
 	}
 	return true, nil
 }
 
-func (v *mutabilityRulesValidator) validate(obj interface{}, ref interface{}, attr *resource.Attribute, context *ValidatorContext) (bool, error) {
+func (v *mutabilityRulesValidator) validate(obj interface{}, ref interface{}, attr *resource.Attribute, opt ValidationOptions, ctx context.Context) (bool, error) {
 	switch attr.Mutability {
 	// Immutable attributes must have same value
 	case resource.Immutable:
-		if attr.IsUnassigned(ref) && v.bypassNilImmutable(context) {
+		if attr.IsUnassigned(ref) && opt.UnassignedImmutableIsIgnored {
 			return true, nil
 		} else if !v.equal(obj, ref, attr) {
 			return false, &validationError{
@@ -110,17 +112,6 @@ func (v *mutabilityRulesValidator) equal(obj interface{}, ref interface{}, attr 
 		default:
 			return ref == obj
 		}
-	}
-}
-
-func (v *mutabilityRulesValidator) bypassNilImmutable(ctx *ValidatorContext) bool {
-	ctx.RLock()
-	val := ctx.Data[IgnoreNilImmutable]
-	ctx.RUnlock()
-	if nil == val {
-		return false
-	} else {
-		return val.(bool)
 	}
 }
 

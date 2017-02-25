@@ -1,9 +1,9 @@
 package worker
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/go-scim/scimify/resource"
-	"github.com/go-scim/scimify/serialize"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -16,16 +16,14 @@ func BenchmarkSchemaAssistedJsonSerializerWorker(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			b.StopTimer()
-			resource, schema := prepareResourceAndSchema(b)
+			r, schema := prepareResourceAndSchema(b)
 			b.StartTimer()
 
 			worker.Do(&JsonSerializeInput{
-				Resource: resource,
-				Context: &serialize.SchemaJsonSerializerContext{
-					InclusionPaths: []string{},
-					ExclusionPaths: []string{},
-					Schema:         schema,
-				},
+				Resource:       r,
+				InclusionPaths: []string{},
+				ExclusionPaths: []string{},
+				Context:        context.WithValue(context.Background(), resource.CK_Schema, schema),
 			})
 		}
 	})
@@ -38,7 +36,12 @@ func BenchmarkDefaultJsonSerializerWorker(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			worker.Do(&JsonSerializeInput{Resource: resource, Context: nil})
+			worker.Do(&JsonSerializeInput{
+				Resource:       resource,
+				InclusionPaths: []string{},
+				ExclusionPaths: []string{},
+				Context:        context.Background(),
+			})
 		}
 	})
 }

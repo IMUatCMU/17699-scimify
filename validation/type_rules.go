@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"github.com/go-scim/scimify/resource"
@@ -13,14 +14,16 @@ import (
 // don't force error if nothing is there, leave it to required rule
 type typeRulesValidator struct{}
 
-func (v *typeRulesValidator) Validate(r *resource.Resource, ctx *ValidatorContext) (bool, error) {
-	ctx.RLock()
-	schema := ctx.Data[Schema].(*resource.Schema)
-	ctx.RUnlock()
+func (v *typeRulesValidator) Validate(r *resource.Resource, opt ValidationOptions, ctx context.Context) (bool, error) {
+	schema, ok := ctx.Value(resource.CK_Schema).(*resource.Schema)
+	if !ok {
+		panic("missing required context parameter: CK_Schema")
+	}
+
 	for _, attr := range schema.Attributes {
 		object, _ := getObjectByKey(r, attr.Assist.JSONName)
 		if nil != object {
-			if ok, err := v.validate(object, attr, ctx); !ok {
+			if ok, err := v.validate(object, attr, opt, ctx); !ok {
 				return false, err
 			}
 		}
@@ -28,7 +31,7 @@ func (v *typeRulesValidator) Validate(r *resource.Resource, ctx *ValidatorContex
 	return true, nil
 }
 
-func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribute, context *ValidatorContext) (bool, error) {
+func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribute, opt ValidationOptions, ctx context.Context) (bool, error) {
 	if attr.MultiValued {
 		clonedAttr := attr.Clone()
 		clonedAttr.MultiValued = false
@@ -37,7 +40,7 @@ func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribu
 		case reflect.Slice:
 			slice := reflect.ValueOf(object)
 			for i := 0; i < slice.Len(); i++ {
-				if ok, err := v.validate(slice.Index(i).Interface(), clonedAttr, context); !ok {
+				if ok, err := v.validate(slice.Index(i).Interface(), clonedAttr, opt, ctx); !ok {
 					return false, err
 				}
 			}
@@ -52,9 +55,9 @@ func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribu
 	} else {
 		switch attr.Type {
 		case resource.String, resource.Reference, resource.DateTime, resource.Binary:
-			if s, ok := object.(string); !ok {
+			if strVal := reflect.ValueOf(object); strVal.Kind() != reflect.String {
 				return false, v.formatTypeError(attr)
-			} else if len(s) > 0 && resource.DateTime == attr.Type {
+			} else if s := strVal.String(); len(s) > 0 && resource.DateTime == attr.Type {
 				if _, err := time.Parse("2006-01-02T15:04:05Z", s); err != nil {
 					return false, &validationError{
 						ViolationType: typeCheck,
@@ -100,7 +103,7 @@ func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribu
 			for _, subAttr := range attr.SubAttributes {
 				subObject, _ := getObjectByKey(object, subAttr.Assist.JSONName)
 				if nil != subObject {
-					if ok, err := v.validate(subObject, subAttr, context); !ok {
+					if ok, err := v.validate(subObject, subAttr, opt, ctx); !ok {
 						return false, err
 					}
 				}

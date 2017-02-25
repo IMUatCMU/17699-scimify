@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/jeffail/tunny"
@@ -12,7 +13,7 @@ type RepoQueryWorkerInput struct {
 	Ascending bool
 	PageStart int
 	PageSize  int
-	Context   resource.Context
+	Context   context.Context
 }
 
 type repoQueryWorker struct {

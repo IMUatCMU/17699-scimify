@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/jeffail/tunny"
@@ -8,7 +9,7 @@ import (
 
 type RepoCreateWorkerInput struct {
 	Resource *resource.Resource
-	Context  resource.Context
+	Context  context.Context
 }
 
 type repoCreateWorker struct {

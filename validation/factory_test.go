@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -13,12 +14,14 @@ func TestValidator(t *testing.T) {
 	for _, test := range []struct {
 		name             string
 		resourcePath     string
-		contextDecorator func(*ValidatorContext) *ValidatorContext
+		optionsDecorator func(ValidationOptions) ValidationOptions
+		contextDecorator func(context.Context) context.Context
 		assertion        func(bool, error)
 	}{
 		{
 			"correct resource",
 			"../test_data/single_test_user_david.json",
+			nil,
 			nil,
 			func(ok bool, err error) {
 				assert.True(t, ok)
@@ -28,6 +31,7 @@ func TestValidator(t *testing.T) {
 		{
 			"bad_array_type_user",
 			"../test_data/bad_array_type_user.json",
+			nil,
 			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
@@ -40,6 +44,7 @@ func TestValidator(t *testing.T) {
 			"bad_bool_type_user",
 			"../test_data/bad_bool_type_user.json",
 			nil,
+			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
@@ -50,6 +55,7 @@ func TestValidator(t *testing.T) {
 		{
 			"bad_complex_type_user",
 			"../test_data/bad_complex_type_user.json",
+			nil,
 			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
@@ -62,6 +68,7 @@ func TestValidator(t *testing.T) {
 			"bad_datetime_format_user",
 			"../test_data/bad_datetime_format_user.json",
 			nil,
+			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
@@ -72,6 +79,7 @@ func TestValidator(t *testing.T) {
 		{
 			"bad_partial_array_type_user",
 			"../test_data/bad_partial_array_type_user.json",
+			nil,
 			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
@@ -84,6 +92,7 @@ func TestValidator(t *testing.T) {
 			"bad_string_type_user",
 			"../test_data/bad_string_type_user.json",
 			nil,
+			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
@@ -95,6 +104,7 @@ func TestValidator(t *testing.T) {
 			"missing_schemas_user",
 			"../test_data/missing_schemas_user.json",
 			nil,
+			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
@@ -105,12 +115,11 @@ func TestValidator(t *testing.T) {
 		{
 			"missing_id_user",
 			"../test_data/missing_id_user.json",
-			func(ctx *ValidatorContext) *ValidatorContext {
-				ctx.Lock()
-				ctx.Data[FailReadOnlyRequired] = true
-				ctx.Unlock()
-				return ctx
+			func(opt ValidationOptions) ValidationOptions {
+				opt.ReadOnlyIsMandatory = true
+				return opt
 			},
+			nil,
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
@@ -121,27 +130,26 @@ func TestValidator(t *testing.T) {
 		{
 			"missing_meta_user",
 			"../test_data/missing_meta_user.json",
-			func(ctx *ValidatorContext) *ValidatorContext {
-				ctx.Lock()
-				ctx.Data[FailReadOnlyRequired] = true
-				ctx.Unlock()
-				return ctx
+			func(opt ValidationOptions) ValidationOptions {
+				opt.ReadOnlyIsMandatory = true
+				return opt
 			},
+			nil,
 			func(ok bool, err error) {
-				assert.True(t, ok)
-				assert.Nil(t, err)
+				assert.False(t, ok)
+				assert.NotNil(t, err)
+				assert.Equal(t, mutabilityCheck, err.(*validationError).ViolationType)
+				assert.Equal(t, "meta", err.(*validationError).FullPath)
 			},
 		},
 		{
 			"user with no change",
 			"../test_data/single_test_user_david.json",
-			func(ctx *ValidatorContext) *ValidatorContext {
+			nil,
+			func(ctx context.Context) context.Context {
 				data := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
 				ref := resource.NewResourceFromMap(data)
-				ctx.Lock()
-				ctx.Data[ReferenceResource] = ref
-				ctx.Unlock()
-				return ctx
+				return context.WithValue(ctx, resource.CK_Reference, ref)
 			},
 			func(ok bool, err error) {
 				assert.True(t, ok)
@@ -151,14 +159,12 @@ func TestValidator(t *testing.T) {
 		{
 			"user with id changed",
 			"../test_data/single_test_user_david.json",
-			func(ctx *ValidatorContext) *ValidatorContext {
+			nil,
+			func(ctx context.Context) context.Context {
 				data := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
 				ref := resource.NewResourceFromMap(data)
 				ref.Id = "foo"
-				ctx.Lock()
-				ctx.Data[ReferenceResource] = ref
-				ctx.Unlock()
-				return ctx
+				return context.WithValue(ctx, resource.CK_Reference, ref)
 			},
 			func(ok bool, err error) {
 				assert.False(t, ok)
@@ -170,14 +176,12 @@ func TestValidator(t *testing.T) {
 		{
 			"user with meta changed",
 			"../test_data/single_test_user_david.json",
-			func(ctx *ValidatorContext) *ValidatorContext {
+			nil,
+			func(ctx context.Context) context.Context {
 				data := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
 				ref := resource.NewResourceFromMap(data)
 				ref.Meta.Version = "foo"
-				ctx.Lock()
-				ctx.Data[ReferenceResource] = ref
-				ctx.Unlock()
-				return ctx
+				return context.WithValue(ctx, resource.CK_Reference, ref)
 			},
 			func(ok bool, err error) {
 				assert.False(t, ok)
@@ -189,7 +193,8 @@ func TestValidator(t *testing.T) {
 		{
 			"user with group changed",
 			"../test_data/single_test_user_david.json",
-			func(ctx *ValidatorContext) *ValidatorContext {
+			nil,
+			func(ctx context.Context) context.Context {
 				data := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
 				ref := resource.NewResourceFromMap(data)
 				ref.Attributes["groups"] = []interface{}{
@@ -197,10 +202,7 @@ func TestValidator(t *testing.T) {
 						"value": "bar",
 					},
 				}
-				ctx.Lock()
-				ctx.Data[ReferenceResource] = ref
-				ctx.Unlock()
-				return ctx
+				return context.WithValue(ctx, resource.CK_Reference, ref)
 			},
 			func(ok bool, err error) {
 				assert.True(t, ok) // defaults will overwrite the original nil
@@ -213,22 +215,24 @@ func TestValidator(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		data := loadTestDataFromJson(t, test.resourcePath)
-		resource := resource.NewResourceFromMap(data)
+		refData := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
+		ref := resource.NewResourceFromMap(refData)
 
-		context := &ValidatorContext{
-			Data: map[string]interface{}{
-				Schema: schema,
-			},
+		data := loadTestDataFromJson(t, test.resourcePath)
+		r := resource.NewResourceFromMap(data)
+
+		options := ValidationOptions{ReadOnlyIsMandatory: false, UnassignedImmutableIsIgnored: false}
+		if nil != test.optionsDecorator {
+			options = test.optionsDecorator(options)
 		}
+
+		ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
+		ctx = context.WithValue(ctx, resource.CK_Reference, ref)
 		if nil != test.contextDecorator {
-			context = test.contextDecorator(context)
+			ctx = test.contextDecorator(ctx)
 		}
-		ok, err := validator.Validate(resource, context)
+
+		ok, err := validator.Validate(r, options, ctx)
 		test.assertion(ok, err)
 	}
-}
-
-func BenchmarkValidator(b *testing.B) {
-
 }

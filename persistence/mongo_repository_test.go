@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
@@ -33,7 +34,7 @@ func TestMongoRepository_Query(t *testing.T) {
 		sortOrder bool
 		skip      int
 		size      int
-		context   resource.Context
+		context   context.Context
 		assertion func([]*resource.Resource, error)
 	}{
 		{

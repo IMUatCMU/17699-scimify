@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 )
@@ -10,7 +11,7 @@ type delegateValidator struct {
 	Concurrent bool
 }
 
-func (v *delegateValidator) Validate(resource *resource.Resource, context *ValidatorContext) (ok bool, err error) {
+func (v *delegateValidator) Validate(r *resource.Resource, opt ValidationOptions, ctx context.Context) (ok bool, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			ok = false
@@ -24,7 +25,7 @@ func (v *delegateValidator) Validate(resource *resource.Resource, context *Valid
 
 	processor := func(idx int, elem interface{}) (interface{}, error) {
 		validator := elem.(Validator)
-		ok, err := validator.Validate(resource, context)
+		ok, err := validator.Validate(r, opt, ctx)
 		return ok, err
 	}
 

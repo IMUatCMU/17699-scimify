@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"context"
 	"github.com/go-scim/scimify/resource"
 	"gopkg.in/mgo.v2"
 )
@@ -19,28 +20,28 @@ type MongoRepository struct {
 	collectionName string
 }
 
-func (m *MongoRepository) Create(resource *resource.Resource, context resource.Context) error {
+func (m *MongoRepository) Create(resource *resource.Resource, context context.Context) error {
 	session := m.getSession()
 	defer session.Close()
 
 	return m.getCollection(session).Insert(resource.ToMap())
 }
 
-func (m *MongoRepository) Get(id string, context resource.Context) (*resource.Resource, error) {
+func (m *MongoRepository) Get(id string, context context.Context) (*resource.Resource, error) {
 	session := m.getSession()
 	defer session.Close()
 
 	return nil, nil
 }
 
-func (m *MongoRepository) Replace(id string, resource *resource.Resource, context resource.Context) error {
+func (m *MongoRepository) Replace(id string, resource *resource.Resource, context context.Context) error {
 	session := m.getSession()
 	defer session.Close()
 
 	return nil
 }
 
-func (m *MongoRepository) Delete(id string, context resource.Context) error {
+func (m *MongoRepository) Delete(id string, context context.Context) error {
 	session := m.getSession()
 	defer session.Close()
 
@@ -54,7 +55,7 @@ func (m *MongoRepository) Delete(id string, context resource.Context) error {
 // - pageStart: skip how many entries, if less than 0, will be defaulted to 0
 // - pageSize: collect how many entries, if less than 0, will be ignored
 // - context: auxiliary information for the query
-func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context resource.Context) ([]*resource.Resource, error) {
+func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context context.Context) ([]*resource.Resource, error) {
 	// get session
 	session := m.getSession()
 	defer session.Close()
@@ -90,7 +91,8 @@ func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending boo
 	// parse data
 	resources := make([]*resource.Resource, 0, len(rawData))
 	for _, data := range rawData {
-		resources = append(resources, parseResource(data))
+		//resources = append(resources, parseResource(data))
+		resources = append(resources, resource.NewResourceFromMap(data))
 	}
 
 	return resources, nil
@@ -108,43 +110,43 @@ func (m *MongoRepository) getCollection(session *mgo.Session) *mgo.Collection {
 	return session.DB(m.databaseName).C(m.collectionName)
 }
 
-func parseResource(data map[string]interface{}) *resource.Resource {
-	resource := resource.NewResource()
-
-	if schemas, ok := data["schemas"].([]string); ok {
-		resource.Schemas = schemas
-		delete(data, "schemas")
-	}
-
-	if id, ok := data["id"].(string); ok {
-		resource.Id = id
-		delete(data, "id")
-	}
-
-	if externalId, ok := data["externalId"].(string); ok {
-		resource.ExternalId = externalId
-		delete(data, "externalId")
-	}
-
-	if meta, ok := data["meta"].(map[string]interface{}); ok {
-		if metaResourceType, ok := meta["resourceType"].(string); ok {
-			resource.Meta.ResourceType = metaResourceType
-		}
-		if metaCreated, ok := meta["created"].(string); ok {
-			resource.Meta.Created = metaCreated
-		}
-		if metaLastModified, ok := meta["lastModified"].(string); ok {
-			resource.Meta.LastModified = metaLastModified
-		}
-		if metaLocation, ok := meta["location"].(string); ok {
-			resource.Meta.Location = metaLocation
-		}
-		if metaVersion, ok := meta["version"].(string); ok {
-			resource.Meta.Version = metaVersion
-		}
-		delete(data, "meta")
-	}
-
-	resource.Attributes = data
-	return resource
-}
+//func parseResource(data map[string]interface{}) *resource.Resource {
+//	resource := resource.NewResource()
+//
+//	if schemas, ok := data["schemas"].([]string); ok {
+//		resource.Schemas = schemas
+//		delete(data, "schemas")
+//	}
+//
+//	if id, ok := data["id"].(string); ok {
+//		resource.Id = id
+//		delete(data, "id")
+//	}
+//
+//	if externalId, ok := data["externalId"].(string); ok {
+//		resource.ExternalId = externalId
+//		delete(data, "externalId")
+//	}
+//
+//	if meta, ok := data["meta"].(map[string]interface{}); ok {
+//		if metaResourceType, ok := meta["resourceType"].(string); ok {
+//			resource.Meta.ResourceType = metaResourceType
+//		}
+//		if metaCreated, ok := meta["created"].(string); ok {
+//			resource.Meta.Created = metaCreated
+//		}
+//		if metaLastModified, ok := meta["lastModified"].(string); ok {
+//			resource.Meta.LastModified = metaLastModified
+//		}
+//		if metaLocation, ok := meta["location"].(string); ok {
+//			resource.Meta.Location = metaLocation
+//		}
+//		if metaVersion, ok := meta["version"].(string); ok {
+//			resource.Meta.Version = metaVersion
+//		}
+//		delete(data, "meta")
+//	}
+//
+//	resource.Attributes = data
+//	return resource
+//}

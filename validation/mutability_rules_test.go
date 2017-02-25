@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -52,14 +53,14 @@ func TestMutabilityRulesValidator_Validate(t *testing.T) {
 		reference := resource.NewResourceFromMap(referenceData)
 
 		resourceData := loadTestDataFromJson(t, test.resourcePath)
-		resource := resource.NewResourceFromMap(resourceData)
+		r := resource.NewResourceFromMap(resourceData)
 
-		ok, err := validator.Validate(resource, &ValidatorContext{
-			Data: map[string]interface{}{
-				Schema:            schema,
-				ReferenceResource: reference,
-			},
-		})
+		opt := ValidationOptions{UnassignedImmutableIsIgnored: false, ReadOnlyIsMandatory: false}
+
+		ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
+		ctx = context.WithValue(ctx, resource.CK_Reference, reference)
+
+		ok, err := validator.Validate(r, opt, ctx)
 		test.assertion(ok, err)
 	}
 }

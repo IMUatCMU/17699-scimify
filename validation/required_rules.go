@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
@@ -8,23 +9,25 @@ import (
 
 type requiredRulesValidator struct{}
 
-func (v *requiredRulesValidator) Validate(r *resource.Resource, ctx *ValidatorContext) (bool, error) {
-	ctx.RLock()
-	schema := ctx.Data[Schema].(*resource.Schema)
-	ctx.RUnlock()
+func (v *requiredRulesValidator) Validate(r *resource.Resource, opt ValidationOptions, ctx context.Context) (bool, error) {
+	schema, ok := ctx.Value(resource.CK_Schema).(*resource.Schema)
+	if !ok {
+		panic("missing required context parameter: CK_Schema")
+	}
+
 	for _, attr := range schema.Attributes {
 		object, _ := getObjectByKey(r, attr.Assist.JSONName)
-		if ok, err := v.validate(object, attr, ctx); !ok {
+		if ok, err := v.validate(object, attr, opt, ctx); !ok {
 			return false, err
 		}
 	}
 	return true, nil
 }
 
-func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Attribute, context *ValidatorContext) (bool, error) {
+func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Attribute, opt ValidationOptions, ctx context.Context) (bool, error) {
 	if attr.Required && attr.IsUnassigned(object) {
 		switch {
-		case resource.ReadOnly == attr.Mutability && !v.shouldFailMissingReadOnly(context):
+		case resource.ReadOnly == attr.Mutability && !opt.ReadOnlyIsMandatory:
 			return true, nil
 		default:
 			return false, &validationError{
@@ -51,7 +54,7 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 		clonedAttr.MultiValued = false
 		if resource.Complex == attr.Type {
 			for i := 0; i < slice.Len(); i++ {
-				if ok, err := v.validate(slice.Index(i).Interface(), clonedAttr, context); !ok {
+				if ok, err := v.validate(slice.Index(i).Interface(), clonedAttr, opt, ctx); !ok {
 					return false, err
 				}
 			}
@@ -69,24 +72,12 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 
 		for _, subAttr := range attr.SubAttributes {
 			subObject, _ := getObjectByKey(object, subAttr.Assist.JSONName)
-			if ok, err := v.validate(subObject, subAttr, context); !ok {
+			if ok, err := v.validate(subObject, subAttr, opt, ctx); !ok {
 				return false, err
 			}
 		}
 	}
 	return true, nil
-}
-
-func (v *requiredRulesValidator) shouldFailMissingReadOnly(ctx *ValidatorContext) bool {
-	ctx.RLock()
-	opt := ctx.Data[FailReadOnlyRequired]
-	ctx.RUnlock()
-
-	if nil == opt {
-		return false
-	} else {
-		return opt.(bool)
-	}
 }
 
 func (v *requiredRulesValidator) formulateErrorMessage(attr *resource.Attribute) string {

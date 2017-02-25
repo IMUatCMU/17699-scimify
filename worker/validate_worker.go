@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/validation"
 	"github.com/jeffail/tunny"
@@ -8,7 +9,8 @@ import (
 
 type ValidationInput struct {
 	Resource *resource.Resource
-	Context  *validation.ValidatorContext
+	Option   validation.ValidationOptions
+	Context  context.Context
 }
 
 type validateWorker struct {
@@ -18,7 +20,10 @@ type validateWorker struct {
 
 func (w *validateWorker) initialize(numProcs int) {
 	if pool, err := tunny.CreatePool(numProcs, func(input interface{}) interface{} {
-		ok, err := w.Validator.Validate(input.(*ValidationInput).Resource, input.(*ValidationInput).Context)
+		ok, err := w.Validator.Validate(
+			input.(*ValidationInput).Resource,
+			input.(*ValidationInput).Option,
+			input.(*ValidationInput).Context)
 
 		r := &wrappedReturn{}
 		r.ReturnData = ok

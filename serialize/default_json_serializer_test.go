@@ -31,6 +31,6 @@ func BenchmarkDefaultJsonSerializer_Serialize(b *testing.B) {
 	b.ResetTimer()
 	serializer := &DefaultJsonSerializer{}
 	for i := 0; i < b.N; i++ {
-		serializer.Serialize(resource, nil)
+		serializer.Serialize(resource, nil, nil, nil)
 	}
 }

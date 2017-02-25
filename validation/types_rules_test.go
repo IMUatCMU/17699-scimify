@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
@@ -99,11 +100,11 @@ func TestTypeRulesValidator_Validate(t *testing.T) {
 
 		// prepare test resource
 		resourceData := loadTestDataFromJson(t, test.resourcePath)
-		resource := resource.NewResourceFromMap(resourceData)
+		r := resource.NewResourceFromMap(resourceData)
+		opt := ValidationOptions{UnassignedImmutableIsIgnored: false, ReadOnlyIsMandatory: false}
+		ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
 
-		ok, err := validator.Validate(resource, &ValidatorContext{
-			Data: map[string]interface{}{Schema: schema},
-		})
+		ok, err := validator.Validate(r, opt, ctx)
 		test.assertion(ok, err)
 	}
 }

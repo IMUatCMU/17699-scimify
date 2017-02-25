@@ -1,14 +1,17 @@
 package worker
 
 import (
+	"context"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/serialize"
 	"github.com/jeffail/tunny"
 )
 
 type JsonSerializeInput struct {
-	Resource *resource.Resource
-	Context  interface{}
+	Resource       *resource.Resource
+	InclusionPaths []string
+	ExclusionPaths []string
+	Context        context.Context
 }
 
 type jsonWorker struct {
@@ -19,7 +22,12 @@ type jsonWorker struct {
 func (w *jsonWorker) initialize(numProcs int) {
 	if pool, err := tunny.CreatePool(numProcs, func(input interface{}) interface{} {
 		r := &wrappedReturn{}
-		if bytes, err := w.Serializer.Serialize(input.(*JsonSerializeInput).Resource, input.(*JsonSerializeInput).Context); err != nil {
+		if bytes, err := w.Serializer.Serialize(
+			input.(*JsonSerializeInput).Resource,
+			input.(*JsonSerializeInput).InclusionPaths,
+			input.(*JsonSerializeInput).ExclusionPaths,
+			input.(*JsonSerializeInput).Context,
+		); err != nil {
 			r.Err = err
 			return r
 		} else {

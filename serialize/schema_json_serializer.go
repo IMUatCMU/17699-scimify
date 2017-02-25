@@ -1,6 +1,7 @@
 package serialize
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
@@ -16,39 +17,44 @@ type SchemaJsonSerializerContext struct {
 
 type SchemaJsonSerializer struct{}
 
-func (s *SchemaJsonSerializer) Serialize(resource *resource.Resource, context interface{}) ([]byte, error) {
-	data := resource.Attributes
+func (s *SchemaJsonSerializer) Serialize(r *resource.Resource, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
+	schema, ok := context.Value(resource.CK_Schema).(*resource.Schema)
+	if !ok {
+		panic("missing required context parameter: CK_Schema")
+	}
 
-	if len(resource.Schemas) > 0 {
-		resource.Attributes["schemas"] = resource.Schemas
+	data := r.Attributes
+
+	if len(r.Schemas) > 0 {
+		r.Attributes["schemas"] = r.Schemas
 	}
-	if len(resource.Id) > 0 {
-		resource.Attributes["id"] = resource.Id
+	if len(r.Id) > 0 {
+		r.Attributes["id"] = r.Id
 	}
-	if len(resource.ExternalId) > 0 {
-		resource.Attributes["externalId"] = resource.ExternalId
+	if len(r.ExternalId) > 0 {
+		r.Attributes["externalId"] = r.ExternalId
 	}
-	if resource.Meta != nil {
+	if r.Meta != nil {
 		meta := make(map[string]interface{})
-		if len(resource.Meta.ResourceType) > 0 {
-			meta["resourceType"] = resource.Meta.ResourceType
+		if len(r.Meta.ResourceType) > 0 {
+			meta["resourceType"] = r.Meta.ResourceType
 		}
-		if len(resource.Meta.Created) > 0 {
-			meta["created"] = resource.Meta.Created
+		if len(r.Meta.Created) > 0 {
+			meta["created"] = r.Meta.Created
 		}
-		if len(resource.Meta.LastModified) > 0 {
-			meta["lastModified"] = resource.Meta.LastModified
+		if len(r.Meta.LastModified) > 0 {
+			meta["lastModified"] = r.Meta.LastModified
 		}
-		if len(resource.Meta.Location) > 0 {
-			meta["location"] = resource.Meta.Location
+		if len(r.Meta.Location) > 0 {
+			meta["location"] = r.Meta.Location
 		}
-		if len(resource.Meta.Version) > 0 {
-			meta["version"] = resource.Meta.Version
+		if len(r.Meta.Version) > 0 {
+			meta["version"] = r.Meta.Version
 		}
-		resource.Attributes["meta"] = meta
+		r.Attributes["meta"] = meta
 	}
 
-	json, err := serializeMap(data, context.(*SchemaJsonSerializerContext).Schema, context.(*SchemaJsonSerializerContext))
+	json, err := serializeMap(data, schema, inclusionPaths, exclusionPaths, context)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +85,7 @@ func (j *jsonArrayElementAggregator) Result() interface{} {
 	return fmt.Sprintf("[%s]", strings.Join(j.state, ","))
 }
 
-func serializeMap(target map[string]interface{}, attrGuide resource.AttributeGetter, context *SchemaJsonSerializerContext) (string, error) {
+func serializeMap(target map[string]interface{}, attrGuide resource.AttributeGetter, inclusions, exclusions []string, context context.Context) (string, error) {
 	var processor func(key string, value interface{}) (interface{}, error)
 	processor = func(key string, value interface{}) (interface{}, error) {
 		attr := attrGuide.GetAttribute(key)
@@ -128,7 +134,7 @@ func serializeMap(target map[string]interface{}, attrGuide resource.AttributeGet
 						if m, ok := elem.(map[string]interface{}); !ok {
 							return "", fmt.Errorf("%+v cannot be parsed as a map 1 (%T)", value, value)
 						} else {
-							if subJson, err := serializeMap(m, clonedAttr, context); err != nil {
+							if subJson, err := serializeMap(m, clonedAttr, inclusions, exclusions, context); err != nil {
 								return "", err
 							} else {
 								return subJson, nil
@@ -179,7 +185,7 @@ func serializeMap(target map[string]interface{}, attrGuide resource.AttributeGet
 					if m, ok := value.(map[string]interface{}); !ok {
 						return "", fmt.Errorf("%+v cannot be parsed as a map 2", value)
 					} else {
-						if subJson, err := serializeMap(m, attr, context); err != nil {
+						if subJson, err := serializeMap(m, attr, inclusions, exclusions, context); err != nil {
 							return "", err
 						} else {
 							return fmt.Sprintf("%s:%s", strconv.Quote(attr.Assist.JSONName), subJson), nil
