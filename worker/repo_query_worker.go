@@ -7,12 +7,12 @@ import (
 )
 
 type RepoQueryWorkerInput struct {
-	filter    interface{}
-	sortBy    string
-	ascending bool
-	pageStart int
-	pageSize  int
-	context   resource.Context
+	Filter    interface{}
+	SortBy    string
+	Ascending bool
+	PageStart int
+	PageSize  int
+	Context   resource.Context
 }
 
 type repoQueryWorker struct {
@@ -25,10 +25,10 @@ func (w *repoQueryWorker) initialize(numProcs int) {
 		args := input.(*RepoQueryWorkerInput)
 		r := &wrappedReturn{}
 
-		if results, err := w.Repo.Query(args.filter,
-			args.sortBy, args.ascending,
-			args.pageStart, args.pageSize,
-			args.context); err != nil {
+		if results, err := w.Repo.Query(args.Filter,
+			args.SortBy, args.Ascending,
+			args.PageStart, args.PageSize,
+			args.Context); err != nil {
 			r.Err = err
 			return r
 		} else {

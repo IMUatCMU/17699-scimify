@@ -23,7 +23,7 @@ func (m *MongoRepository) Create(resource *resource.Resource, context resource.C
 	session := m.getSession()
 	defer session.Close()
 
-	return nil
+	return m.getCollection(session).Insert(resource.ToMap())
 }
 
 func (m *MongoRepository) Get(id string, context resource.Context) (*resource.Resource, error) {

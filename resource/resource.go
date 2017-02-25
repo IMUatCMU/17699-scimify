@@ -3,7 +3,9 @@
 // core attributes and extension attributes are modelled as map
 package resource
 
-import "sync"
+import (
+	"sync"
+)
 
 type Resource struct {
 	sync.RWMutex
@@ -12,6 +14,20 @@ type Resource struct {
 	ExternalId string   `json:"externalId"`
 	Meta       *Meta    `json:"meta"`
 	Attributes map[string]interface{}
+}
+
+func (r *Resource) ToMap() map[string]interface{} {
+	data := make(map[string]interface{}, len(r.Attributes)+4)
+	for k, v := range r.Attributes {
+		data[k] = v
+	}
+	data["schemas"] = r.Schemas
+	data["id"] = r.Id
+	data["externalId"] = r.ExternalId
+	if r.Meta != nil {
+		data["meta"] = r.Meta.ToMap()
+	}
+	return data
 }
 
 // Create a new resource

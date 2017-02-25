@@ -38,9 +38,42 @@ func GetFilterWorker() Worker {
 }
 
 var (
-	oneRepoUserQueryWorker, oneRepoGroupQueryWorker sync.Once
+	oneRepoUserQueryWorker,
+	oneRepoGroupQueryWorker,
+	oneRepoUserCreateWorker,
+	oneRepoGroupCreateWorker sync.Once
+
+	repoUserQueryWorkerInstance,
+	repoGroupQueryWorkerInstance *repoQueryWorker
+
+	repoUserCreateWorkerInstance,
+	repoGroupCreateWorkerInstance *repoCreateWorker
 )
-var repoUserQueryWorkerInstance, repoGroupQueryWorkerInstance *repoQueryWorker
+
+func GetRepoUserCreateWorker() Worker {
+	oneRepoUserCreateWorker.Do(func() {
+		repoUserCreateWorkerInstance = &repoCreateWorker{
+			Repo: persistence.NewMongoRepository(
+				viper.GetString("mongo.address"),
+				viper.GetString("mongo.database"),
+				viper.GetString("mongo.userCollectionName")),
+		}
+		repoUserCreateWorkerInstance.initialize(9)
+	})
+	return repoUserCreateWorkerInstance
+}
+
+func GetRepoGroupCreateWorker() Worker {
+	oneRepoGroupCreateWorker.Do(func() {
+		repoGroupCreateWorkerInstance = &repoCreateWorker{
+			Repo: persistence.NewMongoRepository(
+				viper.GetString("mongo.address"),
+				viper.GetString("mongo.database"),
+				viper.GetString("mongo.groupCollectionName")),
+		}
+	})
+	return repoGroupCreateWorkerInstance
+}
 
 func GetRepoUserQueryWorker() Worker {
 	oneRepoUserQueryWorker.Do(func() {
@@ -69,9 +102,9 @@ func GetRepoGroupQueryWorker() Worker {
 }
 
 var (
-	oneDefaultJsonSerializer, oneSchemaAssistedJsonSerializer sync.Once
+	oneDefaultJsonSerializer, oneSchemaAssistedJsonSerializer           sync.Once
+	defaultJsonSerializerInstance, schemaAssistedJsonSerializerInstance *jsonWorker
 )
-var defaultJsonSerializerInstance, schemaAssistedJsonSerializerInstance *jsonWorker
 
 func GetDefaultJsonSerializerWorker() Worker {
 	oneDefaultJsonSerializer.Do(func() {

@@ -23,7 +23,7 @@ type repoQueryWorkerTest struct {
 
 var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"userName": bson.M{
 				"$regex": bson.RegEx{
 					Pattern: "^david",
@@ -31,12 +31,12 @@ var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 				},
 			},
 		},
-		sortBy: "", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"name.familyName": bson.M{
 				"$regex": bson.RegEx{
 					Pattern: "u",
@@ -44,12 +44,12 @@ var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 				},
 			},
 		},
-		sortBy: "nickName", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "nickName", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"userName": bson.M{
 				"$regex": bson.RegEx{
 					Pattern: "^D",
@@ -57,12 +57,12 @@ var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 				},
 			},
 		},
-		sortBy: "", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"$and": []interface{}{
 				bson.M{
 					"title": bson.M{"$exists": true},
@@ -75,52 +75,52 @@ var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 				},
 			},
 		},
-		sortBy: "", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"meta.lastModified": bson.M{
 				"$gt": "2016-05-13T04:42:34Z",
 			},
 		},
-		sortBy: "", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"meta.lastModified": bson.M{
 				"$gte": "2016-05-13T04:42:34Z",
 			},
 		},
-		sortBy: "nickName", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "nickName", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"meta.lastModified": bson.M{
 				"$lt": "2016-05-13T04:42:34Z",
 			},
 		},
-		sortBy: "nickName", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "nickName", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"meta.lastModified": bson.M{
 				"$lte": "2016-05-13T04:42:34Z",
 			},
 		},
-		sortBy: "nickName", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "nickName", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"$and": []interface{}{
 				bson.M{
 					"$and": []interface{}{
@@ -145,12 +145,12 @@ var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 				},
 			},
 		},
-		sortBy: "nickName", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "nickName", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 	{
-		filter: bson.M{
+		Filter: bson.M{
 			"$or": []interface{}{
 				bson.M{
 					"$and": []interface{}{
@@ -175,9 +175,9 @@ var repoQueryWorkerTestParams = []*RepoQueryWorkerInput{
 				},
 			},
 		},
-		sortBy: "nickName", ascending: true,
-		pageStart: 0, pageSize: 0,
-		context: nil,
+		SortBy: "nickName", Ascending: true,
+		PageStart: 0, PageSize: 0,
+		Context: nil,
 	},
 }
 
@@ -320,23 +320,25 @@ func PrepareTestMongoConnection(t interface{}, dataPath string) {
 		}
 	}
 
-	if path, err := filepath.Abs(dataPath); err != nil {
-		fatal(err)
-	} else {
-		file, err := os.Open(path)
-		if err != nil {
+	if len(dataPath) > 0 {
+		if path, err := filepath.Abs(dataPath); err != nil {
 			fatal(err)
-		}
-		defer file.Close()
+		} else {
+			file, err := os.Open(path)
+			if err != nil {
+				fatal(err)
+			}
+			defer file.Close()
 
-		fileBytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			fatal(err)
-		}
+			fileBytes, err := ioutil.ReadAll(file)
+			if err != nil {
+				fatal(err)
+			}
 
-		err = json.Unmarshal(fileBytes, &testData)
-		if err != nil {
-			fatal(err)
+			err = json.Unmarshal(fileBytes, &testData)
+			if err != nil {
+				fatal(err)
+			}
 		}
 	}
 
@@ -348,7 +350,9 @@ func PrepareTestMongoConnection(t interface{}, dataPath string) {
 	collection := session.DB(viper.GetString("mongo.database")).C(viper.GetString("mongo.userCollectionName"))
 	collection.RemoveAll(nil)
 
-	for _, each := range testData["data"].([]interface{}) {
-		collection.Insert(each)
+	if len(testData) > 0 {
+		for _, each := range testData["data"].([]interface{}) {
+			collection.Insert(each)
+		}
 	}
 }
