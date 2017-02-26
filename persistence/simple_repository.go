@@ -14,7 +14,7 @@ type SimpleRepository struct {
 
 // Put the provided resource into the hash map, overwrites existing id
 func (r *SimpleRepository) Create(resource *resource.Resource, context context.Context) error {
-	r.repo[resource.Id] = resource
+	r.repo[resource.Attributes["id"].(string)] = resource
 	return nil
 }
 

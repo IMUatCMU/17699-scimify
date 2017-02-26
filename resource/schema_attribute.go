@@ -58,12 +58,6 @@ func (a *Attribute) IsUnassigned(object interface{}) bool {
 			return true
 		} else if m, ok := object.(map[string]interface{}); ok {
 			return len(m) == 0
-		} else if meta, ok := object.(*Meta); ok {
-			return len(meta.Created) == 0 &&
-				len(meta.LastModified) == 0 &&
-				len(meta.Location) == 0 &&
-				len(meta.ResourceType) == 0 &&
-				len(meta.Version) == 0
 		} else {
 			return false
 		}

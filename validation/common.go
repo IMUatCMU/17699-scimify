@@ -18,38 +18,12 @@ func getObjectByKey(target interface{}, key string) (interface{}, error) {
 		}
 		return nil, fmt.Errorf("cannot get object by key '%s': missing key", key)
 	} else if r, ok := target.(*resource.Resource); ok {
-		switch strings.ToLower(key) {
-		case "schemas":
-			return r.Schemas, nil
-		case "id":
-			return r.Id, nil
-		case "externalid":
-			return r.ExternalId, nil
-		case "meta":
-			return r.Meta, nil
-		default:
-			for k, v := range r.Attributes {
-				if strings.ToLower(k) == strings.ToLower(key) {
-					return v, nil
-				}
+		for k, v := range r.Attributes {
+			if strings.ToLower(k) == strings.ToLower(key) {
+				return v, nil
 			}
-			return nil, fmt.Errorf("cannot get object by key '%s': missing key", key)
 		}
-	} else if meta, ok := target.(*resource.Meta); ok {
-		switch strings.ToLower(key) {
-		case "resourcetype":
-			return meta.ResourceType, nil
-		case "location":
-			return meta.Location, nil
-		case "version":
-			return meta.Version, nil
-		case "created":
-			return meta.Created, nil
-		case "lastmodified":
-			return meta.LastModified, nil
-		default:
-			return nil, fmt.Errorf("cannot get object by key '%s': missing key", key)
-		}
+		return nil, fmt.Errorf("cannot get object by key '%s': missing key", key)
 	} else {
 		return nil, fmt.Errorf("cannot get object by key '%s': unknown target type %T", key, target)
 	}

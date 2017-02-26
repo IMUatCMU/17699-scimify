@@ -23,38 +23,9 @@ func (s *SchemaJsonSerializer) Serialize(r *resource.Resource, inclusionPaths, e
 		panic("missing required context parameter: CK_Schema")
 	}
 
-	data := r.Attributes
-
-	if len(r.Schemas) > 0 {
-		r.Attributes["schemas"] = r.Schemas
-	}
-	if len(r.Id) > 0 {
-		r.Attributes["id"] = r.Id
-	}
-	if len(r.ExternalId) > 0 {
-		r.Attributes["externalId"] = r.ExternalId
-	}
-	if r.Meta != nil {
-		meta := make(map[string]interface{})
-		if len(r.Meta.ResourceType) > 0 {
-			meta["resourceType"] = r.Meta.ResourceType
-		}
-		if len(r.Meta.Created) > 0 {
-			meta["created"] = r.Meta.Created
-		}
-		if len(r.Meta.LastModified) > 0 {
-			meta["lastModified"] = r.Meta.LastModified
-		}
-		if len(r.Meta.Location) > 0 {
-			meta["location"] = r.Meta.Location
-		}
-		if len(r.Meta.Version) > 0 {
-			meta["version"] = r.Meta.Version
-		}
-		r.Attributes["meta"] = meta
-	}
-
-	json, err := serializeMap(data, schema, inclusionPaths, exclusionPaths, context)
+	r.RLock()
+	json, err := serializeMap(r.Attributes, schema, inclusionPaths, exclusionPaths, context)
+	r.RUnlock()
 	if err != nil {
 		return nil, err
 	}

@@ -163,7 +163,7 @@ func TestValidator(t *testing.T) {
 			func(ctx context.Context) context.Context {
 				data := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
 				ref := resource.NewResourceFromMap(data)
-				ref.Id = "foo"
+				ref.Attributes["id"] = "foo"
 				return context.WithValue(ctx, resource.CK_Reference, ref)
 			},
 			func(ok bool, err error) {
@@ -180,7 +180,7 @@ func TestValidator(t *testing.T) {
 			func(ctx context.Context) context.Context {
 				data := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
 				ref := resource.NewResourceFromMap(data)
-				ref.Meta.Version = "foo"
+				ref.Attributes["meta"].(map[string]interface{})["version"] = "foo"
 				return context.WithValue(ctx, resource.CK_Reference, ref)
 			},
 			func(ok bool, err error) {

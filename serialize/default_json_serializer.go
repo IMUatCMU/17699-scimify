@@ -10,5 +10,8 @@ import (
 type DefaultJsonSerializer struct{}
 
 func (_ *DefaultJsonSerializer) Serialize(resource *resource.Resource, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
-	return json.Marshal(resource)
+	resource.RLock()
+	bytes, err := json.Marshal(resource.Attributes)
+	resource.RUnlock()
+	return bytes, err
 }

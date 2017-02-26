@@ -61,7 +61,7 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 		}
 	} else if resource.Complex == attr.Type {
 		switch object.(type) {
-		case map[string]interface{}, *resource.Meta:
+		case map[string]interface{}:
 		default:
 			return false, &validationError{
 				ViolationType: requiredMissing,

@@ -91,14 +91,8 @@ func (v *typeRulesValidator) validate(object interface{}, attr *resource.Attribu
 			}
 
 		case resource.Complex:
-			if "meta" != attr.Assist.FullPath {
-				if _, ok := object.(map[string]interface{}); !ok {
-					return false, v.formatTypeError(attr)
-				}
-			} else {
-				if _, ok := object.(*resource.Meta); !ok {
-					return false, v.formatTypeError(attr)
-				}
+			if _, ok := object.(map[string]interface{}); !ok {
+				return false, v.formatTypeError(attr)
 			}
 			for _, subAttr := range attr.SubAttributes {
 				subObject, _ := getObjectByKey(object, subAttr.Assist.JSONName)
