@@ -1,8 +1,8 @@
 package defaults
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
+	"github.com/go-scim/scimify/resource"
 )
 
 type ValueDefaulter interface {

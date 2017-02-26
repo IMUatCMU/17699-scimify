@@ -1,15 +1,15 @@
 package defaults
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
+	"github.com/go-scim/scimify/resource"
 	"github.com/satori/go.uuid"
 	"strings"
 )
 
-type idGenerationValueDefaulter struct {}
+type idGenerationValueDefaulter struct{}
 
-func (d *idGenerationValueDefaulter) Default(r *resource.Resource, ctx context.Context) (bool, error) {
+func (_ *idGenerationValueDefaulter) Default(r *resource.Resource, ctx context.Context) (bool, error) {
 	r.Lock()
 	r.Attributes["id"] = strings.ToLower(uuid.NewV4().String())
 	r.Unlock()
