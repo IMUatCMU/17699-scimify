@@ -52,12 +52,25 @@ func GetFormatCaseInstanceValueDefaulter() ValueDefaulter {
 }
 
 var (
+	oneSharedChain,
 	oneResourceCreationChain,
 	oneResourceUpdateChain sync.Once
 
+	sharedValueDefaulter,
 	resourceCreationValueDefaulter,
 	resourceUpdateValueDefaulter ValueDefaulter
 )
+
+func GetSharedValueDefaulter() ValueDefaulter {
+	oneSharedChain.Do(func() {
+		sharedValueDefaulter = &delegateValueDefaulter{
+			Defaulters: []ValueDefaulter{
+				GetFormatCaseInstanceValueDefaulter(),
+			},
+		}
+	})
+	return sharedValueDefaulter
+}
 
 func GetResourceCreationValueDefaulter() ValueDefaulter {
 	oneResourceCreationChain.Do(func() {
