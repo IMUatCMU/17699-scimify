@@ -31,7 +31,7 @@ func (_ *metaGenerationValueDefaulter) Default(r *resource.Resource, ctx context
 		"resourceType": resourceType,
 		"created":      now,
 		"lastModified": now,
-		"version":      "W\"1",
+		"version":      GenerateNewVersion(id),
 		"location": fmt.Sprintf("%s/%s/%s",
 			strings.Trim(viper.GetString("server.rootPath"), "/"),
 			strings.Trim(resourceTypeURI, "/"),

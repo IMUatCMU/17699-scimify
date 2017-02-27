@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"github.com/go-scim/scimify/defaults"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/serialize"
 	"github.com/go-scim/scimify/validation"
@@ -26,8 +27,12 @@ type wrappedReturn struct {
 	Err        error
 }
 
-var oneFilterWorker sync.Once
-var filterWorkerInstance *filterWorker
+// Filter Worker =======================================================================================================
+
+var (
+	oneFilterWorker      sync.Once
+	filterWorkerInstance *filterWorker
+)
 
 func GetFilterWorker() Worker {
 	oneFilterWorker.Do(func() {
@@ -36,6 +41,8 @@ func GetFilterWorker() Worker {
 	})
 	return filterWorkerInstance
 }
+
+// Repository Worker ===================================================================================================
 
 var (
 	oneRepoUserQueryWorker,
@@ -101,6 +108,8 @@ func GetRepoGroupQueryWorker() Worker {
 	return repoGroupQueryWorkerInstance
 }
 
+// JSON Serializer Worker ==============================================================================================
+
 var (
 	oneDefaultJsonSerializer, oneSchemaAssistedJsonSerializer           sync.Once
 	defaultJsonSerializerInstance, schemaAssistedJsonSerializerInstance *jsonWorker
@@ -126,9 +135,14 @@ func GetSchemaAssistedJsonSerializerWorker() Worker {
 	return schemaAssistedJsonSerializerInstance
 }
 
+// Validation Worker ===================================================================================================
+
 var (
-	oneCreationValidator, oneUpdateValidator           sync.Once
-	creationValidatorInstance, updateValidatorInstance *validateWorker
+	oneCreationValidator,
+	oneUpdateValidator sync.Once
+
+	creationValidatorInstance,
+	updateValidatorInstance *validateWorker
 )
 
 func GetCreationValidatorWorker() Worker {
@@ -149,4 +163,46 @@ func GetUpdateValidatorWorker() Worker {
 		updateValidatorInstance.initialize(1)
 	})
 	return updateValidatorInstance
+}
+
+// Value Defaulter Worker ==============================================================================================
+
+var (
+	oneCreateValueDefaulter,
+	oneUpdateValueDefaulter,
+	oneSharedValueDefaulter sync.Once
+
+	creationValueDefaulter,
+	updateValueDefaulter,
+	sharedValueDefaulter *valueDefaulterWorker
+)
+
+func GetCreationValueDefaulterWorker() Worker {
+	oneCreateValueDefaulter.Do(func() {
+		creationValueDefaulter = &valueDefaulterWorker{
+			Worker: defaults.GetResourceCreationValueDefaulter(),
+		}
+		creationValueDefaulter.initialize(2)
+	})
+	return creationValueDefaulter
+}
+
+func GetUpdateValueDefaulterWorker() Worker {
+	oneUpdateValueDefaulter.Do(func() {
+		updateValueDefaulter = &valueDefaulterWorker{
+			Worker: defaults.GetResourceUpdateValueDefaulter(),
+		}
+		updateValueDefaulter.initialize(2)
+	})
+	return updateValueDefaulter
+}
+
+func GetSharedValueDefaulterWorker() Worker {
+	oneSharedValueDefaulter.Do(func() {
+		sharedValueDefaulter = &valueDefaulterWorker{
+			Worker: defaults.GetSharedValueDefaulter(),
+		}
+		sharedValueDefaulter.initialize(2)
+	})
+	return sharedValueDefaulter
 }

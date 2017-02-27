@@ -1,0 +1,28 @@
+{
+  "Schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+  "Id": "6B69753B-4E38-444E-8AC6-9D0E4D644D80",
+  "ExternalId": "changed",
+  "UserName": "changed",
+  "Name": {
+    "Formatted": "changed",
+    "FamilyName": "changed",
+    "GivenName": "changed",
+    "MiddleName": "changed",
+    "HonorificPrefix": "changed",
+    "HonorificSuffix": "changed"
+  },
+  "Emails": [
+    {
+      "Value": "david@example.com",
+      "Type": "changed",
+      "Primary": true
+    },
+    {
+      "Value": "david@home.com",
+      "Type": "changed"
+    }
+  ],
+  "UserType": "changed",
+  "Title": "changed",
+  "PreferredLanguage": "changed"
+}

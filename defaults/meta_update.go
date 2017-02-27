@@ -12,14 +12,20 @@ func (_ *metaUpdateValueDefaulter) Default(r *resource.Resource, ctx context.Con
 	if meta, ok := r.Attributes["meta"].(map[string]interface{}); !ok {
 		return false, errors.New("meta was not set")
 	} else {
-		newVer, err := BumpVersion(meta["version"].(string))
-		if err != nil {
-			return false, errors.New("failed to generate new version: " + err.Error())
+		id, ok := r.Attributes["id"].(string)
+		if !ok {
+			return false, errors.New("id must be set before updating meta")
 		}
+
+		newMeta := make(map[string]interface{})
+		for k, v := range meta {
+			newMeta[k] = v
+		}
+		newMeta["version"] = GenerateNewVersion(id)
+		newMeta["lastModified"] = CurrentTime()
+
 		r.Lock()
-		meta["version"] = newVer
-		meta["lastModified"] = CurrentTime()
-		r.Attributes["meta"] = meta
+		r.Attributes["meta"] = newMeta
 		r.Unlock()
 		return true, nil
 	}

@@ -27,7 +27,7 @@ func TestMetaGenerationValueDefaulter_Default(t *testing.T) {
 	assert.NotNil(t, meta)
 	assert.Equal(t, "User", meta["resourceType"].(string))
 	assert.Equal(t, "http://foo.com/v2/User/bar", meta["location"].(string))
-	assert.Equal(t, "W\"1", meta["version"].(string))
+	assert.NotEmpty(t, meta["version"].(string))
 	assert.NotEmpty(t, meta["created"].(string))
 	assert.NotEmpty(t, meta["lastModified"].(string))
 }
