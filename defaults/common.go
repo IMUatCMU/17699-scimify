@@ -17,3 +17,10 @@ func BumpVersion(ver string) (string, error) {
 		return fmt.Sprintf("W\"%d", i+1), nil
 	}
 }
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}

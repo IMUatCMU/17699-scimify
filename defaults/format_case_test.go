@@ -1,12 +1,12 @@
 package defaults
 
 import (
-	"testing"
+	"context"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
-	"context"
 	"github.com/stretchr/testify/assert"
 	"reflect"
+	"testing"
 )
 
 func TestCaseFormatValueDefaulter_Default(t *testing.T) {
@@ -18,7 +18,7 @@ func TestCaseFormatValueDefaulter_Default(t *testing.T) {
 	r := resource.NewResourceFromMap(map[string]interface{}{
 		"ID": "35621E54-E96D-41E1-8E6A-4BA787EB071A",
 		"MeTA": map[string]interface{}{
-			"VersiON": "12345",
+			"VersiON":      "12345",
 			"resourcetype": "User",
 		},
 		"Emails": []interface{}{
@@ -39,7 +39,7 @@ func TestCaseFormatValueDefaulter_Default(t *testing.T) {
 	assert.True(t, reflect.DeepEqual(r.Attributes, map[string]interface{}{
 		"id": "35621E54-E96D-41E1-8E6A-4BA787EB071A",
 		"meta": map[string]interface{}{
-			"version": "12345",
+			"version":      "12345",
 			"resourceType": "User",
 		},
 		"emails": []interface{}{

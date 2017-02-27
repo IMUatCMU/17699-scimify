@@ -1,12 +1,12 @@
 package defaults
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
+	"github.com/go-scim/scimify/resource"
 	"strings"
 )
 
-type caseFormatValueDefaulter struct {}
+type caseFormatValueDefaulter struct{}
 
 func (d *caseFormatValueDefaulter) Default(r *resource.Resource, ctx context.Context) (bool, error) {
 	schema, ok := ctx.Value(resource.CK_Schema).(*resource.Schema)
