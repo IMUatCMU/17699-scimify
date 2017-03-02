@@ -1,5 +1,10 @@
 package main
 
+import (
+	"github.com/go-scim/scimify/service"
+	"net/http"
+)
+
 func main() {
-	println("Hello World")
+	http.ListenAndServe(":8080", service.Mux())
 }
