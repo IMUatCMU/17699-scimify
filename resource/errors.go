@@ -25,17 +25,18 @@ func (e Error) AsResource() *Resource {
 
 // Error identifiers used to create the Error structure
 const (
-	InvalidFilter = "invalidFilter"
-	TooMany       = "tooMany"
-	Uniqueness    = "uniqueness"
-	Mutability    = "mutability"
-	InvalidSyntax = "invalidSyntax"
-	InvalidPath   = "invalidPath"
-	NoTarget      = "noTarget"
-	InvalidValue  = "invalidValue"
-	InvalidVers   = "invalidVers"
-	Sensitive     = "sensitive"
-	NotFound      = "notFound"
+	InvalidFilter  = "invalidFilter"
+	TooMany        = "tooMany"
+	Uniqueness     = "uniqueness"
+	Mutability     = "mutability"
+	InvalidSyntax  = "invalidSyntax"
+	InvalidPath    = "invalidPath"
+	NoTarget       = "noTarget"
+	InvalidValue   = "invalidValue"
+	InvalidVers    = "invalidVers"
+	Sensitive      = "sensitive"
+	NotFound       = "notFound"
+	NotImplemented = "notImplemented"
 
 	ServerError = "serverError"
 )
@@ -149,6 +150,15 @@ func CreateError(identifier string, detail string) Error {
 			Detail:     detail,
 			Status:     "500",
 			StatusCode: 500,
+		}
+
+	case NotImplemented:
+		return Error{
+			Schemas:    []string{ErrorUrn},
+			ScimType:   NotImplemented,
+			Detail:     detail,
+			Status:     "501",
+			StatusCode: 501,
 		}
 
 	default:

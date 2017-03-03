@@ -18,6 +18,14 @@ func (r *SimpleRepository) Create(resource *resource.Resource, context context.C
 	return nil
 }
 
+func (r *SimpleRepository) GetAll() ([]*resource.Resource, error) {
+	resources := make([]*resource.Resource, 0, len(r.repo))
+	for _, v := range r.repo {
+		resources = append(resources, v)
+	}
+	return resources, nil
+}
+
 // Get the resource indexed by id in the hash map
 func (r *SimpleRepository) Get(id string, context context.Context) (*resource.Resource, error) {
 	return r.repo[id], nil

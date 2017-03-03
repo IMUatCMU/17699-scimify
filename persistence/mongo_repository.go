@@ -27,6 +27,10 @@ func (m *MongoRepository) Create(resource *resource.Resource, context context.Co
 	return m.getCollection(session).Insert(resource.ToMap())
 }
 
+func (m *MongoRepository) GetAll() ([]*resource.Resource, error) {
+	return nil, resource.CreateError(resource.NotImplemented, "get all is not implemented for monogo repository.")
+}
+
 func (m *MongoRepository) Get(id string, context context.Context) (*resource.Resource, error) {
 	session := m.getSession()
 	defer session.Close()

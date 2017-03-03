@@ -26,3 +26,11 @@ func handleError(err error) (int, map[string]string, []byte) {
 			bytes.([]byte)
 	}
 }
+
+func writeResponse(rw http.ResponseWriter, statusCode int, headers map[string]string, body []byte) {
+	for k, v := range headers {
+		rw.Header().Set(k, v)
+	}
+	rw.WriteHeader(statusCode)
+	rw.Write(body)
+}

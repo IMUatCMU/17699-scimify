@@ -10,6 +10,9 @@ type Repository interface {
 	// Create a new SCIM resource in the repository
 	Create(resource *resource.Resource, context context.Context) error
 
+	// Get all SCIM resource in this repository (optional)
+	GetAll() ([]*resource.Resource, error)
+
 	// Get a SCIM resource by id from the repository
 	Get(id string, context context.Context) (*resource.Resource, error)
 
