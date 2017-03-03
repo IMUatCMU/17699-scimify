@@ -13,7 +13,7 @@ var (
 func GetSchemaRepository() Repository {
 	oneSchemaRepo.Do(func() {
 		schemaRepository = &SimpleRepository{
-			repo: make(map[string]*resource.Resource, 0),
+			repo: make(map[string]resource.ScimObject, 0),
 		}
 	})
 	return schemaRepository

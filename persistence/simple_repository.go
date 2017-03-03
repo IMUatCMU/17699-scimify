@@ -9,17 +9,17 @@ import (
 // in a hash map. It only offers functionality to create, delete and get SCIM
 // resource by id.
 type SimpleRepository struct {
-	repo map[string]*resource.Resource
+	repo map[string]resource.ScimObject
 }
 
 // Put the provided resource into the hash map, overwrites existing id
-func (r *SimpleRepository) Create(resource *resource.Resource, context context.Context) error {
-	r.repo[resource.Attributes["id"].(string)] = resource
+func (r *SimpleRepository) Create(resource resource.ScimObject, context context.Context) error {
+	r.repo[resource.GetId()] = resource
 	return nil
 }
 
-func (r *SimpleRepository) GetAll() ([]*resource.Resource, error) {
-	resources := make([]*resource.Resource, 0, len(r.repo))
+func (r *SimpleRepository) GetAll() ([]resource.ScimObject, error) {
+	resources := make([]resource.ScimObject, 0, len(r.repo))
 	for _, v := range r.repo {
 		resources = append(resources, v)
 	}
@@ -27,12 +27,12 @@ func (r *SimpleRepository) GetAll() ([]*resource.Resource, error) {
 }
 
 // Get the resource indexed by id in the hash map
-func (r *SimpleRepository) Get(id string, context context.Context) (*resource.Resource, error) {
+func (r *SimpleRepository) Get(id string, context context.Context) (resource.ScimObject, error) {
 	return r.repo[id], nil
 }
 
 // Not implemented by design
-func (r *SimpleRepository) Replace(id string, resource *resource.Resource, context context.Context) error {
+func (r *SimpleRepository) Replace(id string, resource resource.ScimObject, context context.Context) error {
 	return nil
 }
 
@@ -43,6 +43,6 @@ func (r *SimpleRepository) Delete(id string, context context.Context) error {
 }
 
 // Not implemented by design
-func (r *SimpleRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context context.Context) ([]*resource.Resource, error) {
+func (r *SimpleRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context context.Context) ([]resource.ScimObject, error) {
 	return nil, nil
 }

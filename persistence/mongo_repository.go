@@ -20,25 +20,25 @@ type MongoRepository struct {
 	collectionName string
 }
 
-func (m *MongoRepository) Create(resource *resource.Resource, context context.Context) error {
+func (m *MongoRepository) Create(resource resource.ScimObject, context context.Context) error {
 	session := m.getSession()
 	defer session.Close()
 
-	return m.getCollection(session).Insert(resource.ToMap())
+	return m.getCollection(session).Insert(resource.Data())
 }
 
-func (m *MongoRepository) GetAll() ([]*resource.Resource, error) {
+func (m *MongoRepository) GetAll() ([]resource.ScimObject, error) {
 	return nil, resource.CreateError(resource.NotImplemented, "get all is not implemented for monogo repository.")
 }
 
-func (m *MongoRepository) Get(id string, context context.Context) (*resource.Resource, error) {
+func (m *MongoRepository) Get(id string, context context.Context) (resource.ScimObject, error) {
 	session := m.getSession()
 	defer session.Close()
 
 	return nil, nil
 }
 
-func (m *MongoRepository) Replace(id string, resource *resource.Resource, context context.Context) error {
+func (m *MongoRepository) Replace(id string, resource resource.ScimObject, context context.Context) error {
 	session := m.getSession()
 	defer session.Close()
 
@@ -59,7 +59,7 @@ func (m *MongoRepository) Delete(id string, context context.Context) error {
 // - pageStart: skip how many entries, if less than 0, will be defaulted to 0
 // - pageSize: collect how many entries, if less than 0, will be ignored
 // - context: auxiliary information for the query
-func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context context.Context) ([]*resource.Resource, error) {
+func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context context.Context) ([]resource.ScimObject, error) {
 	// get session
 	session := m.getSession()
 	defer session.Close()
@@ -93,7 +93,7 @@ func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending boo
 	query.Iter().All(&rawData)
 
 	// parse data
-	resources := make([]*resource.Resource, 0, len(rawData))
+	resources := make([]resource.ScimObject, 0, len(rawData))
 	for _, data := range rawData {
 		//resources = append(resources, parseResource(data))
 		resources = append(resources, resource.NewResourceFromMap(data))

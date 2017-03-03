@@ -26,6 +26,27 @@ type Attribute struct {
 	Assist          *Assist      `json:"_assist"`
 }
 
+func (a *Attribute) ToMap() map[string]interface{} {
+	data := map[string]interface{}{
+		"name": a.Name,
+		"type": a.Type,
+		"subAttributes": make([]map[string]interface{}, 0, len(a.SubAttributes)),
+		"multiValued": a.MultiValued,
+		"description": a.Description,
+		"required": a.Required,
+		"canonicalValues": a.CanonicalValues,
+		"caseExact": a.CaseExact,
+		"mutability": a.Mutability,
+		"returned": a.Returned,
+		"uniqueness": a.Uniqueness,
+		"referenceTypes": a.ReferenceTypes,
+	}
+	for _, subAttr := range a.SubAttributes {
+		data["subAttributes"] = append(data["subAttributes"].([]map[string]interface{}), subAttr.ToMap())
+	}
+	return data
+}
+
 func (a *Attribute) GetAttribute(path string) *Attribute {
 	for _, attr := range a.SubAttributes {
 		if strings.ToLower(attr.Name) == strings.ToLower(path) {

@@ -17,6 +17,25 @@ type Schema struct {
 	attrIndex   map[string]*Attribute `json:"-"`
 }
 
+func (s *Schema) GetId() string {
+	return s.Id
+}
+
+func (s *Schema) Data() map[string]interface{} {
+	data := map[string]interface{}{
+		"schemas": s.Schemas,
+		"id": s.Id,
+		"name": s.Name,
+		"description": s.Description,
+		"attributes": make([]map[string]interface{}, 0, len(s.Attributes)),
+	}
+	for _, attr := range s.Attributes {
+		data["attributes"] = append(data["attributes"].([]map[string]interface{}), attr.ToMap())
+	}
+	return data
+
+}
+
 func (s *Schema) MergeWith(schemas ...*Schema) {
 	for _, schema := range schemas {
 		s.Attributes = append(s.Attributes, schema.Attributes...)

@@ -12,6 +12,18 @@ type Resource struct {
 	Attributes map[string]interface{}
 }
 
+func (r *Resource) GetId() string {
+	if id, ok := r.Attributes["id"].(string); ok {
+		return id
+	} else {
+		return ""
+	}
+}
+
+func (r *Resource) Data() map[string]interface{} {
+	return r.ToMap()
+}
+
 func (r *Resource) ToMap() map[string]interface{} {
 	data := make(map[string]interface{}, len(r.Attributes))
 	r.RLock()

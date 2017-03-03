@@ -113,7 +113,12 @@ func TestMongoRepository_Query(t *testing.T) {
 			},
 		},
 	} {
-		test.assertion(repo.Query(test.filter, test.sortBy, test.sortOrder, test.skip, test.size, test.context))
+		objects, err := repo.Query(test.filter, test.sortBy, test.sortOrder, test.skip, test.size, test.context)
+		resources := make([]*resource.Resource, 0, len(objects))
+		for _, obj := range objects {
+			resources = append(resources, obj.(*resource.Resource))
+		}
+		test.assertion(resources, err)
 	}
 }
 
