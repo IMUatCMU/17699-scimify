@@ -128,7 +128,7 @@ func GetDefaultJsonSerializerWorker() Worker {
 func GetSchemaAssistedJsonSerializerWorker() Worker {
 	oneSchemaAssistedJsonSerializer.Do(func() {
 		schemaAssistedJsonSerializerInstance = &jsonWorker{
-			Serializer: &serialize.SchemaJsonSerializer{},
+			Serializer: &serialize.DynamicJsonSerializer{},
 		}
 		schemaAssistedJsonSerializerInstance.initialize(1)
 	})

@@ -20,7 +20,7 @@ func BenchmarkSchemaAssistedJsonSerializerWorker(b *testing.B) {
 			b.StartTimer()
 
 			worker.Do(&JsonSerializeInput{
-				Resource:       r,
+				Target:         r,
 				InclusionPaths: []string{},
 				ExclusionPaths: []string{},
 				Context:        context.WithValue(context.Background(), resource.CK_Schema, schema),
@@ -37,7 +37,7 @@ func BenchmarkDefaultJsonSerializerWorker(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			worker.Do(&JsonSerializeInput{
-				Resource:       resource,
+				Target:         resource,
 				InclusionPaths: []string{},
 				ExclusionPaths: []string{},
 				Context:        context.Background(),

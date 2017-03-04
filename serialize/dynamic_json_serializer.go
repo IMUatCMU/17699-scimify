@@ -28,9 +28,9 @@ const (
 var hex = "0123456789abcdef"
 var numberType = reflect.TypeOf(Number(""))
 
-type dynamicJsonSerializer struct{}
+type DynamicJsonSerializer struct{}
 
-func (j *dynamicJsonSerializer) Serialize(target resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
+func (j *DynamicJsonSerializer) Serialize(target resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
 	schema, ok := context.Value(resource.CK_Schema).(*resource.Schema)
 	if !ok {
 		panic("missing required context parameter: CK_Schema")
@@ -43,7 +43,7 @@ func (j *dynamicJsonSerializer) Serialize(target resource.ScimObject, inclusionP
 	return e.Bytes(), nil
 }
 
-func (j *dynamicJsonSerializer) SerializeArray(target []resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
+func (j *DynamicJsonSerializer) SerializeArray(target []resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
 	e := newEncodeState()
 	e.WriteByte('[')
 	for i, targetElem := range target {

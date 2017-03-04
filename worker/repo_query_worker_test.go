@@ -285,7 +285,11 @@ func TestRepoQueryWorker(t *testing.T) {
 		},
 	} {
 		r, err := worker.Do(test.input)
-		test.assertion(r.([]*resource.Resource), err)
+		targets := make([]*resource.Resource, 0, len(r.([]resource.ScimObject)))
+		for _, each := range r.([]resource.ScimObject) {
+			targets = append(targets, each.(*resource.Resource))
+		}
+		test.assertion(targets, err)
 	}
 }
 

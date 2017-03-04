@@ -8,7 +8,7 @@ import (
 )
 
 type JsonSerializeInput struct {
-	Resource       *resource.Resource
+	Target         interface{}
 	InclusionPaths []string
 	ExclusionPaths []string
 	Context        context.Context
@@ -22,12 +22,29 @@ type jsonWorker struct {
 func (w *jsonWorker) initialize(numProcs int) {
 	if pool, err := tunny.CreatePool(numProcs, func(input interface{}) interface{} {
 		r := &wrappedReturn{}
-		if bytes, err := w.Serializer.Serialize(
-			input.(*JsonSerializeInput).Resource,
-			input.(*JsonSerializeInput).InclusionPaths,
-			input.(*JsonSerializeInput).ExclusionPaths,
-			input.(*JsonSerializeInput).Context,
-		); err != nil {
+		var (
+			bytes []byte
+			err   error
+		)
+
+		switch input.(*JsonSerializeInput).Target.(type) {
+		case resource.ScimObject:
+			bytes, err = w.Serializer.Serialize(
+				input.(*JsonSerializeInput).Target.(resource.ScimObject),
+				input.(*JsonSerializeInput).InclusionPaths,
+				input.(*JsonSerializeInput).ExclusionPaths,
+				input.(*JsonSerializeInput).Context,
+			)
+		case []resource.ScimObject:
+			bytes, err = w.Serializer.SerializeArray(
+				input.(*JsonSerializeInput).Target.([]resource.ScimObject),
+				input.(*JsonSerializeInput).InclusionPaths,
+				input.(*JsonSerializeInput).ExclusionPaths,
+				input.(*JsonSerializeInput).Context,
+			)
+		}
+
+		if err != nil {
 			r.Err = err
 			return r
 		} else {
