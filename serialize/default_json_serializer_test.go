@@ -19,7 +19,9 @@ func BenchmarkDefaultJsonSerializer_Serialize(b *testing.B) {
 	// serializer
 	b.ResetTimer()
 	serializer := &DefaultJsonSerializer{}
-	for i := 0; i < b.N; i++ {
-		serializer.Serialize(resource, nil, nil, nil)
-	}
+	b.RunParallel(func (pb *testing.PB) {
+		for pb.Next() {
+			serializer.Serialize(resource, nil, nil, nil)
+		}
+	})
 }
