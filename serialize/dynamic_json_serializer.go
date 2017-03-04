@@ -72,6 +72,11 @@ type encOpts struct {
 	exclusionPaths []string
 }
 
+// Decide whether an attribute should be included in the JSON response:
+// - if "returned=always", the attribute is returned
+// - if "returned=never", the attribute is not returned
+// - if "returned=request", the attribute is only returned when it's assigned and it's path appears in the inclusionPaths list
+// - if "returned=default", the attribute is returned except when it's path appears in the exclusionPaths list or it is not assigned
 func (opt encOpts) shouldEncode(v reflect.Value, attr *resource.Attribute) bool {
 	trueIfAssigned := func(v reflect.Value) bool {
 		//fmt.Println(attr.Name, v)
@@ -83,8 +88,6 @@ func (opt encOpts) shouldEncode(v reflect.Value, attr *resource.Attribute) bool 
 		return true
 	case resource.Never:
 		return false
-
-	// TODO revise the logic a bit
 	case resource.Request:
 		for _, p := range opt.inclusionPaths {
 			if strings.ToLower(attr.Assist.Path) == strings.ToLower(p) {
