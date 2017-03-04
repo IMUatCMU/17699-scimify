@@ -28,18 +28,18 @@ type Attribute struct {
 
 func (a *Attribute) ToMap() map[string]interface{} {
 	data := map[string]interface{}{
-		"name": a.Name,
-		"type": a.Type,
-		"subAttributes": make([]map[string]interface{}, 0, len(a.SubAttributes)),
-		"multiValued": a.MultiValued,
-		"description": a.Description,
-		"required": a.Required,
+		"name":            a.Name,
+		"type":            a.Type,
+		"subAttributes":   make([]map[string]interface{}, 0, len(a.SubAttributes)),
+		"multiValued":     a.MultiValued,
+		"description":     a.Description,
+		"required":        a.Required,
 		"canonicalValues": a.CanonicalValues,
-		"caseExact": a.CaseExact,
-		"mutability": a.Mutability,
-		"returned": a.Returned,
-		"uniqueness": a.Uniqueness,
-		"referenceTypes": a.ReferenceTypes,
+		"caseExact":       a.CaseExact,
+		"mutability":      a.Mutability,
+		"returned":        a.Returned,
+		"uniqueness":      a.Uniqueness,
+		"referenceTypes":  a.ReferenceTypes,
 	}
 	for _, subAttr := range a.SubAttributes {
 		data["subAttributes"] = append(data["subAttributes"].([]map[string]interface{}), subAttr.ToMap())
@@ -54,6 +54,41 @@ func (a *Attribute) GetAttribute(path string) *Attribute {
 		}
 	}
 	return nil
+}
+
+func (a *Attribute) IsValueAssigned(v reflect.Value) bool {
+	if !v.IsValid() {
+		return false
+	}
+
+	if v.Kind() == reflect.Interface {
+		return a.IsValueAssigned(v.Elem())
+	}
+
+	if a.MultiValued {
+		switch {
+		case v.IsNil():
+			return false
+		case v.Kind() != reflect.Slice && v.Kind() != reflect.Array:
+			return false
+		default:
+			return v.Len() > 0
+		}
+	} else {
+		switch a.Type {
+		case Complex:
+			switch {
+			case v.IsNil():
+				return false
+			case v.Kind() != reflect.Map:
+				return false
+			default:
+				return v.Len() > 0
+			}
+		default:
+			return true
+		}
+	}
 }
 
 func (a *Attribute) IsUnassigned(object interface{}) bool {

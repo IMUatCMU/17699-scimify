@@ -9,9 +9,10 @@ import (
 // A simple/default implementation that uses Go's json marshal capability
 type DefaultJsonSerializer struct{}
 
-func (_ *DefaultJsonSerializer) Serialize(resource *resource.Resource, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
-	resource.RLock()
-	bytes, err := json.Marshal(resource.Attributes)
-	resource.RUnlock()
-	return bytes, err
+func (_ *DefaultJsonSerializer) Serialize(target resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
+	return json.Marshal(target)
+}
+
+func (_ *DefaultJsonSerializer) SerializeArray(target []resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
+	return json.Marshal(target)
 }

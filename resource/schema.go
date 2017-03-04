@@ -23,17 +23,31 @@ func (s *Schema) GetId() string {
 
 func (s *Schema) Data() map[string]interface{} {
 	data := map[string]interface{}{
-		"schemas": s.Schemas,
-		"id": s.Id,
-		"name": s.Name,
+		"schemas":     s.Schemas,
+		"id":          s.Id,
+		"name":        s.Name,
 		"description": s.Description,
-		"attributes": make([]map[string]interface{}, 0, len(s.Attributes)),
+		"attributes":  make([]map[string]interface{}, 0, len(s.Attributes)),
 	}
 	for _, attr := range s.Attributes {
 		data["attributes"] = append(data["attributes"].([]map[string]interface{}), attr.ToMap())
 	}
 	return data
 
+}
+
+func (s *Schema) AsAttribute() *Attribute {
+	return &Attribute{
+		Type:          Complex,
+		MultiValued:   false,
+		Required:      false,
+		CaseExact:     false,
+		Returned:      Default,
+		Uniqueness:    None,
+		Mutability:    ReadWrite,
+		SubAttributes: s.Attributes,
+		Assist:        &Assist{JSONName: "", Path: "", FullPath: ""},
+	}
 }
 
 func (s *Schema) MergeWith(schemas ...*Schema) {
