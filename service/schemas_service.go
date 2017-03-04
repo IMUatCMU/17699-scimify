@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func getAllSchemas(rw http.ResponseWriter, req *http.Request) {
+func getAllSchemas(rw http.ResponseWriter, _ *http.Request) {
 	var (
 		statusCode int
 		headers    map[string]string

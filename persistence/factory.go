@@ -6,8 +6,10 @@ import (
 )
 
 var (
-	oneSchemaRepo    sync.Once
-	schemaRepository Repository
+	oneSchemaRepo,
+	oneResourceTypeRepo    sync.Once
+	schemaRepository,
+	resourceTypeRepository Repository
 )
 
 func GetSchemaRepository() Repository {
@@ -17,4 +19,13 @@ func GetSchemaRepository() Repository {
 		}
 	})
 	return schemaRepository
+}
+
+func GetResourceTypeRepository() Repository {
+	oneResourceTypeRepo.Do(func() {
+		resourceTypeRepository = &SimpleRepository{
+			repo: make(map[string]resource.ScimObject, 0),
+		}
+	})
+	return resourceTypeRepository
 }
