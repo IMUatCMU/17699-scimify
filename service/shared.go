@@ -15,7 +15,7 @@ func handleError(err error) (int, map[string]string, []byte) {
 	}
 
 	serializer := worker.GetDefaultJsonSerializerWorker()
-	bytes, err := serializer.Do(&worker.JsonSerializeInput{Resource: scimErr.AsResource()})
+	bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: scimErr})
 	if nil != err {
 		return http.StatusInternalServerError,
 			map[string]string{"Content-Type": "text/plain"},

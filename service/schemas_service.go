@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
@@ -20,35 +19,22 @@ func getAllSchemas(rw http.ResponseWriter, req *http.Request) {
 	repository := persistence.GetSchemaRepository()
 	serializer := worker.GetDefaultJsonSerializerWorker()
 
-	allSchemas, _ := repository.GetAll()
-	if len(allSchemas) == 0 {
+	if allSchemas, _ := repository.GetAll(); len(allSchemas) == 0 {
 		e := resource.CreateError(resource.NotFound, "No schema was found.")
 		statusCode, headers, body = handleError(e)
 		writeResponse(rw, statusCode, headers, body)
 		return
+	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: allSchemas}); err != nil {
+		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
+		statusCode, headers, body = handleError(e)
+		writeResponse(rw, statusCode, headers, body)
+		return
 	} else {
-		rawJsons := make([]json.RawMessage, 0, len(allSchemas))
-		for _, schema := range allSchemas {
-			if bytes, err := serializer.Do(&worker.JsonSerializeInput{Resource: schema}); err != nil {
-				e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
-				statusCode, headers, body = handleError(e)
-				writeResponse(rw, statusCode, headers, body)
-				return
-			} else {
-				rawJsons = append(rawJsons, json.RawMessage(bytes.([]byte)))
-			}
-		}
-		if json, err := json.Marshal(&rawJsons); err != nil {
-			e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
-			statusCode, headers, body = handleError(e)
-		} else {
-			statusCode = http.StatusOK
-			headers = map[string]string{"Content-Type": "application/json+scim"}
-			body = json
-		}
+		statusCode = http.StatusOK
+		headers = map[string]string{"Content-Type": "application/json+scim"}
+		body = bytes.([]byte)
+		writeResponse(rw, statusCode, headers, body)
 	}
-
-	writeResponse(rw, statusCode, headers, body)
 }
 
 func getSchemaById(rw http.ResponseWriter, req *http.Request) {
@@ -68,7 +54,7 @@ func getSchemaById(rw http.ResponseWriter, req *http.Request) {
 		statusCode, headers, body = handleError(e)
 		writeResponse(rw, statusCode, headers, body)
 		return
-	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Resource: schema}); nil != err {
+	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: schema}); nil != err {
 		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
 		statusCode, headers, body = handleError(e)
 		writeResponse(rw, statusCode, headers, body)
@@ -77,7 +63,6 @@ func getSchemaById(rw http.ResponseWriter, req *http.Request) {
 		statusCode = http.StatusOK
 		headers = map[string]string{"Content-Type": "application/json+scim"}
 		body = bytes.([]byte)
+		writeResponse(rw, statusCode, headers, body)
 	}
-
-	writeResponse(rw, statusCode, headers, body)
 }

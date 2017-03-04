@@ -12,14 +12,16 @@ func (e Error) Error() string {
 	return e.Detail
 }
 
-func (e Error) AsResource() *Resource {
-	return &Resource{
-		Attributes: map[string]interface{}{
-			"schemas":  e.Schemas,
-			"detail":   e.Detail,
-			"scimType": e.ScimType,
-			"status":   e.Status,
-		},
+func (e Error) GetId() string {
+	return ""
+}
+
+func (e Error) Data() map[string]interface{} {
+	return map[string]interface{}{
+		"schemas":  e.Schemas,
+		"detail":   e.Detail,
+		"scimType": e.ScimType,
+		"status":   e.Status,
 	}
 }
 
