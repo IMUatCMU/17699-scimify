@@ -60,6 +60,11 @@ func (v *requiredRulesValidator) validate(object interface{}, attr *resource.Att
 			}
 		}
 	} else if resource.Complex == attr.Type {
+		// TEMP FIX
+		if nil == object && !attr.Required {
+			return true, nil
+		}
+
 		switch object.(type) {
 		case map[string]interface{}:
 		default:
