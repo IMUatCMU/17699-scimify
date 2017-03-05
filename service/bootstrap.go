@@ -18,6 +18,10 @@ var (
 
 func Bootstrap() *bone.Mux {
 	oneConfigDefault.Do(func() {
+		viper.SetDefault("mongo.address", "localhost:32768")
+		viper.SetDefault("mongo.database", "test_db")
+		viper.SetDefault("mongo.userCollectionName", "users")
+		viper.SetDefault("mongo.groupCollectionName", "groups")
 		viper.SetDefault("scim.itemsPerPage", 10)
 	})
 	oneDataInit.Do(func() {

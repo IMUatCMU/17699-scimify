@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"sync"
 )
 
@@ -46,4 +47,14 @@ func NewResourceFromMap(data map[string]interface{}) *Resource {
 	resource := NewResource()
 	resource.Attributes = data
 	return resource
+}
+
+// Create a new resource from bytes of json data
+func NewResourceFromBytes(bytes []byte) (*Resource, error) {
+	data := make(map[string]interface{}, 0)
+	err := json.Unmarshal(bytes, &data)
+	if err != nil {
+		return nil, err
+	}
+	return NewResourceFromMap(data), nil
 }
