@@ -23,7 +23,9 @@ func Bootstrap() *bone.Mux {
 	oneDataInit.Do(func() {
 		schemaRepo := persistence.GetSchemaRepository()
 		for _, path := range []string{
-			"./schemas/user_schema_all.json",
+			"./stock_data/schema/core.json",
+			"./stock_data/schema/user_schema.json",
+			"./stock_data/schema/group_schema.json",
 		} {
 			if schema, _, err := helper.LoadSchema(path); err != nil {
 				panic(err)
