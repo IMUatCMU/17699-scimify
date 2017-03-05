@@ -5,29 +5,26 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/worker"
-	"github.com/spf13/viper"
 	"net/http"
 )
 
-func getAllResourceTypes(rw http.ResponseWriter, _ *http.Request) {
+func getServiceProviderConfig(rw http.ResponseWriter, _ *http.Request) {
 	var (
 		statusCode int
 		headers    map[string]string
 		body       []byte
 	)
 
-	repository := persistence.GetResourceTypeRepository()
+	repository := persistence.GetServiceProviderConfigRepository()
 	serializer := worker.GetDefaultJsonSerializerWorker()
 
-	if allResourceTypes, _ := repository.GetAll(); len(allResourceTypes) == 0 {
-		e := resource.CreateError(resource.NotFound, "No resource type was found.")
+	if spConfig, err := repository.Get("", nil); err != nil {
+		e := resource.CreateError(resource.NotFound, "No service provider configuration was found.")
 		statusCode, headers, body = handleError(e)
 		writeResponse(rw, statusCode, headers, body)
 		return
-	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{
-		Target: resource.NewListResponse(allResourceTypes, 1, viper.GetInt("scim.itemsPerPage")),
-	}); err != nil {
-		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing resource types: %s", err.Error()))
+	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: spConfig}); err != nil {
+		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing service provider configuration: %s", err.Error()))
 		statusCode, headers, body = handleError(e)
 		writeResponse(rw, statusCode, headers, body)
 		return

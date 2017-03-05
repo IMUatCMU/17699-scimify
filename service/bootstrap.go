@@ -4,16 +4,16 @@ import (
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-zoo/bone"
+	"github.com/spf13/viper"
 	"net/http"
 	"sync"
-	"github.com/spf13/viper"
 )
 
 var (
 	oneServer,
 	oneDataInit,
-	oneConfigDefault 	sync.Once
-	mux                    	*bone.Mux
+	oneConfigDefault sync.Once
+	mux *bone.Mux
 )
 
 func Bootstrap() *bone.Mux {
@@ -33,13 +33,15 @@ func Bootstrap() *bone.Mux {
 		}
 
 		resourceTypeRepo := persistence.GetResourceTypeRepository()
-		for _, each := range []struct{
-			repo 		persistence.Repository
-			path 		string
+		serviceProviderConfigRepo := persistence.GetServiceProviderConfigRepository()
+		for _, each := range []struct {
+			repo persistence.Repository
+			path string
 		}{
 			{resourceTypeRepo, "./stock_data/resource_type/user_resource_type.json"},
 			{resourceTypeRepo, "./stock_data/resource_type/group_resource_type.json"},
-		}{
+			{serviceProviderConfigRepo, "./stock_data/sp_config/sp_config.json"},
+		} {
 			if resource, _, err := helper.LoadResource(each.path); err != nil {
 				panic(err)
 			} else if err = each.repo.Create(resource, nil); err != nil {
@@ -55,6 +57,8 @@ func Bootstrap() *bone.Mux {
 		mux.GetFunc("/Schemas/:schemaId", http.HandlerFunc(getSchemaById))
 
 		mux.GetFunc("/ResourceTypes", http.HandlerFunc(getAllResourceTypes))
+
+		mux.GetFunc("/ServiceProviderConfig", http.HandlerFunc(getServiceProviderConfig))
 
 		mux.GetFunc("/Users/:userId", http.HandlerFunc(getUserById))
 		mux.PostFunc("/Users", http.HandlerFunc(createUser))

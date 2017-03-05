@@ -7,9 +7,11 @@ import (
 
 var (
 	oneSchemaRepo,
-	oneResourceTypeRepo    sync.Once
+	oneResourceTypeRepo,
+	oneServiceProviderRepo sync.Once
 	schemaRepository,
-	resourceTypeRepository Repository
+	resourceTypeRepository,
+	serviceProviderRepository Repository
 )
 
 func GetSchemaRepository() Repository {
@@ -28,4 +30,13 @@ func GetResourceTypeRepository() Repository {
 		}
 	})
 	return resourceTypeRepository
+}
+
+func GetServiceProviderConfigRepository() Repository {
+	oneServiceProviderRepo.Do(func() {
+		serviceProviderRepository = &SimpleRepository{
+			repo: make(map[string]resource.ScimObject, 0),
+		}
+	})
+	return serviceProviderRepository
 }
