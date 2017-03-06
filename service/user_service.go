@@ -7,12 +7,9 @@ import (
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/validation"
 	"github.com/go-scim/scimify/worker"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
 	"runtime"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -114,73 +111,6 @@ func (srv *userService) updateUserById(req *http.Request) (response, error) {
 
 func (srv *userService) deleteUserById(req *http.Request) (response, error) {
 	return nil_response, nil
-}
-
-func newQueryParameters() *queryParameters {
-	return &queryParameters{
-		filter:             "",
-		sortBy:             "",
-		ascending:          true,
-		pageStart:          1,
-		pageSize:           viper.GetInt("scim.itemsPerPage"),
-		attributes:         []string{},
-		excludedAttributes: []string{},
-	}
-}
-
-type queryParameters struct {
-	filter             string
-	sortBy             string
-	ascending          bool
-	pageStart          int
-	pageSize           int
-	attributes         []string
-	excludedAttributes []string
-}
-
-func (p *queryParameters) parse(req *http.Request) error {
-	p.filter = req.URL.Query().Get("filter")
-	if len(p.filter) == 0 {
-		return resource.CreateError(resource.InvalidValue, "[filter] is required.")
-	}
-
-	p.sortBy = req.URL.Query().Get("sortBy")
-	switch req.URL.Query().Get("sortOrder") {
-	case "", "ascending":
-		p.ascending = true
-	case "descending":
-		p.ascending = false
-	default:
-		return resource.CreateError(resource.InvalidValue, "[sortOrder] should have value [ascending] or [descending].")
-	}
-
-	if v := req.URL.Query().Get("startIndex"); len(v) > 0 {
-		if i, err := strconv.Atoi(v); err != nil {
-			return resource.CreateError(resource.InvalidValue, "[startIndex] must be a 1-based integer.")
-		} else {
-			if i < 1 {
-				p.pageStart = 1
-			} else {
-				p.pageStart = i
-			}
-		}
-	}
-	if v := req.URL.Query().Get("count"); len(v) > 0 {
-		if i, err := strconv.Atoi(v); err != nil {
-			return resource.CreateError(resource.InvalidValue, "[count] must be a non-negative integer.")
-		} else {
-			if i < 0 {
-				p.pageSize = 0
-			} else {
-				p.pageSize = i
-			}
-		}
-	}
-
-	p.attributes = strings.Split(req.URL.Query().Get("attributes"), ",")
-	p.excludedAttributes = strings.Split(req.URL.Query().Get("excludedAttributes"), ",")
-
-	return nil
 }
 
 func (srv *userService) queryUser(req *http.Request) (response, error) {
