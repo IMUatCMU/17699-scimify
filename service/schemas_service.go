@@ -9,60 +9,38 @@ import (
 	"net/http"
 )
 
-func getAllSchemas(rw http.ResponseWriter, _ *http.Request) {
-	var (
-		statusCode int
-		headers    map[string]string
-		body       []byte
-	)
+type schemaService struct{}
 
+func (srv *schemaService) getAllSchemas(_ *http.Request) (response, error) {
 	repository := persistence.GetSchemaRepository()
 	serializer := worker.GetDefaultJsonSerializerWorker()
 
 	if allSchemas, _ := repository.GetAll(); len(allSchemas) == 0 {
-		e := resource.CreateError(resource.NotFound, "No schema was found.")
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.NotFound, "No schema was found.")
 	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: allSchemas}); err != nil {
-		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
 	} else {
-		statusCode = http.StatusOK
-		headers = map[string]string{"Content-Type": "application/json+scim"}
-		body = bytes.([]byte)
-		writeResponse(rw, statusCode, headers, body)
+		return response{
+			statusCode: http.StatusOK,
+			body:       bytes.([]byte),
+		}, nil
 	}
 }
 
-func getSchemaById(rw http.ResponseWriter, req *http.Request) {
-	var (
-		statusCode int
-		headers    map[string]string
-		body       []byte
-	)
-
+func (srv *schemaService) getSchemaById(req *http.Request) (response, error) {
 	schemaId := bone.GetValue(req, "schemaId")
 	repository := persistence.GetSchemaRepository()
 	serializer := worker.GetDefaultJsonSerializerWorker()
 
 	schema, _ := repository.Get(schemaId, nil)
 	if nil == schema {
-		e := resource.CreateError(resource.NotFound, fmt.Sprintf("Schema by id '%s' does not exist.", schemaId))
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.NotFound, fmt.Sprintf("Schema by id '%s' does not exist.", schemaId))
 	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: schema}); nil != err {
-		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
 	} else {
-		statusCode = http.StatusOK
-		headers = map[string]string{"Content-Type": "application/json+scim"}
-		body = bytes.([]byte)
-		writeResponse(rw, statusCode, headers, body)
+		return response{
+			statusCode: http.StatusOK,
+			body:       bytes.([]byte),
+		}, nil
 	}
 }

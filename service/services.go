@@ -6,6 +6,43 @@ import (
 	"net/http"
 )
 
+type response struct {
+	statusCode int
+	headers    map[string]string
+	body       []byte
+}
+
+var nil_response response
+
+type service func(*http.Request) (response, error)
+
+func endpoint(srv service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		var (
+			c int
+			h map[string]string
+			b []byte
+		)
+		r, e := srv(req)
+		if nil != e {
+			c, h, b = handleError(e)
+		} else {
+			c, h, b = r.statusCode, r.headers, r.body
+		}
+
+		if len(h) == 0 {
+			h = make(map[string]string)
+		}
+		if len(b) != 0 {
+			if _, ok := h["Content-Type"]; !ok {
+				h["Content-Type"] = "application/json+scim"
+			}
+		}
+
+		writeResponse(rw, c, h, b)
+	})
+}
+
 func handleError(err error) (int, map[string]string, []byte) {
 	var scimErr resource.Error
 	if e, ok := err.(resource.Error); !ok {

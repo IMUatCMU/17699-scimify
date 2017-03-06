@@ -5,7 +5,6 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-zoo/bone"
 	"github.com/spf13/viper"
-	"net/http"
 	"sync"
 )
 
@@ -13,6 +12,12 @@ var (
 	oneServer,
 	oneDataInit,
 	oneConfigDefault sync.Once
+
+	schemaSrv       *schemaService
+	resourceTypeSrv *resourceTypeService
+	spConfigSrv     *spConfigService
+	userSrv         *userService
+
 	mux *bone.Mux
 )
 
@@ -56,23 +61,27 @@ func Bootstrap() *bone.Mux {
 		}
 	})
 	oneServer.Do(func() {
+		schemaSrv = &schemaService{}
+		resourceTypeSrv = &resourceTypeService{}
+		userSrv = &userService{}
+
 		mux = bone.New()
 		mux.Prefix("/v2")
 
-		mux.GetFunc("/Schemas", http.HandlerFunc(getAllSchemas))
-		mux.GetFunc("/Schemas/:schemaId", http.HandlerFunc(getSchemaById))
+		mux.GetFunc("/Schemas", endpoint(schemaSrv.getAllSchemas))
+		mux.GetFunc("/Schemas/:schemaId", endpoint(schemaSrv.getSchemaById))
 
-		mux.GetFunc("/ResourceTypes", http.HandlerFunc(getAllResourceTypes))
+		mux.GetFunc("/ResourceTypes", endpoint(resourceTypeSrv.getAllResourceTypes))
 
-		mux.GetFunc("/ServiceProviderConfig", http.HandlerFunc(getServiceProviderConfig))
+		mux.GetFunc("/ServiceProviderConfig", endpoint(spConfigSrv.getServiceProviderConfig))
 
-		mux.GetFunc("/Users/:userId", http.HandlerFunc(getUserById))
-		mux.PostFunc("/Users", http.HandlerFunc(createUser))
-		mux.PutFunc("/Users/:userId", http.HandlerFunc(replaceUserById))
-		mux.PatchFunc("/Users/:userId", http.HandlerFunc(updateUserById))
-		mux.DeleteFunc("/Users/:userId", http.HandlerFunc(deleteUserById))
-		mux.GetFunc("/Users", http.HandlerFunc(queryUser))
-		mux.PostFunc("/Users/.search", http.HandlerFunc(queryUser))
+		mux.GetFunc("/Users/:userId", endpoint(userSrv.getUserById))
+		mux.PostFunc("/Users", endpoint(userSrv.createUser))
+		mux.PutFunc("/Users/:userId", endpoint(userSrv.replaceUserById))
+		mux.PatchFunc("/Users/:userId", endpoint(userSrv.updateUserById))
+		mux.DeleteFunc("/Users/:userId", endpoint(userSrv.deleteUserById))
+		mux.GetFunc("/Users", endpoint(userSrv.queryUser))
+		mux.PostFunc("/Users/.search", endpoint(userSrv.queryUser))
 	})
 	return mux
 }

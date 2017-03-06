@@ -77,10 +77,10 @@ func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending boo
 	}
 
 	// page start
-	if pageStart < 0 {
+	if pageStart < 1 {
 		query = query.Skip(0)
 	} else {
-		query = query.Skip(pageStart)
+		query = query.Skip(pageStart - 1)
 	}
 
 	// page size

@@ -9,32 +9,23 @@ import (
 	"net/http"
 )
 
-func getAllResourceTypes(rw http.ResponseWriter, _ *http.Request) {
-	var (
-		statusCode int
-		headers    map[string]string
-		body       []byte
-	)
+type resourceTypeService struct{}
 
+func (srv *resourceTypeService) getAllResourceTypes(_ *http.Request) (response, error) {
 	repository := persistence.GetResourceTypeRepository()
 	serializer := worker.GetDefaultJsonSerializerWorker()
 
 	if allResourceTypes, _ := repository.GetAll(); len(allResourceTypes) == 0 {
-		e := resource.CreateError(resource.NotFound, "No resource type was found.")
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.NotFound, "No resource type was found.")
 	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{
-		Target: resource.NewListResponse(allResourceTypes, 1, viper.GetInt("scim.itemsPerPage")),
+		Target: resource.NewListResponse(allResourceTypes, 1, viper.GetInt("scim.itemsPerPage"), len(allResourceTypes)),
 	}); err != nil {
-		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing resource types: %s", err.Error()))
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing resource types: %s", err.Error()))
 	} else {
-		statusCode = http.StatusOK
-		headers = map[string]string{"Content-Type": "application/json+scim"}
-		body = bytes.([]byte)
-		writeResponse(rw, statusCode, headers, body)
+		return response{
+			statusCode: http.StatusOK,
+			headers:    nil,
+			body:       bytes.([]byte),
+		}, nil
 	}
 }

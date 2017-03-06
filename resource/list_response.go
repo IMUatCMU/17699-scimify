@@ -1,11 +1,11 @@
 package resource
 
 type ListResponse struct {
-	Schemas      []string     `json:"schemas"`
-	TotalResults int          `json:"totalResults"`
-	ItemsPerPage int          `json:"itemsPerPage"`
-	StartIndex   int          `json:"startIndex"`
-	Resources    []ScimObject `json:"Resources"`
+	Schemas      []string    `json:"schemas"`
+	TotalResults int         `json:"totalResults"`
+	ItemsPerPage int         `json:"itemsPerPage"`
+	StartIndex   int         `json:"startIndex"`
+	Resources    interface{} `json:"Resources"`
 }
 
 func (l *ListResponse) GetId() string {
@@ -19,18 +19,24 @@ func (l *ListResponse) Data() map[string]interface{} {
 		"itemsPerPage": l.ItemsPerPage,
 		"startIndex":   l.StartIndex,
 	}
-	resourceData := make([]map[string]interface{}, 0, len(l.Resources))
-	for _, r := range l.Resources {
-		resourceData = append(resourceData, r.Data())
+	resourceData := make([]map[string]interface{}, 0)
+	switch l.Resources.(type) {
+	case []ScimObject:
+		for _, r := range l.Resources.([]ScimObject) {
+			resourceData = append(resourceData, r.Data())
+		}
+		data["Resources"] = resourceData
+	default:
+		data["Resources"] = l.Resources
 	}
-	data["Resources"] = resourceData
+
 	return data
 }
 
-func NewListResponse(resources []ScimObject, startIndex, itemsPerPage int) *ListResponse {
+func NewListResponse(resources interface{}, startIndex, itemsPerPage, totalResults int) *ListResponse {
 	return &ListResponse{
 		Schemas:      []string{ListResponseUrn},
-		TotalResults: len(resources),
+		TotalResults: totalResults,
 		ItemsPerPage: itemsPerPage,
 		StartIndex:   startIndex,
 		Resources:    resources,

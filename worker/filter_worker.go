@@ -9,8 +9,8 @@ import (
 )
 
 type FilterWorkerInput struct {
-	filterText string
-	schema     *resource.Schema
+	FilterText string
+	Schema     *resource.Schema
 }
 
 type filterWorker struct {
@@ -20,13 +20,13 @@ type filterWorker struct {
 func (w *filterWorker) initialize(numProcs int) {
 	if pool, err := tunny.CreatePool(numProcs, func(input interface{}) interface{} {
 		r := &wrappedReturn{}
-		if tokens, err := filter.Tokenize(input.(*FilterWorkerInput).filterText); err != nil {
+		if tokens, err := filter.Tokenize(input.(*FilterWorkerInput).FilterText); err != nil {
 			r.Err = err
 			return r
 		} else if root, err := filter.Parse(tokens); err != nil {
 			r.Err = err
 			return r
-		} else if bson, err := persistence.TranspileToMongoQuery(root, input.(*FilterWorkerInput).schema); err != nil {
+		} else if bson, err := persistence.TranspileToMongoQuery(root, input.(*FilterWorkerInput).Schema); err != nil {
 			r.Err = err
 			return r
 		} else {

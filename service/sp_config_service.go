@@ -8,30 +8,20 @@ import (
 	"net/http"
 )
 
-func getServiceProviderConfig(rw http.ResponseWriter, _ *http.Request) {
-	var (
-		statusCode int
-		headers    map[string]string
-		body       []byte
-	)
+type spConfigService struct{}
 
+func (srv *spConfigService) getServiceProviderConfig(_ *http.Request) (response, error) {
 	repository := persistence.GetServiceProviderConfigRepository()
 	serializer := worker.GetDefaultJsonSerializerWorker()
 
 	if spConfig, err := repository.Get("", nil); err != nil {
-		e := resource.CreateError(resource.NotFound, "No service provider configuration was found.")
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.NotFound, "No service provider configuration was found.")
 	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: spConfig}); err != nil {
-		e := resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing service provider configuration: %s", err.Error()))
-		statusCode, headers, body = handleError(e)
-		writeResponse(rw, statusCode, headers, body)
-		return
+		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing service provider configuration: %s", err.Error()))
 	} else {
-		statusCode = http.StatusOK
-		headers = map[string]string{"Content-Type": "application/json+scim"}
-		body = bytes.([]byte)
-		writeResponse(rw, statusCode, headers, body)
+		return response{
+			statusCode: http.StatusOK,
+			body:       bytes.([]byte),
+		}, nil
 	}
 }

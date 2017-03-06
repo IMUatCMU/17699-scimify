@@ -317,8 +317,8 @@ func TestFilterWorker(t *testing.T) {
 	} {
 		worker := GetFilterWorker()
 		result, err := worker.Do(&FilterWorkerInput{
-			schema:     schema,
-			filterText: test.filter,
+			Schema:     schema,
+			FilterText: test.filter,
 		})
 		test.assertion(result.(bson.M), err)
 	}
@@ -369,8 +369,8 @@ func BenchmarkFilterWorker(b *testing.B) {
 			n := r.Intn(len(testFilters))
 			b.Logf("%d\n", n)
 			worker.Do(&FilterWorkerInput{
-				schema:     schema,
-				filterText: testFilters[n],
+				Schema:     schema,
+				FilterText: testFilters[n],
 			})
 		}
 
