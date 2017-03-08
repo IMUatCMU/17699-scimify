@@ -1,22 +1,45 @@
 package validation
 
 import (
-	"context"
 	"github.com/go-scim/scimify/resource"
-	"github.com/stretchr/testify/assert"
-	"testing"
+	"context"
 	"github.com/go-scim/scimify/helper"
+	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
-type requiredRuleValidatorTest struct {
+type testUseRequiredCheckValidator struct {}
+
+func (rcv *testUseRequiredCheckValidator) Validate(r *resource.Resource, _ ValidationOptions, ctx context.Context) (pass bool, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			switch r.(type) {
+			case error:
+				pass, err = false, r.(error)
+				return
+			default:
+				panic(r)
+			}
+		}
+	}()
+
+	schema := ctx.Value(resource.CK_Schema).(*resource.Schema)
+	delegate := &requiredCheckDelegate{enforceReadOnlyAttributes:false}
+	helper.Traverse(r, schema, []helper.ResourceTraversalDelegate{delegate})
+
+	pass, err = true, nil
+	return
+}
+
+type requiredCheckDelegateTest struct {
 	name         string
 	schemaPath   string
 	resourcePath string
 	assertion    func(bool, error)
 }
 
-func BenchmarkRequiredRulesValidator_Validate(b *testing.B) {
-	validator := &requiredRulesValidator{}
+func BenchmarkRequiredCheckDelegate(b *testing.B) {
+	validator := &testUseRequiredCheckValidator{}
 	schema, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
 	if err != nil {
 		b.Fatal(err)
@@ -41,9 +64,9 @@ func BenchmarkRequiredRulesValidator_Validate(b *testing.B) {
 	})
 }
 
-func TestRequiredRulesValidator_Validate(t *testing.T) {
-	validator := &requiredRulesValidator{}
-	for _, test := range []requiredRuleValidatorTest{
+func TestRequiredCheckDelegate(t *testing.T) {
+	validator := &testUseRequiredCheckValidator{}
+	for _, test := range []requiredCheckDelegateTest{
 		{
 			"test success",
 			"../test_data/test_user_schema_all.json",
@@ -60,7 +83,7 @@ func TestRequiredRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "a", err.(*validationError).FullPath)
+				assert.Equal(t, "a", err.(*RequiredMissingError).Attr.Assist.FullPath)
 			},
 		},
 		{
@@ -70,7 +93,7 @@ func TestRequiredRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "b", err.(*validationError).FullPath)
+				assert.Equal(t, "b", err.(*RequiredMissingError).Attr.Assist.FullPath)
 			},
 		},
 		{
@@ -80,7 +103,7 @@ func TestRequiredRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "c", err.(*validationError).FullPath)
+				assert.Equal(t, "c", err.(*RequiredUnassignedError).Attr.Assist.FullPath)
 			},
 		},
 		{
@@ -90,7 +113,7 @@ func TestRequiredRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "d.d1", err.(*validationError).FullPath)
+				assert.Equal(t, "d.d1", err.(*RequiredMissingError).Attr.Assist.FullPath)
 			},
 		},
 		{
@@ -100,19 +123,20 @@ func TestRequiredRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "e.e1", err.(*validationError).FullPath)
+				assert.Equal(t, "e.e1", err.(*RequiredMissingError).Attr.Assist.FullPath)
 			},
 		},
-	} {
-		//prepare schema
-		schema, err := loadSchema(test.schemaPath)
+	}{
+		schema, _, err := helper.LoadSchema(test.schemaPath)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		//prepare resource
-		resourceData := loadTestDataFromJson(t, test.resourcePath)
-		r := resource.NewResourceFromMap(resourceData)
+		r, _, err := helper.LoadResource(test.resourcePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		opt := ValidationOptions{UnassignedImmutableIsIgnored: false, ReadOnlyIsMandatory: false}
 		ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
 
