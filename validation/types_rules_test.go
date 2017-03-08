@@ -9,12 +9,38 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"github.com/go-scim/scimify/helper"
 )
 
 type typesCheckValidatorTest struct {
 	name         string
 	resourcePath string
 	assertion    func(bool, error)
+}
+
+func BenchmarkRulesValidator_Validate(b *testing.B) {
+	validator := &typeRulesValidator{}
+	schema, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+	schema.ConstructAttributeIndex()
+	r, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+	opt := ValidationOptions{UnassignedImmutableIsIgnored: false, ReadOnlyIsMandatory: false}
+	ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := validator.Validate(r, opt, ctx)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }
 
 func TestTypeRulesValidator_Validate(t *testing.T) {
