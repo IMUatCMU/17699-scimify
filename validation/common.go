@@ -6,6 +6,17 @@ import (
 	"strings"
 )
 
+const (
+	type_bool     = resource.Boolean
+	type_int      = resource.Integer
+	type_float    = resource.Decimal
+	type_string   = resource.String
+	type_ref      = resource.Reference
+	type_binary   = resource.Binary
+	type_datetime = resource.DateTime
+	type_complex  = resource.Complex
+)
+
 // Get object by simple key, case insensitive
 func getObjectByKey(target interface{}, key string) (interface{}, error) {
 	if nil == target {

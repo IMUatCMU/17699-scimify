@@ -16,6 +16,10 @@ func NewStack(cap int) *stack {
 	return &stack{data: make([]interface{}, 0, cap)}
 }
 
+func NewStackWithoutLimit() *queue {
+	return &queue{data: make([]interface{}, 0)}
+}
+
 func (s *stack) Push(item interface{}) {
 	s.data = append(s.data, item)
 }
