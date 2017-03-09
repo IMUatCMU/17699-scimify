@@ -1,10 +1,10 @@
 package helper
 
 import (
+	"fmt"
+	"github.com/go-scim/scimify/adt"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
-	"github.com/go-scim/scimify/adt"
-	"fmt"
 )
 
 type ResourceTraversalDelegate interface {
@@ -36,12 +36,12 @@ type ResourceTraversalState struct {
 	delegate      ResourceTraversalDelegate
 }
 
-func Traverse(r *resource.Resource, sch *resource.Schema, dlg []ResourceTraversalDelegate) {
+func TraverseWithSchema(r *resource.Resource, sch *resource.Schema, dlg []ResourceTraversalDelegate) {
 	state := &ResourceTraversalState{
-		RootSchema:sch,
-		ContainerAttr:adt.NewStackWithoutLimit(),
-		ContainerVal:adt.NewStackWithoutLimit(),
-		delegate:&broadcastDelegate{delegates:dlg},
+		RootSchema:    sch,
+		ContainerAttr: adt.NewStackWithoutLimit(),
+		ContainerVal:  adt.NewStackWithoutLimit(),
+		delegate:      &broadcastTraversalDelegate{delegates: dlg},
 	}
 	state.traverseWithReflection(reflect.ValueOf(r.Data()), sch.AsAttribute())
 }
@@ -137,11 +137,11 @@ func (rts *ResourceTraversalState) traverseWithReflection(v reflect.Value, attr 
 	}
 }
 
-type broadcastDelegate struct {
-	delegates 	[]ResourceTraversalDelegate
+type broadcastTraversalDelegate struct {
+	delegates []ResourceTraversalDelegate
 }
 
-func (bd *broadcastDelegate) OnInvalidValue(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnInvalidValue(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnInvalidValue(rts, v, attr); abort {
 			return abort
@@ -150,7 +150,7 @@ func (bd *broadcastDelegate) OnInvalidValue(rts *ResourceTraversalState, v refle
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsInterface(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsInterface(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsInterface(rts, v, attr); abort {
 			return abort
@@ -159,7 +159,7 @@ func (bd *broadcastDelegate) OnValueIsInterface(rts *ResourceTraversalState, v r
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsSlice(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsSlice(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsSlice(rts, v, attr); abort {
 			return abort
@@ -168,7 +168,7 @@ func (bd *broadcastDelegate) OnValueIsSlice(rts *ResourceTraversalState, v refle
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsArray(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsArray(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsArray(rts, v, attr); abort {
 			return abort
@@ -177,7 +177,7 @@ func (bd *broadcastDelegate) OnValueIsArray(rts *ResourceTraversalState, v refle
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsMap(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsMap(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsMap(rts, v, attr); abort {
 			return abort
@@ -186,7 +186,7 @@ func (bd *broadcastDelegate) OnValueIsMap(rts *ResourceTraversalState, v reflect
 	return false
 }
 
-func (bd *broadcastDelegate) OnMapKeyIsNotString(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnMapKeyIsNotString(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnMapKeyIsNotString(rts, v, attr); abort {
 			return abort
@@ -195,7 +195,7 @@ func (bd *broadcastDelegate) OnMapKeyIsNotString(rts *ResourceTraversalState, v 
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsBool(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsBool(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsBool(rts, v, attr); abort {
 			return abort
@@ -204,7 +204,7 @@ func (bd *broadcastDelegate) OnValueIsBool(rts *ResourceTraversalState, v reflec
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsInt(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsInt(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsInt(rts, v, attr); abort {
 			return abort
@@ -213,7 +213,7 @@ func (bd *broadcastDelegate) OnValueIsInt(rts *ResourceTraversalState, v reflect
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsFloat(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsFloat(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsFloat(rts, v, attr); abort {
 			return abort
@@ -222,7 +222,7 @@ func (bd *broadcastDelegate) OnValueIsFloat(rts *ResourceTraversalState, v refle
 	return false
 }
 
-func (bd *broadcastDelegate) OnValueIsString(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnValueIsString(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnValueIsString(rts, v, attr); abort {
 			return abort
@@ -231,7 +231,7 @@ func (bd *broadcastDelegate) OnValueIsString(rts *ResourceTraversalState, v refl
 	return false
 }
 
-func (bd *broadcastDelegate) OnUnsupportedType(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
+func (bd *broadcastTraversalDelegate) OnUnsupportedType(rts *ResourceTraversalState, v reflect.Value, attr *resource.Attribute) bool {
 	for _, d := range bd.delegates {
 		if abort := d.OnUnsupportedType(rts, v, attr); abort {
 			return abort

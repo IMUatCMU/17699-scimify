@@ -1,22 +1,22 @@
 package validation
 
 import (
+	"fmt"
+	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
-	"github.com/go-scim/scimify/helper"
-	"fmt"
 	"time"
 )
 
-type typeCheckDelegate struct {}
+type typeCheckDelegate struct{}
 
 func (tcd *typeCheckDelegate) OnInvalidValue(rts *helper.ResourceTraversalState, v reflect.Value, attr *resource.Attribute) (abort bool) {
-	abort = true	// type checking does not care if something is nil, just abort
+	abort = true // type checking does not care if something is nil, just abort
 	return
 }
 
 func (tcd *typeCheckDelegate) OnValueIsInterface(rts *helper.ResourceTraversalState, v reflect.Value, attr *resource.Attribute) (abort bool) {
-	abort = false	// continue type check for interface values
+	abort = false // continue type check for interface values
 	return
 }
 
@@ -47,7 +47,7 @@ func (tcd *typeCheckDelegate) OnValueIsMap(rts *helper.ResourceTraversalState, v
 
 func (tcd *typeCheckDelegate) OnMapKeyIsNotString(rts *helper.ResourceTraversalState, v reflect.Value, attr *resource.Attribute) (abort bool) {
 	abort = true
-	tcd.error(&TypeMismatchError{v.Type(), &resource.Attribute{Type:type_string}})
+	tcd.error(&TypeMismatchError{v.Type(), &resource.Attribute{Type: type_string}})
 	return
 }
 

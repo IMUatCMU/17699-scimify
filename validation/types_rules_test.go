@@ -3,13 +3,13 @@ package validation
 import (
 	"context"
 	"encoding/json"
+	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
-	"github.com/go-scim/scimify/helper"
 )
 
 type typesCheckValidatorTest struct {

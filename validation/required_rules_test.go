@@ -2,10 +2,10 @@ package validation
 
 import (
 	"context"
+	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/go-scim/scimify/helper"
 )
 
 type requiredRuleValidatorTest struct {

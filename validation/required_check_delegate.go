@@ -1,14 +1,14 @@
 package validation
 
 import (
-	"reflect"
-	"github.com/go-scim/scimify/resource"
-	"github.com/go-scim/scimify/helper"
 	"fmt"
+	"github.com/go-scim/scimify/helper"
+	"github.com/go-scim/scimify/resource"
+	"reflect"
 )
 
 type requiredCheckDelegate struct {
-	enforceReadOnlyAttributes	bool	// whether enforce required rules on readOnly attributes
+	enforceReadOnlyAttributes bool // whether enforce required rules on readOnly attributes
 }
 
 func (rcd *requiredCheckDelegate) OnInvalidValue(rts *helper.ResourceTraversalState, v reflect.Value, attr *resource.Attribute) (abort bool) {
@@ -101,7 +101,7 @@ func (rcd *requiredCheckDelegate) error(err error) {
 }
 
 type RequiredMissingError struct {
-	Attr 	*resource.Attribute
+	Attr *resource.Attribute
 }
 
 func (rme *RequiredMissingError) Error() string {
@@ -109,7 +109,7 @@ func (rme *RequiredMissingError) Error() string {
 }
 
 type RequiredUnassignedError struct {
-	Attr 	*resource.Attribute
+	Attr *resource.Attribute
 }
 
 func (rue *RequiredUnassignedError) Error() string {

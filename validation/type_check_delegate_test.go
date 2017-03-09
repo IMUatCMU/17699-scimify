@@ -1,14 +1,14 @@
 package validation
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
 	"github.com/go-scim/scimify/helper"
-	"testing"
+	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type testUseTypeCheckValidator struct {}
+type testUseTypeCheckValidator struct{}
 
 func (tcv *testUseTypeCheckValidator) Validate(r *resource.Resource, _ ValidationOptions, ctx context.Context) (pass bool, err error) {
 	defer func() {
@@ -25,7 +25,7 @@ func (tcv *testUseTypeCheckValidator) Validate(r *resource.Resource, _ Validatio
 
 	schema := ctx.Value(resource.CK_Schema).(*resource.Schema)
 	delegate := &typeCheckDelegate{}
-	helper.Traverse(r, schema, []helper.ResourceTraversalDelegate{delegate})
+	helper.TraverseWithSchema(r, schema, []helper.ResourceTraversalDelegate{delegate})
 
 	pass, err = true, nil
 	return
@@ -102,7 +102,7 @@ func TestTypeCheckDelegate(t *testing.T) {
 				assert.Equal(t, "urn:ietf:params:scim:schemas:core:2.0:User:emails", err.(*TypeMismatchError).Attr.Assist.FullPath)
 			},
 		},
-	}{
+	} {
 		// prepare schema
 		schema, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
 		if err != nil {

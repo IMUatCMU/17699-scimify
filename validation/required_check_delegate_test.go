@@ -1,14 +1,14 @@
 package validation
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
 	"github.com/go-scim/scimify/helper"
-	"testing"
+	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type testUseRequiredCheckValidator struct {}
+type testUseRequiredCheckValidator struct{}
 
 func (rcv *testUseRequiredCheckValidator) Validate(r *resource.Resource, _ ValidationOptions, ctx context.Context) (pass bool, err error) {
 	defer func() {
@@ -24,8 +24,8 @@ func (rcv *testUseRequiredCheckValidator) Validate(r *resource.Resource, _ Valid
 	}()
 
 	schema := ctx.Value(resource.CK_Schema).(*resource.Schema)
-	delegate := &requiredCheckDelegate{enforceReadOnlyAttributes:false}
-	helper.Traverse(r, schema, []helper.ResourceTraversalDelegate{delegate})
+	delegate := &requiredCheckDelegate{enforceReadOnlyAttributes: false}
+	helper.TraverseWithSchema(r, schema, []helper.ResourceTraversalDelegate{delegate})
 
 	pass, err = true, nil
 	return
@@ -126,7 +126,7 @@ func TestRequiredCheckDelegate(t *testing.T) {
 				assert.Equal(t, "e.e1", err.(*RequiredMissingError).Attr.Assist.FullPath)
 			},
 		},
-	}{
+	} {
 		schema, _, err := helper.LoadSchema(test.schemaPath)
 		if err != nil {
 			t.Fatal(err)
