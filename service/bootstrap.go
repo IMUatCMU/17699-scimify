@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/viper"
 	"sync"
 	"flag"
-	"fmt"
 )
 
 var (
