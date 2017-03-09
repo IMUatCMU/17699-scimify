@@ -1,12 +1,12 @@
 package service
 
 import (
+	"flag"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-zoo/bone"
 	"github.com/spf13/viper"
 	"sync"
-	"flag"
 )
 
 var (
@@ -43,11 +43,7 @@ func Bootstrap() *bone.Mux {
 	})
 	oneDataInit.Do(func() {
 		schemaRepo := persistence.GetSchemaRepository()
-		for _, path := range []string{
-			"./stock_data/schema/core.json",
-			"./stock_data/schema/user_schema.json",
-			"./stock_data/schema/group_schema.json",
-		} {
+		for _, path := range viper.GetStringSlice("scim.stock.schema") {
 			if schema, _, err := helper.LoadSchema(path); err != nil {
 				panic(err)
 			} else if err = schemaRepo.Create(schema, nil); err != nil {
@@ -56,18 +52,19 @@ func Bootstrap() *bone.Mux {
 		}
 
 		resourceTypeRepo := persistence.GetResourceTypeRepository()
-		serviceProviderConfigRepo := persistence.GetServiceProviderConfigRepository()
-		for _, each := range []struct {
-			repo persistence.Repository
-			path string
-		}{
-			{resourceTypeRepo, "./stock_data/resource_type/user_resource_type.json"},
-			{resourceTypeRepo, "./stock_data/resource_type/group_resource_type.json"},
-			{serviceProviderConfigRepo, "./stock_data/sp_config/sp_config.json"},
-		} {
-			if resource, _, err := helper.LoadResource(each.path); err != nil {
+		for _, path := range viper.GetStringSlice("scim.stock.resource_type") {
+			if resource, _, err := helper.LoadResource(path); err != nil {
 				panic(err)
-			} else if err = each.repo.Create(resource, nil); err != nil {
+			} else if err = resourceTypeRepo.Create(resource, nil); err != nil {
+				panic(err)
+			}
+		}
+
+		serviceProviderConfigRepo := persistence.GetServiceProviderConfigRepository()
+		for _, path := range viper.GetStringSlice("scim.stock.sp_config") {
+			if resource, _, err := helper.LoadResource(path); err != nil {
+				panic(err)
+			} else if err = serviceProviderConfigRepo.Create(resource, nil); err != nil {
 				panic(err)
 			}
 		}
