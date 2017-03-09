@@ -6,11 +6,14 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/spf13/viper"
 	"sync"
+	"flag"
+	"fmt"
 )
 
 var (
 	oneServer,
 	oneDataInit,
+	oneConfig,
 	oneConfigDefault sync.Once
 
 	schemaSrv       *schemaService
@@ -28,6 +31,16 @@ func Bootstrap() *bone.Mux {
 		viper.SetDefault("mongo.userCollectionName", "users")
 		viper.SetDefault("mongo.groupCollectionName", "groups")
 		viper.SetDefault("scim.itemsPerPage", 10)
+	})
+	oneConfig.Do(func() {
+		var yamlPath string
+		flag.StringVar(&yamlPath, "config", "./config.yaml", "Location for configuration file")
+		flag.Parse()
+		viper.SetConfigFile(yamlPath)
+		err := viper.ReadInConfig()
+		if nil != err {
+			panic(err)
+		}
 	})
 	oneDataInit.Do(func() {
 		schemaRepo := persistence.GetSchemaRepository()
