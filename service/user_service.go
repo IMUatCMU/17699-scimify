@@ -144,7 +144,22 @@ func (srv *userService) updateUserById(req *http.Request) (response, error) {
 }
 
 func (srv *userService) deleteUserById(req *http.Request) (response, error) {
-	return nil_response, nil
+	userId := bone.GetValue(req, "userId")
+
+	schema, err := srv.getUserSchema()
+	if err != nil {
+		return nil_response, resource.CreateError(resource.ServerError, "No schema was configured for user resource.")
+	}
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, resource.CK_Schema, schema)
+
+	repoWorker := worker.GetRepoUserDeleteWorker()
+	if _, err := repoWorker.Do(&worker.RepoDeleteWorkerInput{Id: userId, Ctx: ctx}); err != nil {
+		return nil_response, resource.CreateError(resource.NotFound, fmt.Sprintf("User not found by id %s", userId))
+	}
+
+	return response{statusCode: http.StatusNoContent, headers: nil, body: nil}, nil
 }
 
 func (srv *userService) queryUser(req *http.Request) (response, error) {

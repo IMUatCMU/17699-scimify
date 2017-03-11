@@ -60,7 +60,9 @@ func (m *MongoRepository) Delete(id string, context context.Context) error {
 	session := m.getSession()
 	defer session.Close()
 
-	return nil
+	return m.getCollection(session).Remove(bson.M{
+		"id": id,
+	})
 }
 
 // Query mongoDB for entries.

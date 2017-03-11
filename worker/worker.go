@@ -50,7 +50,9 @@ var (
 	oneRepoUserCreateWorker,
 	oneRepoGroupCreateWorker,
 	oneRepoUserGetWorker,
-	oneRepoGroupGetWorker sync.Once
+	oneRepoGroupGetWorker,
+	oneRepoUserDeleteWorker,
+	oneRepoGroupDeleteWorker sync.Once
 
 	repoUserQueryWorkerInstance,
 	repoGroupQueryWorkerInstance *repoQueryWorker
@@ -60,7 +62,36 @@ var (
 
 	repoUserGetWorkerInstance,
 	repoGroupGetWorkerInstance *repoGetWorker
+
+	repoUserDeleteWorkerInstance,
+	repoGroupDeleteWorkerInstance *repoDeleteWorker
 )
+
+func GetRepoUserDeleteWorker() Worker {
+	oneRepoUserDeleteWorker.Do(func() {
+		repoUserDeleteWorkerInstance = &repoDeleteWorker{
+			Repo: persistence.NewMongoRepository(
+				viper.GetString("mongo.address"),
+				viper.GetString("mongo.database"),
+				viper.GetString("mongo.userCollectionName")),
+		}
+		repoUserDeleteWorkerInstance.initialize(2)
+	})
+	return repoUserDeleteWorkerInstance
+}
+
+func GetRepoGroupDeleteWorker() Worker {
+	oneRepoGroupDeleteWorker.Do(func() {
+		repoGroupDeleteWorkerInstance = &repoDeleteWorker{
+			Repo: persistence.NewMongoRepository(
+				viper.GetString("mongo.address"),
+				viper.GetString("mongo.database"),
+				viper.GetString("mongo.groupCollectionName")),
+		}
+		repoGroupDeleteWorkerInstance.initialize(2)
+	})
+	return repoGroupDeleteWorkerInstance
+}
 
 func GetRepoUserGetWorker() Worker {
 	oneRepoUserGetWorker.Do(func() {
