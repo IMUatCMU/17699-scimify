@@ -48,14 +48,45 @@ var (
 	oneRepoUserQueryWorker,
 	oneRepoGroupQueryWorker,
 	oneRepoUserCreateWorker,
-	oneRepoGroupCreateWorker sync.Once
+	oneRepoGroupCreateWorker,
+	oneRepoUserGetWorker,
+	oneRepoGroupGetWorker sync.Once
 
 	repoUserQueryWorkerInstance,
 	repoGroupQueryWorkerInstance *repoQueryWorker
 
 	repoUserCreateWorkerInstance,
 	repoGroupCreateWorkerInstance *repoCreateWorker
+
+	repoUserGetWorkerInstance,
+	repoGroupGetWorkerInstance *repoGetWorker
 )
+
+func GetRepoUserGetWorker() Worker {
+	oneRepoUserGetWorker.Do(func() {
+		repoUserGetWorkerInstance = &repoGetWorker{
+			Repo: persistence.NewMongoRepository(
+				viper.GetString("mongo.address"),
+				viper.GetString("mongo.database"),
+				viper.GetString("mongo.userCollectionName")),
+		}
+		repoUserGetWorkerInstance.initialize(2)
+	})
+	return repoUserGetWorkerInstance
+}
+
+func GetRepoGroupGetWorker() Worker {
+	oneRepoGroupGetWorker.Do(func() {
+		repoGroupGetWorkerInstance = &repoGetWorker{
+			Repo: persistence.NewMongoRepository(
+				viper.GetString("mongo.address"),
+				viper.GetString("mongo.database"),
+				viper.GetString("mongo.groupCollectionName")),
+		}
+		repoGroupGetWorkerInstance.initialize(2)
+	})
+	return repoGroupGetWorkerInstance
+}
 
 func GetRepoUserCreateWorker() Worker {
 	oneRepoUserCreateWorker.Do(func() {

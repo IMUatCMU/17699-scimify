@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-scim/scimify/resource"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func NewMongoRepository(mongoAddress, database, collection string) *MongoRepository {
@@ -35,7 +36,17 @@ func (m *MongoRepository) Get(id string, context context.Context) (resource.Scim
 	session := m.getSession()
 	defer session.Close()
 
-	return nil, nil
+	query := m.getCollection(session).Find(bson.M{
+		"id": id,
+	})
+
+	data := make(map[string]interface{}, 0)
+	err := query.One(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return resource.NewResourceFromMap(data), nil
 }
 
 func (m *MongoRepository) Replace(id string, resource resource.ScimObject, context context.Context) error {

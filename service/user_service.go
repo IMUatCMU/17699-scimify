@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-scim/scimify/validation"
 	"github.com/go-scim/scimify/worker"
+	"github.com/go-zoo/bone"
 	"io/ioutil"
 	"net/http"
 	"runtime"
@@ -19,7 +21,39 @@ type userService struct {
 }
 
 func (srv *userService) getUserById(req *http.Request) (response, error) {
-	return nil_response, nil
+	userId := bone.GetValue(req, "userId")
+
+	schema, err := srv.getUserSchema()
+	if err != nil {
+		return nil_response, resource.CreateError(resource.ServerError, "No schema was configured for user resource.")
+	}
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, resource.CK_Schema, schema)
+
+	repoWorker := worker.GetRepoUserGetWorker()
+	r, err := repoWorker.Do(&worker.RepoGetWorkerInput{Id: userId, Ctx: ctx})
+	if err != nil {
+		return nil_response, resource.CreateError(resource.NotFound, fmt.Sprintf("User not found by id %s", userId))
+	}
+
+	serializer := worker.GetSchemaAssistedJsonSerializerWorker()
+	if bodyBytes, err := serializer.Do(&worker.JsonSerializeInput{
+		Target:  r,
+		Context: ctx,
+	}); err != nil {
+		return nil_response, resource.CreateError(resource.ServerError, err.Error())
+	} else {
+		meta := r.(*resource.Resource).Attributes["meta"].(map[string]interface{})
+		return response{
+			statusCode: http.StatusOK,
+			headers: map[string]string{
+				"ETag":     meta["version"].(string),
+				"Location": meta["location"].(string),
+			},
+			body: bodyBytes.([]byte),
+		}, nil
+	}
 }
 
 func (srv *userService) createUser(req *http.Request) (response, error) {
