@@ -1,17 +1,16 @@
 package processor
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
+	"github.com/go-scim/scimify/resource"
 )
 
 type Processor interface {
-
 	Process(r *resource.Resource, ctx context.Context) error
 }
 
 type SerialProcessor struct {
-	processors	[]Processor
+	processors []Processor
 }
 
 func (sp *SerialProcessor) Process(r *resource.Resource, ctx context.Context) error {

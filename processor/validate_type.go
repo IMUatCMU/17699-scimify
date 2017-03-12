@@ -1,14 +1,14 @@
 package processor
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
-	"reflect"
 	"github.com/go-scim/scimify/helper"
+	"github.com/go-scim/scimify/resource"
+	"reflect"
 	"time"
 )
 
-type typeValidationProcessor struct {}
+type typeValidationProcessor struct{}
 
 func (tvp *typeValidationProcessor) Process(r *resource.Resource, ctx context.Context) (err error) {
 	defer func() {

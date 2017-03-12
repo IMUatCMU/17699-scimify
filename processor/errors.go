@@ -1,14 +1,14 @@
 package processor
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"fmt"
+	"github.com/go-scim/scimify/resource"
 	"reflect"
 )
 
 // Error representing the scenario where a required parameter from context is not present.
 type MissingContextValueError struct {
-	Key 	resource.ContextKey
+	Key resource.ContextKey
 }
 
 func (mcv *MissingContextValueError) Error() string {
@@ -70,4 +70,22 @@ type TypeUnsupportedError struct {
 
 func (ute *TypeUnsupportedError) Error() string {
 	return fmt.Sprintf("type %s is not supported", ute.T.String())
+}
+
+// Error representing the scenario where a required attribute is missing (nil)
+type RequiredMissingError struct {
+	Attr *resource.Attribute
+}
+
+func (rme *RequiredMissingError) Error() string {
+	return fmt.Sprintf("Missing required attribute %s", rme.Attr.Assist.FullPath)
+}
+
+// Error representing the scenario where a required attribute is unassigned (present but unassigned value, i.e. empty array)
+type RequiredUnassignedError struct {
+	Attr *resource.Attribute
+}
+
+func (rue *RequiredUnassignedError) Error() string {
+	return fmt.Sprintf("Attribute %s is unassigned", rue.Attr.Assist.FullPath)
 }

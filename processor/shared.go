@@ -1,8 +1,8 @@
 package processor
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
+	"github.com/go-scim/scimify/resource"
 )
 
 const (

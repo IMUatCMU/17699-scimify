@@ -1,11 +1,11 @@
 package processor
 
 import (
-	"testing"
-	"github.com/go-scim/scimify/helper"
 	"context"
+	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type typeValidationProcessorTest struct {
