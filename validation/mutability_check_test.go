@@ -5,13 +5,14 @@ import (
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 type mutabilityCheckTest struct {
 	name         string
 	resourcePath string
-	assertion    func(bool, error)
+	assertion    func(bool, error, *resource.Resource, *resource.Resource)
 }
 
 func BenchmarkMutabilityValidator_Validate(b *testing.B) {
@@ -51,11 +52,11 @@ func BenchmarkMutabilityValidator_Validate(b *testing.B) {
 func TestMutabilityValidator_Validate(t *testing.T) {
 	validator := &MutabilityValidator{}
 
-	for _, test := range []mutabilityRulesTest{
+	for _, test := range []mutabilityCheckTest{
 		{
 			"test same resource passes",
 			"../test_data/single_test_user_david.json",
-			func(ok bool, err error) {
+			func(ok bool, err error, _ *resource.Resource, _ *resource.Resource) {
 				assert.True(t, ok)
 				assert.Nil(t, err)
 			},
@@ -63,7 +64,7 @@ func TestMutabilityValidator_Validate(t *testing.T) {
 		{
 			"test changes readOnly string attribute",
 			"../test_data/changes_readonly_string.json",
-			func(ok bool, err error) {
+			func(ok bool, err error, _ *resource.Resource, _ *resource.Resource) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
 				assert.Equal(t, "id", err.(*ValueChangedError).Attr.Assist.FullPath)
@@ -72,10 +73,19 @@ func TestMutabilityValidator_Validate(t *testing.T) {
 		{
 			"test changes readOnly complex attribute",
 			"../test_data/changes_readonly_complex.json",
-			func(ok bool, err error) {
+			func(ok bool, err error, _ *resource.Resource, _ *resource.Resource) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
 				assert.Equal(t, "meta", err.(*ValueChangedError).Attr.Assist.FullPath)
+			},
+		},
+		{
+			"meta was copied over",
+			"../test_data/single_test_user_david_without_meta.json",
+			func(ok bool, err error, r *resource.Resource, ref *resource.Resource) {
+				assert.True(t, ok)
+				assert.Nil(t, err)
+				assert.True(t, reflect.DeepEqual(r.Attributes["meta"], ref.Attributes["meta"]))
 			},
 		},
 	} {
@@ -101,6 +111,6 @@ func TestMutabilityValidator_Validate(t *testing.T) {
 		ctx = context.WithValue(ctx, resource.CK_Reference, ref)
 
 		ok, err := validator.Validate(r, opt, ctx)
-		test.assertion(ok, err)
+		test.assertion(ok, err, r, ref)
 	}
 }
