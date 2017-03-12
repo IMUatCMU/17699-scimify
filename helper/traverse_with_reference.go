@@ -25,7 +25,7 @@ type DoubleTraversalState struct {
 	ContainerAttr adt.Stack
 	ContainerVal  adt.Stack
 	ContainerRef  adt.Stack
-	delegate      TraversalWithReferenceDelegate
+	Delegate      TraversalWithReferenceDelegate
 }
 
 func TraverseWithReference(r *resource.Resource, ref *resource.Resource, sch *resource.Schema, dlg []TraversalWithReferenceDelegate) {
@@ -34,14 +34,14 @@ func TraverseWithReference(r *resource.Resource, ref *resource.Resource, sch *re
 		ContainerAttr: adt.NewStackWithoutLimit(),
 		ContainerVal:  adt.NewStackWithoutLimit(),
 		ContainerRef:  adt.NewStackWithoutLimit(),
-		delegate:      &broadcastDoubleTraversalDelegate{delegates: dlg},
+		Delegate:      &broadcastDoubleTraversalDelegate{delegates: dlg},
 	}
 	state.traverseWithReflection(reflect.ValueOf(r.Data()), reflect.ValueOf(ref.Data()), sch.AsAttribute())
 }
 
 func (dts *DoubleTraversalState) traverseWithReflection(v reflect.Value, w reflect.Value, attr *resource.Attribute) {
 	if !v.IsValid() || !w.IsValid() {
-		if abort := dts.delegate.OnAtLeastOneIsInvalidValue(attr, v, w, dts); abort {
+		if abort := dts.Delegate.OnAtLeastOneIsInvalidValue(attr, v, w, dts); abort {
 			return
 		}
 	}
@@ -55,13 +55,13 @@ func (dts *DoubleTraversalState) traverseWithReflection(v reflect.Value, w refle
 	}
 
 	if v.Kind() != w.Kind() {
-		if abort := dts.delegate.OnTypeIsDifferent(attr, v, w, dts); abort {
+		if abort := dts.Delegate.OnTypeIsDifferent(attr, v, w, dts); abort {
 			return
 		}
 	} else {
 		switch v.Kind() {
 		case reflect.Slice, reflect.Array:
-			if abort := dts.delegate.OnTypeIsSame(attr, v, w, dts); abort {
+			if abort := dts.Delegate.OnTypeIsSame(attr, v, w, dts); abort {
 				return
 			}
 
@@ -72,18 +72,18 @@ func (dts *DoubleTraversalState) traverseWithReflection(v reflect.Value, w refle
 			dts.ContainerVal.Push(v)
 			dts.ContainerRef.Push(w)
 			for i := 0; i < v.Len(); i++ {
-				dts.delegate.OnElemCrossTraversalStart(attr, v, i, dts)
+				dts.Delegate.OnElemCrossTraversalStart(attr, v, i, dts)
 				for j := 0; j < w.Len(); j++ {
 					dts.traverseWithReflection(v.Index(i), w.Index(j), elemAttr)
 				}
-				dts.delegate.OnElemCrossTraversalEnd(attr, v, i, dts)
+				dts.Delegate.OnElemCrossTraversalEnd(attr, v, i, dts)
 			}
 			dts.ContainerAttr.Pop()
 			dts.ContainerVal.Pop()
 			dts.ContainerRef.Pop()
 
 		case reflect.Map:
-			if abort := dts.delegate.OnTypeIsSame(attr, v, w, dts); abort {
+			if abort := dts.Delegate.OnTypeIsSame(attr, v, w, dts); abort {
 				return
 			}
 
@@ -105,11 +105,11 @@ func (dts *DoubleTraversalState) traverseWithReflection(v reflect.Value, w refle
 
 		case reflect.Bool, reflect.Float32, reflect.Float64, reflect.String,
 			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			if abort := dts.delegate.OnTypeIsSame(attr, v, w, dts); abort {
+			if abort := dts.Delegate.OnTypeIsSame(attr, v, w, dts); abort {
 				return
 			}
 		default:
-			if abort := dts.delegate.OnUnsupportedType(attr, v, w, dts); abort {
+			if abort := dts.Delegate.OnUnsupportedType(attr, v, w, dts); abort {
 				return
 			}
 		}

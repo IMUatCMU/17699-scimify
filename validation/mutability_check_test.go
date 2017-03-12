@@ -8,13 +8,13 @@ import (
 	"testing"
 )
 
-type mutabilityRulesTest struct {
+type mutabilityCheckTest struct {
 	name         string
 	resourcePath string
 	assertion    func(bool, error)
 }
 
-func BenchmarkMutabilityRulesValidator_Validate(b *testing.B) {
+func BenchmarkMutabilityValidator_Validate(b *testing.B) {
 	schema, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
 	if err != nil {
 		b.Fatal(err)
@@ -30,7 +30,7 @@ func BenchmarkMutabilityRulesValidator_Validate(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	validator := &mutabilityRulesValidator{}
+	validator := &MutabilityValidator{}
 	opt := ValidationOptions{UnassignedImmutableIsIgnored: false, ReadOnlyIsMandatory: false}
 
 	ctx := context.Background()
@@ -48,8 +48,8 @@ func BenchmarkMutabilityRulesValidator_Validate(b *testing.B) {
 	})
 }
 
-func TestMutabilityRulesValidator_Validate(t *testing.T) {
-	validator := &mutabilityRulesValidator{}
+func TestMutabilityValidator_Validate(t *testing.T) {
+	validator := &MutabilityValidator{}
 
 	for _, test := range []mutabilityRulesTest{
 		{
@@ -66,7 +66,7 @@ func TestMutabilityRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "id", err.(*validationError).FullPath)
+				assert.Equal(t, "id", err.(*ValueChangedError).Attr.Assist.FullPath)
 			},
 		},
 		{
@@ -75,25 +75,30 @@ func TestMutabilityRulesValidator_Validate(t *testing.T) {
 			func(ok bool, err error) {
 				assert.False(t, ok)
 				assert.NotNil(t, err)
-				assert.Equal(t, "meta", err.(*validationError).FullPath)
+				assert.Equal(t, "meta", err.(*ValueChangedError).Attr.Assist.FullPath)
 			},
 		},
 	} {
-		schema, err := loadSchema("../test_data/test_user_schema_all.json")
+		schema, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		referenceData := loadTestDataFromJson(t, "../test_data/single_test_user_david.json")
-		reference := resource.NewResourceFromMap(referenceData)
+		ref, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		resourceData := loadTestDataFromJson(t, test.resourcePath)
-		r := resource.NewResourceFromMap(resourceData)
+		r, _, err := helper.LoadResource(test.resourcePath)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		opt := ValidationOptions{UnassignedImmutableIsIgnored: false, ReadOnlyIsMandatory: false}
 
-		ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
-		ctx = context.WithValue(ctx, resource.CK_Reference, reference)
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, resource.CK_Schema, schema)
+		ctx = context.WithValue(ctx, resource.CK_Reference, ref)
 
 		ok, err := validator.Validate(r, opt, ctx)
 		test.assertion(ok, err)
