@@ -89,3 +89,19 @@ type RequiredUnassignedError struct {
 func (rue *RequiredUnassignedError) Error() string {
 	return fmt.Sprintf("Attribute %s is unassigned", rue.Attr.Assist.FullPath)
 }
+
+// Error representing the scenario where an immutable or read only attribute has its value changed (on update or patch)
+type ValueChangedError struct {
+	Attr *resource.Attribute
+}
+
+func (vce *ValueChangedError) Error() string {
+	switch vce.Attr.Mutability {
+	case resource.Immutable:
+		return fmt.Sprintf("immutable attribute [%s] has changed value.", vce.Attr.Assist.FullPath)
+	case resource.ReadOnly:
+		return fmt.Sprintf("read only attribute [%s] has changed value.", vce.Attr.Assist.FullPath)
+	default:
+		return fmt.Sprintf("attribute [%s] has changed value.", vce.Attr.Assist.FullPath)
+	}
+}
