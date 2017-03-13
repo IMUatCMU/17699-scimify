@@ -1,10 +1,10 @@
 package processor
 
 import (
-	"testing"
-	"github.com/spf13/viper"
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestGenerateMetaProcessor_Process(t *testing.T) {
@@ -15,8 +15,8 @@ func TestGenerateMetaProcessor_Process(t *testing.T) {
 	})
 
 	processor := &generateMetaProcessor{
-		ResourceType:"User",
-		ResourceTypeUri:"/User",
+		ResourceType:    "User",
+		ResourceTypeUri: "/User",
 	}
 	err := processor.Process(r, nil)
 	assert.Nil(t, err)

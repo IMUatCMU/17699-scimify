@@ -107,8 +107,8 @@ func (vce *ValueChangedError) Error() string {
 }
 
 type PrerequisiteFailedError struct {
-	reporter	string
-	requirement 	string
+	reporter    string
+	requirement string
 }
 
 func (pfe *PrerequisiteFailedError) Error() string {

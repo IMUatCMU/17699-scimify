@@ -1,22 +1,22 @@
 package processor
 
 import (
-	"github.com/go-scim/scimify/resource"
 	"context"
 	"fmt"
-	"strings"
+	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
+	"strings"
 )
 
 type generateMetaProcessor struct {
-	ResourceType	string
-	ResourceTypeUri	string
+	ResourceType    string
+	ResourceTypeUri string
 }
 
 func (gmp *generateMetaProcessor) Process(r *resource.Resource, ctx context.Context) error {
 	id, ok := r.Attributes["id"].(string)
 	if !ok || len(id) == 0 {
-		panic(&PrerequisiteFailedError{reporter:"meta generation", requirement:"id"})
+		panic(&PrerequisiteFailedError{reporter: "meta generation", requirement: "id"})
 	}
 
 	now := getCurrentTime()

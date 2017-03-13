@@ -2,11 +2,11 @@ package processor
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/base64"
+	"fmt"
 	"github.com/go-scim/scimify/resource"
 	"time"
-	"crypto/sha1"
-	"fmt"
-	"encoding/base64"
 )
 
 const (
