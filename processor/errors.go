@@ -114,3 +114,22 @@ type PrerequisiteFailedError struct {
 func (pfe *PrerequisiteFailedError) Error() string {
 	return fmt.Sprintf("Prerequisite not met: %s requires %s", pfe.reporter, pfe.requirement)
 }
+
+// Error representing the scenario where there is no attribute defined at requested path
+type NoDefinedAttributeError struct {
+	Path string
+}
+
+func (nda *NoDefinedAttributeError) Error() string {
+	return fmt.Sprintf("No attribute found for path: %s", nda.Path)
+}
+
+// Error representing the scenario where a found attribute does case insensitively match the map key
+type AttributeMismatchWithKeyError struct {
+	Key  string
+	Attr *resource.Attribute
+}
+
+func (amk *AttributeMismatchWithKeyError) Error() string {
+	return fmt.Sprintf("Attribute with path %s mismatches with entry key %s", amk.Attr.Assist.FullPath, amk.Key)
+}
