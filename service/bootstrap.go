@@ -28,6 +28,7 @@ func Bootstrap() *bone.Mux {
 		viper.SetDefault("mongo.userCollectionName", "users")
 		viper.SetDefault("mongo.groupCollectionName", "groups")
 		viper.SetDefault("scim.itemsPerPage", 10)
+		viper.SetDefault("server.rootPath", "http://localhost:8080/v2/")
 	})
 	oneDataInit.Do(func() {
 		schemaRepo := persistence.GetSchemaRepository()

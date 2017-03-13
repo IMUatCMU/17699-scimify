@@ -105,3 +105,12 @@ func (vce *ValueChangedError) Error() string {
 		return fmt.Sprintf("attribute [%s] has changed value.", vce.Attr.Assist.FullPath)
 	}
 }
+
+type PrerequisiteFailedError struct {
+	reporter	string
+	requirement 	string
+}
+
+func (pfe *PrerequisiteFailedError) Error() string {
+	return fmt.Sprintf("Prerequisite not met: %s requires %s", pfe.reporter, pfe.requirement)
+}

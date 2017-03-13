@@ -3,6 +3,10 @@ package processor
 import (
 	"context"
 	"github.com/go-scim/scimify/resource"
+	"time"
+	"crypto/sha1"
+	"fmt"
+	"encoding/base64"
 )
 
 const (
@@ -38,4 +42,16 @@ func getReference(ctx context.Context, panicIfAbsent bool) *resource.Resource {
 	} else {
 		return ref
 	}
+}
+
+func getCurrentTime() string {
+	return time.Now().Format("2006-01-02T15:04:05Z")
+}
+
+func generateNewVersion(id string) string {
+	hash := sha1.New()
+	now := time.Now().Format(time.RFC3339Nano)
+	hash.Write([]byte(id))
+	hash.Write([]byte(now))
+	return fmt.Sprintf("W/\"%s\"", base64.StdEncoding.EncodeToString(hash.Sum(nil)))
 }
