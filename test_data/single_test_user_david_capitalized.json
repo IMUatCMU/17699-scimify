@@ -1,0 +1,76 @@
+{
+  "SCHEMAS": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+  "ID": "6B69753B-4E38-444E-8AC6-9D0E4D644D80",
+  "EXTERNALID": "996624032",
+  "USERNAME": "david@example.com",
+  "NAME": {
+    "FORMATTED": "David Qiu",
+    "FAMILYNAME": "Qiu",
+    "GIVENNAME": "David",
+    "MIDDLENAME": "",
+    "HONORIFICPREFIX": "Mr.",
+    "HONORIFICSUFFIX": ""
+  },
+  "DISPLAYNAME": "David Qiu",
+  "NICKNAME": "Q",
+  "PROFILEURL": "https://login.example.com/davidqiu",
+  "EMAILS": [
+    {
+      "VALUE": "david@example.com",
+      "TYPE": "work",
+      "PRIMARY": true
+    },
+    {
+      "VALUE": "david@home.com",
+      "TYPE": "home"
+    }
+  ],
+  "ADDRESSES": [
+    {
+      "TYPE": "work",
+      "STREETADDRESS": "123 Main Street",
+      "LOCALITY": "Toronto",
+      "REGION": "ON",
+      "POSTALCODE": "M1M A1A",
+      "COUNTRY": "CA",
+      "FORMATTED": "123 Main Street, Toronto ON, CA, M1M A1A",
+      "PRIMARY": true
+    }
+  ],
+  "PHONENUMBERS": [
+    {
+      "VALUE": "123-456-7890",
+      "TYPE": "work"
+    }
+  ],
+  "IMS": [
+    {
+      "VALUE": "someaimhandle",
+      "TYPE": "aim"
+    }
+  ],
+  "PHOTOS": [
+    {
+      "VALUE": "https://photos.example.com/profilephoto/72930000000Ccne/F",
+      "TYPE": "photo"
+    },
+    {
+      "VALUE": "https://photos.example.com/profilephoto/72930000000Ccne/T",
+      "TYPE": "thumbnail"
+    }
+  ],
+  "USERTYPE": "Employee",
+  "TITLE": "Tour Guide",
+  "PREFERREDLANGUAGE": "en-US",
+  "LOCALE": "en-US",
+  "TIMEZONE": "America/Los_Angeles",
+  "ACTIVE":true,
+  "PASSWORD": "t1meMa$heen",
+  "META": {
+    "RESOURCETYPE": "User",
+    "CREATED": "2016-01-23T04:56:22Z",
+    "LASTMODIFIED": "2016-05-13T04:42:34Z",
+    "VERSION": "W\/\"a330bc54f0671c9\"",
+    "LOCATION": "https://example.com/v2/Users/6B69753B-4E38-444E-8AC6-9D0E4D644D80"
+  }
+}

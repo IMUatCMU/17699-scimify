@@ -16,6 +16,7 @@ var nil_response response
 
 type service func(*http.Request) (response, error)
 
+// TODO use recover() to handle panics
 func endpoint(srv service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		var (

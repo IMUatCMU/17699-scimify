@@ -22,7 +22,7 @@ func (r *Resource) GetId() string {
 }
 
 func (r *Resource) Data() map[string]interface{} {
-	return r.ToMap()
+	return r.Attributes
 }
 
 func (r *Resource) ToMap() map[string]interface{} {

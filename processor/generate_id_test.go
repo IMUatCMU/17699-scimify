@@ -1,4 +1,4 @@
-package defaults
+package processor
 
 import (
 	"github.com/go-scim/scimify/resource"
@@ -6,9 +6,10 @@ import (
 	"testing"
 )
 
-func TestIdGenerationValueDefaulter_Default(t *testing.T) {
-	defaulter := &idGenerationValueDefaulter{}
+func TestGenerateIdProcessor_Process(t *testing.T) {
+	processor := &generateIdProcessor{}
 	r := resource.NewResource()
-	defaulter.Default(r, nil)
+	err := processor.Process(r, nil)
+	assert.Nil(t, err)
 	assert.NotEqual(t, 0, len(r.Attributes["id"].(string)))
 }

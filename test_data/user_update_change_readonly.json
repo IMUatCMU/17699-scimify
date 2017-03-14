@@ -1,0 +1,65 @@
+{
+  "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+  "id": "340030EB-86E9-4BA3-BB3F-BA4B89707BEB",
+  "externalId": "996624032",
+  "userName": "david@example.com",
+  "name": {
+    "formatted": "David Qiu",
+    "familyName": "Qiu",
+    "givenName": "David",
+    "middleName": "",
+    "honorificPrefix": "Mr.",
+    "honorificSuffix": ""
+  },
+  "displayName": "David Q (Updated)",
+  "nickName": "Q",
+  "profileUrl": "https://login.example.com/davidqiu",
+  "emails": [
+    {
+      "value": "david@example.com",
+      "type": "work",
+      "primary": true
+    }
+  ],
+  "addresses": [
+    {
+      "type": "work",
+      "streetAddress": "123 Main Street",
+      "locality": "Toronto",
+      "region": "ON",
+      "postalCode": "M1M A1A",
+      "country": "CA",
+      "formatted": "123 Main Street, Toronto ON, CA, M1M A1A",
+      "primary": true
+    }
+  ],
+  "phoneNumbers": [
+    {
+      "value": "123-456-7890",
+      "type": "work"
+    }
+  ],
+  "ims": [
+    {
+      "value": "someaimhandle",
+      "type": "aim"
+    }
+  ],
+  "photos": [
+    {
+      "value": "https://photos.example.com/profilephoto/72930000000Ccne/F",
+      "type": "photo"
+    },
+    {
+      "value": "https://photos.example.com/profilephoto/72930000000Ccne/T",
+      "type": "thumbnail"
+    }
+  ],
+  "userType": "Employee",
+  "title": "Tour Guide",
+  "preferredLanguage": "en-US",
+  "locale": "en-US",
+  "timezone": "America/Los_Angeles",
+  "active":false,
+  "password": "t1meMa$heen"
+}

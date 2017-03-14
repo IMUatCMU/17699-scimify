@@ -1,26 +1,25 @@
-package defaults
+package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestMetaGenerationValueDefaulter_Default(t *testing.T) {
+func TestGenerateMetaProcessor_Process(t *testing.T) {
 	viper.Set("server.rootPath", "http://foo.com/v2/")
-
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, resource.CK_ResourceType, "User")
-	ctx = context.WithValue(ctx, resource.CK_ResourceTypeURI, "/User")
 
 	r := resource.NewResourceFromMap(map[string]interface{}{
 		"id": "bar",
 	})
 
-	defaulter := &metaGenerationValueDefaulter{}
-	defaulter.Default(r, ctx)
+	processor := &generateMetaProcessor{
+		ResourceType:    "User",
+		ResourceTypeUri: "/User",
+	}
+	err := processor.Process(r, nil)
+	assert.Nil(t, err)
 
 	meta, ok := r.Attributes["meta"].(map[string]interface{})
 	assert.True(t, ok)
