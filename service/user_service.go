@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
-	"github.com/go-scim/scimify/validation"
 	"github.com/go-scim/scimify/worker"
 	"github.com/go-zoo/bone"
 	"io/ioutil"
@@ -75,34 +74,11 @@ func (srv *userService) createUser(req *http.Request) (response, error) {
 	// create context
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, resource.CK_Schema, schema)
-	ctx = context.WithValue(ctx, resource.CK_ResourceType, "User")
-	ctx = context.WithValue(ctx, resource.CK_ResourceTypeURI, "/Users")
 
-	// correct case via shared value defaulter
-	sharedValueDefaulter := worker.GetSharedValueDefaulterWorker()
-	if _, err = sharedValueDefaulter.Do(&worker.ValueDefaulterInput{
-		Resource: subject,
-		Context:  ctx,
-	}); err != nil {
-		return nil_response, resource.CreateError(resource.InvalidSyntax, err.Error())
-	}
-
-	// validate the resource via resource creation validator worker
-	validator := worker.GetCreationValidatorWorker()
-	if _, err = validator.Do(&worker.ValidationInput{
-		Resource: subject,
-		Context:  ctx,
-		Option:   validation.ValidationOptions{ReadOnlyIsMandatory: false, UnassignedImmutableIsIgnored: true},
-	}); err != nil {
-		return nil_response, resource.CreateError(resource.InvalidSyntax, err.Error())
-	}
-
-	// generate default values via resource creation value defaulter
-	creationValueDefaulter := worker.GetCreationValueDefaulterWorker()
-	if _, err := creationValueDefaulter.Do(&worker.ValueDefaulterInput{
-		Resource: subject,
-		Context:  ctx,
-	}); err != nil {
+	// process
+	processor := worker.GetUserCreationProcessorWorker()
+	_, err = processor.Do(&worker.ProcessorInput{R: subject, Ctx: ctx})
+	if err != nil {
 		return nil_response, resource.CreateError(resource.InvalidSyntax, err.Error())
 	}
 
