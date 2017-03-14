@@ -10,7 +10,7 @@ var (
 	oneGenerateUserMeta,
 	oneGenerateGroupMeta,
 	oneUpdateMeta,
-	oneFormatCase	sync.Once
+	oneFormatCase sync.Once
 
 	validateTypeInstance,
 	validateRequiredInstance,
@@ -19,7 +19,7 @@ var (
 	generateUserMetaInstance,
 	generateGroupMetaInstance,
 	updateMetaInstance,
-	formatCaseInstance	Processor
+	formatCaseInstance Processor
 )
 
 func GetValidateTypeProcessor() Processor {
@@ -53,8 +53,8 @@ func GetGenerateIdInstance() Processor {
 func GetGenerateUserMetaInstance() Processor {
 	oneGenerateUserMeta.Do(func() {
 		generateUserMetaInstance = &generateMetaProcessor{
-			ResourceType:"User",
-			ResourceTypeUri:"/Users",
+			ResourceType:    "User",
+			ResourceTypeUri: "/Users",
 		}
 	})
 	return generateUserMetaInstance
@@ -63,8 +63,8 @@ func GetGenerateUserMetaInstance() Processor {
 func GetGenerateGroupMetaInstance() Processor {
 	oneGenerateGroupMeta.Do(func() {
 		generateGroupMetaInstance = &generateMetaProcessor{
-			ResourceType:"Group",
-			ResourceTypeUri:"/Groups",
+			ResourceType:    "Group",
+			ResourceTypeUri: "/Groups",
 		}
 	})
 	return generateGroupMetaInstance

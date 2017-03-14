@@ -1,10 +1,9 @@
 package worker
 
 import (
-	"github.com/go-scim/scimify/defaults"
 	"github.com/go-scim/scimify/persistence"
+	"github.com/go-scim/scimify/processor"
 	"github.com/go-scim/scimify/serialize"
-	"github.com/go-scim/scimify/validation"
 	"github.com/spf13/viper"
 	"sync"
 )
@@ -135,74 +134,78 @@ func GetSchemaAssistedJsonSerializerWorker() Worker {
 	return schemaAssistedJsonSerializerInstance
 }
 
-// Validation Worker ===================================================================================================
+// Processor Worker ====================================================================================================
 
 var (
-	oneCreationValidator,
-	oneUpdateValidator sync.Once
+	oneUserCreationProcessor,
+	oneUserUpdateProcessor,
+	oneGroupCreationProcessor,
+	oneGroupUpdateProcessor sync.Once
 
-	creationValidatorInstance,
-	updateValidatorInstance *validateWorker
+	userCreationProcessorWorkerInstance,
+	userUpdateProcessorWorkerInstance,
+	groupCreationProcessorWorkerInstance,
+	groupUpdateProcessorWorkerInstance *processorWorker
 )
 
-func GetCreationValidatorWorker() Worker {
-	oneCreationValidator.Do(func() {
-		creationValidatorInstance = &validateWorker{
-			Validator: validation.GetResourceCreationValidator(),
+func GetUserCreationProcessorWorker() Worker {
+	oneUserCreationProcessor.Do(func() {
+		userCreationProcessorWorkerInstance = &processorWorker{
+			P: processor.NewSerialProcessor(
+				processor.GetFormatCaseInstance(),
+				processor.GetValidateTypeProcessor(),
+				processor.GetValidateRequiredProcessor(),
+				processor.GetGenerateIdInstance(),
+				processor.GetGenerateUserMetaInstance(),
+			),
 		}
-		creationValidatorInstance.initialize(9)
+		userCreationProcessorWorkerInstance.initialize(2)
 	})
-	return creationValidatorInstance
+	return userCreationProcessorWorkerInstance
 }
 
-func GetUpdateValidatorWorker() Worker {
-	oneUpdateValidator.Do(func() {
-		updateValidatorInstance = &validateWorker{
-			Validator: validation.GetResourceUpdateValidator(),
+func GetUserUpdateProcessorWorker() Worker {
+	oneUserUpdateProcessor.Do(func() {
+		userUpdateProcessorWorkerInstance = &processorWorker{
+			P: processor.NewSerialProcessor(
+				processor.GetFormatCaseInstance(),
+				processor.GetValidateTypeProcessor(),
+				processor.GetValidateRequiredProcessor(),
+				processor.GetValidateMutabilityInstance(),
+				processor.GetUpdateMetaInstance(),
+			),
 		}
-		updateValidatorInstance.initialize(1)
+		userUpdateProcessorWorkerInstance.initialize(2)
 	})
-	return updateValidatorInstance
+	return userUpdateProcessorWorkerInstance
 }
 
-// Value Defaulter Worker ==============================================================================================
-
-var (
-	oneCreateValueDefaulter,
-	oneUpdateValueDefaulter,
-	oneSharedValueDefaulter sync.Once
-
-	creationValueDefaulter,
-	updateValueDefaulter,
-	sharedValueDefaulter *valueDefaulterWorker
-)
-
-func GetCreationValueDefaulterWorker() Worker {
-	oneCreateValueDefaulter.Do(func() {
-		creationValueDefaulter = &valueDefaulterWorker{
-			Worker: defaults.GetResourceCreationValueDefaulter(),
+func GetGroupCreationProcessorWorker() Worker {
+	oneGroupCreationProcessor.Do(func() {
+		groupCreationProcessorWorkerInstance = &processorWorker{
+			P: processor.NewSerialProcessor(
+				processor.GetFormatCaseInstance(),
+				processor.GetValidateTypeProcessor(),
+				processor.GetValidateRequiredProcessor(),
+				processor.GetGenerateIdInstance(),
+				processor.GetGenerateGroupMetaInstance(),
+			),
 		}
-		creationValueDefaulter.initialize(2)
 	})
-	return creationValueDefaulter
+	return groupCreationProcessorWorkerInstance
 }
 
-func GetUpdateValueDefaulterWorker() Worker {
-	oneUpdateValueDefaulter.Do(func() {
-		updateValueDefaulter = &valueDefaulterWorker{
-			Worker: defaults.GetResourceUpdateValueDefaulter(),
+func GetGroupUpdateProcessorWorker() Worker {
+	oneGroupUpdateProcessor.Do(func() {
+		groupUpdateProcessorWorkerInstance = &processorWorker{
+			P: processor.NewSerialProcessor(
+				processor.GetFormatCaseInstance(),
+				processor.GetValidateTypeProcessor(),
+				processor.GetValidateRequiredProcessor(),
+				processor.GetValidateMutabilityInstance(),
+				processor.GetUpdateMetaInstance(),
+			),
 		}
-		updateValueDefaulter.initialize(2)
 	})
-	return updateValueDefaulter
-}
-
-func GetSharedValueDefaulterWorker() Worker {
-	oneSharedValueDefaulter.Do(func() {
-		sharedValueDefaulter = &valueDefaulterWorker{
-			Worker: defaults.GetSharedValueDefaulter(),
-		}
-		sharedValueDefaulter.initialize(2)
-	})
-	return sharedValueDefaulter
+	return groupUpdateProcessorWorkerInstance
 }
