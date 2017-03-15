@@ -7,7 +7,7 @@ type dbQueryProcessor struct {
 }
 
 func (dqp *dbQueryProcessor) Process(ctx *ProcessorContext) error {
-	filter := get(ctx, ArgFilter, true, nil)
+	filter := getA(ctx, ArgFilter, true, nil)
 	sortBy := getString(ctx, ArgSortBy, true, "")
 	sortOrder := getBool(ctx, ArgSortOrder, true, false)
 	pageStart := getInt(ctx, ArgPageStart, true, 0)

@@ -8,7 +8,7 @@ import (
 
 // Error representing the scenario where a required parameter from context is not present.
 type MissingContextValueError struct {
-	Key AName
+	Key string
 }
 
 func (mcv *MissingContextValueError) Error() string {

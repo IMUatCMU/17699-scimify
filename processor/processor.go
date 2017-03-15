@@ -35,6 +35,7 @@ const (
 	RSingleResource = RName("singleResource")
 	RAllResources   = RName("allResources")
 	RFinalError     = RName("finalError")
+	RBodyBytes 	= RName("bodyBytes")
 )
 
 type Processor interface {

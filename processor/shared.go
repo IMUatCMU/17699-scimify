@@ -19,10 +19,22 @@ const (
 	type_complex  = resource.Complex
 )
 
-func get(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue interface{}) interface{} {
+func getA(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue interface{}) interface{} {
 	if val, ok := ctx.MiscArgs[key]; !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{key})
+			panic(&MissingContextValueError{string(key)})
+		} else {
+			return defaultValue
+		}
+	} else {
+		return val
+	}
+}
+
+func getR(ctx *ProcessorContext, key RName, panicIfAbsent bool, defaultValue interface{}) interface{} {
+	if val, ok := ctx.Results[key]; !ok {
+		if panicIfAbsent {
+			panic(&MissingContextValueError{string(key)})
 		} else {
 			return defaultValue
 		}
@@ -34,7 +46,7 @@ func get(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue inte
 func getString(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue string) string {
 	if val, ok := ctx.MiscArgs[key].(string); !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{key})
+			panic(&MissingContextValueError{string(key)})
 		} else {
 			return defaultValue
 		}
@@ -46,7 +58,7 @@ func getString(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValu
 func getInt(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue int) int {
 	if val, ok := ctx.MiscArgs[key].(int); !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{key})
+			panic(&MissingContextValueError{string(key)})
 		} else {
 			return defaultValue
 		}
@@ -58,7 +70,7 @@ func getInt(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue i
 func getBool(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue bool) bool {
 	if val, ok := ctx.MiscArgs[key].(bool); !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{key})
+			panic(&MissingContextValueError{string(key)})
 		} else {
 			return defaultValue
 		}
@@ -69,21 +81,21 @@ func getBool(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue 
 
 func getSchema(ctx *ProcessorContext, panicIfAbsent bool) *resource.Schema {
 	if nil == ctx.Schema && panicIfAbsent {
-		panic(&MissingContextValueError{ArgSchema})
+		panic(&MissingContextValueError{string(ArgSchema)})
 	}
 	return ctx.Schema
 }
 
 func getReference(ctx *ProcessorContext, panicIfAbsent bool) *resource.Resource {
 	if nil == ctx.Reference && panicIfAbsent {
-		panic(&MissingContextValueError{ArgReference})
+		panic(&MissingContextValueError{string(ArgReference)})
 	}
 	return ctx.Reference
 }
 
 func getResource(ctx *ProcessorContext, panicIfAbsent bool) *resource.Resource {
 	if nil == ctx.Resource && panicIfAbsent {
-		panic(&MissingContextValueError{ArgResource})
+		panic(&MissingContextValueError{string(ArgResource)})
 	}
 	return ctx.Resource
 }
@@ -91,7 +103,7 @@ func getResource(ctx *ProcessorContext, panicIfAbsent bool) *resource.Resource {
 func getError(ctx *ProcessorContext, panicIfAbsent bool) error {
 	if e, ok := ctx.MiscArgs[ArgError].(error); !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{ArgError})
+			panic(&MissingContextValueError{string(ArgError)})
 		} else {
 			return nil
 		}
