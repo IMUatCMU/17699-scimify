@@ -36,6 +36,7 @@ type RName string
 const (
 	RSingleResource = RName("singleResource")
 	RAllResources   = RName("allResources")
+	RListResponse   = RName("listResponse")
 	RFinalError     = RName("finalError")
 	RBodyBytes      = RName("bodyBytes")
 )
