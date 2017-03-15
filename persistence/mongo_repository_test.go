@@ -1,7 +1,6 @@
 package persistence
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
@@ -34,7 +33,6 @@ func TestMongoRepository_Query(t *testing.T) {
 		sortOrder bool
 		skip      int
 		size      int
-		context   context.Context
 		assertion func([]*resource.Resource, error)
 	}{
 		{
@@ -44,7 +42,6 @@ func TestMongoRepository_Query(t *testing.T) {
 			},
 			"", false,
 			0, 0,
-			nil,
 			func(resources []*resource.Resource, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, 1, len(resources))
@@ -65,7 +62,6 @@ func TestMongoRepository_Query(t *testing.T) {
 			},
 			"", false,
 			0, 0,
-			nil,
 			func(resources []*resource.Resource, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, 1, len(resources))
@@ -77,7 +73,6 @@ func TestMongoRepository_Query(t *testing.T) {
 			bson.M{},
 			"nickName", true,
 			0, 0,
-			nil,
 			func(resources []*resource.Resource, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, 3, len(resources))
@@ -91,7 +86,6 @@ func TestMongoRepository_Query(t *testing.T) {
 			bson.M{},
 			"nickName", false,
 			0, 0,
-			nil,
 			func(resources []*resource.Resource, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, 3, len(resources))
@@ -105,15 +99,14 @@ func TestMongoRepository_Query(t *testing.T) {
 			bson.M{},
 			"nickName", true,
 			1, 1,
-			nil,
 			func(resources []*resource.Resource, err error) {
 				assert.Nil(t, err)
 				assert.Equal(t, 1, len(resources))
-				assert.Equal(t, "Q", resources[0].Attributes["nickName"])
+				assert.Equal(t, "Babs", resources[0].Attributes["nickName"])
 			},
 		},
 	} {
-		objects, err := repo.Query(test.filter, test.sortBy, test.sortOrder, test.skip, test.size, test.context)
+		objects, err := repo.Query(test.filter, test.sortBy, test.sortOrder, test.skip, test.size)
 		resources := make([]*resource.Resource, 0, len(objects))
 		for _, obj := range objects {
 			resources = append(resources, obj.(*resource.Resource))

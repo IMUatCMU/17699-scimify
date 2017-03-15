@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
@@ -9,7 +8,7 @@ import (
 
 type requiredValidationProcessor struct{}
 
-func (rvp *requiredValidationProcessor) Process(r *resource.Resource, ctx context.Context) (err error) {
+func (rvp *requiredValidationProcessor) Process(ctx *ProcessorContext) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r.(type) {
@@ -22,6 +21,7 @@ func (rvp *requiredValidationProcessor) Process(r *resource.Resource, ctx contex
 		}
 	}()
 
+	r := getResource(ctx, true)
 	schema := getSchema(ctx, true)
 	delegate := &requiredCheckDelegate{enforceReadOnlyAttributes: false} // TODO turn into configuration option
 

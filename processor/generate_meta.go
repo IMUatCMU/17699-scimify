@@ -1,9 +1,7 @@
 package processor
 
 import (
-	"context"
 	"fmt"
-	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
 	"strings"
 )
@@ -13,7 +11,9 @@ type generateMetaProcessor struct {
 	ResourceTypeUri string
 }
 
-func (gmp *generateMetaProcessor) Process(r *resource.Resource, ctx context.Context) error {
+func (gmp *generateMetaProcessor) Process(ctx *ProcessorContext) error {
+	r := getResource(ctx, true)
+	
 	id, ok := r.Attributes["id"].(string)
 	if !ok || len(id) == 0 {
 		panic(&PrerequisiteFailedError{reporter: "meta generation", requirement: "id"})

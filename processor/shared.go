@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
@@ -20,28 +19,73 @@ const (
 	type_complex  = resource.Complex
 )
 
-func getSchema(ctx context.Context, panicIfAbsent bool) *resource.Schema {
-	if schema, ok := ctx.Value(resource.CK_Schema).(*resource.Schema); !ok {
+func get(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue interface{}) interface{} {
+	if val, ok := ctx.MiscArgs[key]; !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{resource.CK_Schema})
+			panic(&MissingContextValueError{key})
 		} else {
-			return nil
+			return defaultValue
 		}
 	} else {
-		return schema
+		return val
 	}
 }
 
-func getReference(ctx context.Context, panicIfAbsent bool) *resource.Resource {
-	if ref, ok := ctx.Value(resource.CK_Reference).(*resource.Resource); !ok {
+func getString(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue string) string {
+	if val, ok := ctx.MiscArgs[key].(string); !ok {
 		if panicIfAbsent {
-			panic(&MissingContextValueError{resource.CK_Reference})
+			panic(&MissingContextValueError{key})
 		} else {
-			return nil
+			return defaultValue
 		}
 	} else {
-		return ref
+		return val
 	}
+}
+
+func getInt(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue int) int {
+	if val, ok := ctx.MiscArgs[key].(int); !ok {
+		if panicIfAbsent {
+			panic(&MissingContextValueError{key})
+		} else {
+			return defaultValue
+		}
+	} else {
+		return val
+	}
+}
+
+func getBool(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue bool) bool {
+	if val, ok := ctx.MiscArgs[key].(bool); !ok {
+		if panicIfAbsent {
+			panic(&MissingContextValueError{key})
+		} else {
+			return defaultValue
+		}
+	} else {
+		return val
+	}
+}
+
+func getSchema(ctx *ProcessorContext, panicIfAbsent bool) *resource.Schema {
+	if nil == ctx.Schema && panicIfAbsent {
+		panic(&MissingContextValueError{ArgSchema})
+	}
+	return ctx.Schema
+}
+
+func getReference(ctx *ProcessorContext, panicIfAbsent bool) *resource.Resource {
+	if nil == ctx.Reference && panicIfAbsent {
+		panic(&MissingContextValueError{ArgReference})
+	}
+	return ctx.Reference
+}
+
+func getResource(ctx *ProcessorContext, panicIfAbsent bool) *resource.Resource {
+	if nil == ctx.Resource && panicIfAbsent {
+		panic(&MissingContextValueError{ArgResource})
+	}
+	return ctx.Resource
 }
 
 func getCurrentTime() string {

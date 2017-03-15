@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
@@ -10,7 +9,7 @@ import (
 
 type typeValidationProcessor struct{}
 
-func (tvp *typeValidationProcessor) Process(r *resource.Resource, ctx context.Context) (err error) {
+func (tvp *typeValidationProcessor) Process(ctx *ProcessorContext) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r.(type) {
@@ -23,6 +22,7 @@ func (tvp *typeValidationProcessor) Process(r *resource.Resource, ctx context.Co
 		}
 	}()
 
+	r := getResource(ctx, true)
 	schema := getSchema(ctx, true)
 	delegate := &typeCheckDelegate{}
 

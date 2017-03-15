@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
@@ -25,9 +24,6 @@ func BenchmarkFormatCaseProcessor_Process(b *testing.B) {
 	}
 	sch.ConstructAttributeIndex()
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, resource.CK_Schema, sch)
-
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			b.StopTimer()
@@ -37,7 +33,7 @@ func BenchmarkFormatCaseProcessor_Process(b *testing.B) {
 			}
 			b.StartTimer()
 
-			err = processor.Process(r, ctx)
+			err = processor.Process(&ProcessorContext{Resource:r, Schema:sch})
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -81,10 +77,7 @@ func TestFormatCaseProcessor_Process(t *testing.T) {
 		}
 		sch.ConstructAttributeIndex()
 
-		ctx := context.Background()
-		ctx = context.WithValue(ctx, resource.CK_Schema, sch)
-
-		err = processor.Process(r, ctx)
+		err = processor.Process(&ProcessorContext{Resource:r, Schema:sch})
 		test.assertion(r, err)
 	}
 }

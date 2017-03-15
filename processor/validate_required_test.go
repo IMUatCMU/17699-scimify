@@ -1,9 +1,7 @@
 package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/helper"
-	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -27,12 +25,12 @@ func BenchmarkRequiredValidationProcessor_Process(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
+	ctx := &ProcessorContext{Resource:r, Schema:schema}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			err := processor.Process(r, ctx)
+			err := processor.Process(ctx)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -107,9 +105,9 @@ func TestRequiredValidationProcessor_Process(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		ctx := context.WithValue(context.Background(), resource.CK_Schema, schema)
+		ctx := &ProcessorContext{Resource:r, Schema:schema}
 
-		err = processor.Process(r, ctx)
+		err = processor.Process(ctx)
 		test.assertion(err)
 	}
 }

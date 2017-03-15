@@ -1,7 +1,6 @@
 package persistence
 
 import (
-	"context"
 	"github.com/go-scim/scimify/resource"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -21,7 +20,7 @@ type MongoRepository struct {
 	collectionName string
 }
 
-func (m *MongoRepository) Create(resource resource.ScimObject, context context.Context) error {
+func (m *MongoRepository) Create(resource resource.ScimObject) error {
 	session := m.getSession()
 	defer session.Close()
 
@@ -32,7 +31,7 @@ func (m *MongoRepository) GetAll() ([]resource.ScimObject, error) {
 	return nil, resource.CreateError(resource.NotImplemented, "get all is not implemented for monogo repository.")
 }
 
-func (m *MongoRepository) Get(id string, context context.Context) (resource.ScimObject, error) {
+func (m *MongoRepository) Get(id string) (resource.ScimObject, error) {
 	session := m.getSession()
 	defer session.Close()
 
@@ -49,14 +48,14 @@ func (m *MongoRepository) Get(id string, context context.Context) (resource.Scim
 	return resource.NewResourceFromMap(data), nil
 }
 
-func (m *MongoRepository) Replace(id string, resource resource.ScimObject, context context.Context) error {
+func (m *MongoRepository) Replace(id string, resource resource.ScimObject) error {
 	session := m.getSession()
 	defer session.Close()
 
 	return nil
 }
 
-func (m *MongoRepository) Delete(id string, context context.Context) error {
+func (m *MongoRepository) Delete(id string) error {
 	session := m.getSession()
 	defer session.Close()
 
@@ -71,8 +70,7 @@ func (m *MongoRepository) Delete(id string, context context.Context) error {
 // - ascending: sort order, ignored when sortBy is empty
 // - pageStart: skip how many entries, if less than 0, will be defaulted to 0
 // - pageSize: collect how many entries, if less than 0, will be ignored
-// - context: auxiliary information for the query
-func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int, context context.Context) ([]resource.ScimObject, error) {
+func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending bool, pageStart int, pageSize int) ([]resource.ScimObject, error) {
 	// get session
 	session := m.getSession()
 	defer session.Close()

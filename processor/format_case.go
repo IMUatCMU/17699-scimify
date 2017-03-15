@@ -1,17 +1,15 @@
 package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/adt"
 	"github.com/go-scim/scimify/helper"
-	"github.com/go-scim/scimify/resource"
 	"reflect"
 	"strings"
 )
 
 type formatCaseProcessor struct{}
 
-func (fcp *formatCaseProcessor) Process(r *resource.Resource, ctx context.Context) (err error) {
+func (fcp *formatCaseProcessor) Process(ctx *ProcessorContext) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r.(type) {
@@ -24,6 +22,7 @@ func (fcp *formatCaseProcessor) Process(r *resource.Resource, ctx context.Contex
 		}
 	}()
 
+	r := getResource(ctx, true)
 	schema := getSchema(ctx, true)
 	delegate := &formatCaseDelegate{}
 

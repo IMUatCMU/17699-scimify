@@ -18,7 +18,7 @@ func TestGenerateMetaProcessor_Process(t *testing.T) {
 		ResourceType:    "User",
 		ResourceTypeUri: "/User",
 	}
-	err := processor.Process(r, nil)
+	err := processor.Process(&ProcessorContext{Resource:r})
 	assert.Nil(t, err)
 
 	meta, ok := r.Attributes["meta"].(map[string]interface{})

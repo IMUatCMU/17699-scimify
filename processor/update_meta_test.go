@@ -15,7 +15,7 @@ func TestUpdateMetaProcessor_Process(t *testing.T) {
 	})
 
 	processor := &updateMetaProcessor{}
-	err := processor.Process(r, nil)
+	err := processor.Process(&ProcessorContext{Resource:r})
 	assert.Nil(t, err)
 	assert.NotEmpty(t, r.Attributes["meta"].(map[string]interface{})["version"].(string))
 	assert.True(t, len(r.Attributes["meta"].(map[string]interface{})["lastModified"].(string)) > 0)

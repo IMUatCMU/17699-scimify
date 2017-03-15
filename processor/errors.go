@@ -8,22 +8,11 @@ import (
 
 // Error representing the scenario where a required parameter from context is not present.
 type MissingContextValueError struct {
-	Key resource.ContextKey
+	Key AName
 }
 
 func (mcv *MissingContextValueError) Error() string {
-	switch mcv.Key {
-	case resource.CK_Schema:
-		return "missing schema in context"
-	case resource.CK_Reference:
-		return "missing reference resource in context"
-	case resource.CK_ResourceType:
-		return "missing resource type in context"
-	case resource.CK_ResourceTypeURI:
-		return "missing resource type uri in context"
-	default:
-		return fmt.Sprintf("missing attribute with index %d in context", mcv.Key)
-	}
+	return fmt.Sprintf("missing %s in context", mcv.Key)
 }
 
 // Error representing the scenario where a certain type is not what was expected by the defined attribute.

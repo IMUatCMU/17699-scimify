@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"context"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"github.com/stretchr/testify/assert"
@@ -33,14 +32,12 @@ func BenchmarkMutabilityValidationProcessor_Process(b *testing.B) {
 
 	processor := &mutabilityValidationProcessor{}
 
-	ctx := context.Background()
-	ctx = context.WithValue(context.Background(), resource.CK_Schema, schema)
-	ctx = context.WithValue(ctx, resource.CK_Reference, ref)
+	ctx := &ProcessorContext{Resource:r, Reference:ref, Schema:schema}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			err := processor.Process(r, ctx)
+			err := processor.Process(ctx)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -99,11 +96,9 @@ func TestMutabilityValidationProcessor_Process(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		ctx := context.Background()
-		ctx = context.WithValue(ctx, resource.CK_Schema, schema)
-		ctx = context.WithValue(ctx, resource.CK_Reference, ref)
+		ctx := &ProcessorContext{Resource:r, Reference:ref, Schema:schema}
 
-		err = processor.Process(r, ctx)
+		err = processor.Process(ctx)
 		test.assertion(err, r, ref)
 	}
 }
