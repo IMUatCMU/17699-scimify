@@ -6,35 +6,35 @@ import (
 )
 
 type ProcessorContext struct {
-	Identity	string
-	Resource 	*resource.Resource
-	Reference 	*resource.Resource
-	Schema 		*resource.Schema
-	Request 	*http.Request
-	MiscArgs	map[AName]interface{}
-	Results 	map[RName]interface{}
+	Identity  string
+	Resource  *resource.Resource
+	Reference *resource.Resource
+	Schema    *resource.Schema
+	Request   *http.Request
+	MiscArgs  map[AName]interface{}
+	Results   map[RName]interface{}
 }
 
 type AName string
 
 const (
-	ArgResource = AName("resource")
+	ArgResource  = AName("resource")
 	ArgReference = AName("reference")
-	ArgSchema = AName("schema")
-	ArgFilter = AName("filter")
-	ArgSortBy = AName("sortBy")
+	ArgSchema    = AName("schema")
+	ArgFilter    = AName("filter")
+	ArgSortBy    = AName("sortBy")
 	ArgSortOrder = AName("sortOrder")
 	ArgPageStart = AName("pageStart")
-	ArgPageSize = AName("pageSize")
-	ArgError = AName("error")
+	ArgPageSize  = AName("pageSize")
+	ArgError     = AName("error")
 )
 
 type RName string
 
 const (
 	RSingleResource = RName("singleResource")
-	RAllResources = RName("allResources")
-	RFinalError = RName("finalError")
+	RAllResources   = RName("allResources")
+	RFinalError     = RName("finalError")
 )
 
 type Processor interface {
@@ -60,12 +60,12 @@ func (sp *SerialProcessor) Process(ctx *ProcessorContext) error {
 }
 
 func NewErrorHandlingProcessor(opProc []Processor, errProc []Processor) Processor {
-	return &ErrorHandlingProcessor{opProcessors:opProc, errProcessors:errProc}
+	return &ErrorHandlingProcessor{opProcessors: opProc, errProcessors: errProc}
 }
 
 type ErrorHandlingProcessor struct {
-	opProcessors		[]Processor
-	errProcessors 		[]Processor
+	opProcessors  []Processor
+	errProcessors []Processor
 }
 
 func (ehp *ErrorHandlingProcessor) Process(ctx *ProcessorContext) error {

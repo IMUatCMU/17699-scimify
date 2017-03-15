@@ -25,7 +25,7 @@ func BenchmarkRequiredValidationProcessor_Process(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	ctx := &ProcessorContext{Resource:r, Schema:schema}
+	ctx := &ProcessorContext{Resource: r, Schema: schema}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
@@ -105,7 +105,7 @@ func TestRequiredValidationProcessor_Process(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		ctx := &ProcessorContext{Resource:r, Schema:schema}
+		ctx := &ProcessorContext{Resource: r, Schema: schema}
 
 		err = processor.Process(ctx)
 		test.assertion(err)

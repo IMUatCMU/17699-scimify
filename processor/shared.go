@@ -88,6 +88,18 @@ func getResource(ctx *ProcessorContext, panicIfAbsent bool) *resource.Resource {
 	return ctx.Resource
 }
 
+func getError(ctx *ProcessorContext, panicIfAbsent bool) error {
+	if e, ok := ctx.MiscArgs[ArgError].(error); !ok {
+		if panicIfAbsent {
+			panic(&MissingContextValueError{ArgError})
+		} else {
+			return nil
+		}
+	} else {
+		return e
+	}
+}
+
 func getCurrentTime() string {
 	return time.Now().Format("2006-01-02T15:04:05Z")
 }

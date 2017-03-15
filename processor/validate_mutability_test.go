@@ -32,7 +32,7 @@ func BenchmarkMutabilityValidationProcessor_Process(b *testing.B) {
 
 	processor := &mutabilityValidationProcessor{}
 
-	ctx := &ProcessorContext{Resource:r, Reference:ref, Schema:schema}
+	ctx := &ProcessorContext{Resource: r, Reference: ref, Schema: schema}
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
@@ -96,7 +96,7 @@ func TestMutabilityValidationProcessor_Process(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		ctx := &ProcessorContext{Resource:r, Reference:ref, Schema:schema}
+		ctx := &ProcessorContext{Resource: r, Reference: ref, Schema: schema}
 
 		err = processor.Process(ctx)
 		test.assertion(err, r, ref)

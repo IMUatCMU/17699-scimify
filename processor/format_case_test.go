@@ -33,7 +33,7 @@ func BenchmarkFormatCaseProcessor_Process(b *testing.B) {
 			}
 			b.StartTimer()
 
-			err = processor.Process(&ProcessorContext{Resource:r, Schema:sch})
+			err = processor.Process(&ProcessorContext{Resource: r, Schema: sch})
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -77,7 +77,7 @@ func TestFormatCaseProcessor_Process(t *testing.T) {
 		}
 		sch.ConstructAttributeIndex()
 
-		err = processor.Process(&ProcessorContext{Resource:r, Schema:sch})
+		err = processor.Process(&ProcessorContext{Resource: r, Schema: sch})
 		test.assertion(r, err)
 	}
 }

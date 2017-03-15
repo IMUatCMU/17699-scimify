@@ -3,7 +3,7 @@ package processor
 import "github.com/go-scim/scimify/persistence"
 
 type dbQueryProcessor struct {
-	repo	persistence.Repository
+	repo persistence.Repository
 }
 
 func (dqp *dbQueryProcessor) Process(ctx *ProcessorContext) error {

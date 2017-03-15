@@ -13,7 +13,7 @@ type generateMetaProcessor struct {
 
 func (gmp *generateMetaProcessor) Process(ctx *ProcessorContext) error {
 	r := getResource(ctx, true)
-	
+
 	id, ok := r.Attributes["id"].(string)
 	if !ok || len(id) == 0 {
 		panic(&PrerequisiteFailedError{reporter: "meta generation", requirement: "id"})

@@ -3,7 +3,7 @@ package processor
 import "github.com/go-scim/scimify/persistence"
 
 type dbCreateProcessor struct {
-	repo	persistence.Repository
+	repo persistence.Repository
 }
 
 func (dcp *dbCreateProcessor) Process(ctx *ProcessorContext) error {

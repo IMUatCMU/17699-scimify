@@ -27,19 +27,54 @@ func (e Error) Data() map[string]interface{} {
 
 // Error identifiers used to create the Error structure
 const (
-	InvalidFilter  = "invalidFilter"
-	TooMany        = "tooMany"
-	Uniqueness     = "uniqueness"
-	Mutability     = "mutability"
-	InvalidSyntax  = "invalidSyntax"
-	InvalidPath    = "invalidPath"
-	NoTarget       = "noTarget"
-	InvalidValue   = "invalidValue"
-	InvalidVers    = "invalidVers"
-	Sensitive      = "sensitive"
-	NotFound       = "notFound"
+	// The specified filter syntax was invalid, or the specified attribute and filter comparison combination is not supported.
+	// Query by GET or POST, PATCH
+	InvalidFilter = "invalidFilter"
+
+	// The specified filter yields many more results than the server is willing to calculate or process.
+	// Query by GET or POST
+	TooMany = "tooMany"
+
+	// One or more of the attribute values are already in use or are reserved.
+	// POST, PUT, PATCH
+	Uniqueness = "uniqueness"
+
+	// The attempted modification is not compatible with the target attribute's mutability
+	// PUT, PATCH
+	Mutability = "mutability"
+
+	// The request body message structure was invalid or did not conform to the request schema.
+	// POST, PUT, or BULK
+	InvalidSyntax = "invalidSyntax"
+
+	// The "path" attribute was invalid or malformed
+	// PATCH
+	InvalidPath = "invalidPath"
+
+	// The specified "path" did not  yield an attribute or attribute value that could be operated on.
+	// This occurs when the specified "path" value contains a filter that yields no match.
+	// PATCH
+	NoTarget = "noTarget"
+
+	// A required value was missing, or the value specified was not compatible with the operation or attribute type
+	// QUERY GET, POST, PUT, PATCH
+	InvalidValue = "invalidValue"
+
+	// The specified SCIM protocol version is not supported
+	// GET, POST, PUT, PATCH, DELETE
+	InvalidVers = "invalidVers"
+
+	// The specified request cannot be completed, due to the passing of sensitive (e.g., personal) information in a request URI.
+	// GET
+	Sensitive = "sensitive"
+
+	// The requested resource is not found
+	NotFound = "notFound"
+
+	// The feature is not implemented
 	NotImplemented = "notImplemented"
 
+	// Internal server error
 	ServerError = "serverError"
 )
 

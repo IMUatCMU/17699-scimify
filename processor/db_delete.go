@@ -3,7 +3,7 @@ package processor
 import "github.com/go-scim/scimify/persistence"
 
 type dbDeleteProcessor struct {
-	repo 	persistence.Repository
+	repo persistence.Repository
 }
 
 func (ddp *dbDeleteProcessor) Process(ctx *ProcessorContext) error {
