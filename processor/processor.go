@@ -26,6 +26,7 @@ const (
 	ArgSortOrder = AName("sortOrder")
 	ArgPageStart = AName("pageStart")
 	ArgPageSize = AName("pageSize")
+	ArgError = AName("error")
 )
 
 type RName string
@@ -33,6 +34,7 @@ type RName string
 const (
 	RSingleResource = RName("singleResource")
 	RAllResources = RName("allResources")
+	RFinalError = RName("finalError")
 )
 
 type Processor interface {
@@ -52,6 +54,32 @@ func (sp *SerialProcessor) Process(ctx *ProcessorContext) error {
 		err := p.Process(ctx)
 		if nil != err {
 			return err
+		}
+	}
+	return nil
+}
+
+func NewErrorHandlingProcessor(opProc []Processor, errProc []Processor) Processor {
+	return &ErrorHandlingProcessor{opProcessors:opProc, errProcessors:errProc}
+}
+
+type ErrorHandlingProcessor struct {
+	opProcessors		[]Processor
+	errProcessors 		[]Processor
+}
+
+func (ehp *ErrorHandlingProcessor) Process(ctx *ProcessorContext) error {
+	for _, op := range ehp.opProcessors {
+		err := op.Process(ctx)
+		if nil != err {
+			ctx.MiscArgs[ArgError] = err
+			for _, ep := range ehp.errProcessors {
+				err := ep.Process(ctx)
+				if nil != err {
+					return err
+				}
+			}
+			return nil
 		}
 	}
 	return nil
