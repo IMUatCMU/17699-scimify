@@ -122,3 +122,39 @@ type AttributeMismatchWithKeyError struct {
 func (amk *AttributeMismatchWithKeyError) Error() string {
 	return fmt.Sprintf("Attribute with path %s mismatches with entry key %s", amk.Attr.Assist.FullPath, amk.Key)
 }
+
+// Error representing the scenario where a type is not expected by the attribute (in a JSON serializer)
+type UnexpectedTypeError struct {
+	Type reflect.Type
+	Attr *resource.Attribute
+}
+
+func (e *UnexpectedTypeError) Error() string {
+	var expects string = ""
+	switch e.Attr.Type {
+	case resource.String, resource.Binary, resource.Reference, resource.DateTime:
+		expects = "string"
+	case resource.Integer:
+		expects = "integer"
+	case resource.Decimal:
+		expects = "decimal"
+	case resource.Boolean:
+		expects = "boolean"
+	case resource.Complex:
+		expects = "complex"
+	}
+	if e.Attr.MultiValued {
+		expects += " array"
+	}
+	return "json expected type: " + expects + ", had type: " + e.Type.String()
+}
+
+// Error representing the scenario where a value cannot handled by the JSON serializer
+type UnsupportedValueError struct {
+	Value reflect.Value
+	Str   string
+}
+
+func (e *UnsupportedValueError) Error() string {
+	return "json: unsupported value: " + e.Str
+}

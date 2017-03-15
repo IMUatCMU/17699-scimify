@@ -1,8 +1,7 @@
-package serialize
+package processor
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"github.com/go-scim/scimify/resource"
 	"math"
@@ -14,27 +13,36 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	type_bool     = resource.Boolean
-	type_int      = resource.Integer
-	type_float    = resource.Decimal
-	type_string   = resource.String
-	type_ref      = resource.Reference
-	type_binary   = resource.Binary
-	type_datetime = resource.DateTime
-	type_complex  = resource.Complex
-)
+type assistedJsonSerializationProcessor struct {
+	argSlot RName
+}
+
+func (ajp *assistedJsonSerializationProcessor) Process(ctx *ProcessorContext) error {
+	target := getR(ctx, ajp.argSlot, true, nil)
+	schema := getSchema(ctx, true)
+	include := getStringArray(ctx, ArgIncludePaths, false, []string{})
+	exclude := getStringArray(ctx, ArgExcludePaths, false, []string{})
+
+	switch target.(type) {
+	case resource.ScimObject:
+		bytes, err := ajp.serialize(target.(resource.ScimObject), include, exclude, schema)
+		ctx.Results[RBodyBytes] = bytes
+		return err
+
+	case []resource.ScimObject:
+		bytes, err := ajp.serializeArray(target.([]resource.ScimObject), include, exclude, schema)
+		ctx.Results[RBodyBytes] = bytes
+		return err
+
+	default:
+		return &PrerequisiteFailedError{reporter: "assisted json serializer", requirement: "single or array of scim object"}
+	}
+}
 
 var hex = "0123456789abcdef"
 var numberType = reflect.TypeOf(Number(""))
 
-type DynamicJsonSerializer struct{}
-
-func (j *DynamicJsonSerializer) Serialize(target resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
-	schema, ok := context.Value(resource.CK_Schema).(*resource.Schema)
-	if !ok {
-		panic("missing required context parameter: CK_Schema")
-	}
+func (ajp *assistedJsonSerializationProcessor) serialize(target resource.ScimObject, inclusionPaths, exclusionPaths []string, schema *resource.Schema) ([]byte, error) {
 	e := newEncodeState()
 	err := e.marshal(target.Data(), encOpts{escapeHTML: true, inclusionPaths: inclusionPaths, exclusionPaths: exclusionPaths}, schema.AsAttribute())
 	if nil != err {
@@ -43,11 +51,11 @@ func (j *DynamicJsonSerializer) Serialize(target resource.ScimObject, inclusionP
 	return e.Bytes(), nil
 }
 
-func (j *DynamicJsonSerializer) SerializeArray(target []resource.ScimObject, inclusionPaths, exclusionPaths []string, context context.Context) ([]byte, error) {
+func (ajp *assistedJsonSerializationProcessor) serializeArray(target []resource.ScimObject, inclusionPaths, exclusionPaths []string, schema *resource.Schema) ([]byte, error) {
 	e := newEncodeState()
 	e.WriteByte('[')
 	for i, targetElem := range target {
-		bytes, err := j.Serialize(targetElem, inclusionPaths, exclusionPaths, context)
+		bytes, err := ajp.serialize(targetElem, inclusionPaths, exclusionPaths, schema)
 		if err != nil {
 			return nil, err
 		}
@@ -308,52 +316,12 @@ func (e *encodeState) stringBytes(s []byte, escapeHTML bool) int {
 	return e.Len() - len0
 }
 
-// encoder cache
-var encoderCache struct {
-	sync.RWMutex
-	m map[reflect.Type]encoderFunc
-}
-
 func valueEncoder(v reflect.Value, attr *resource.Attribute) encoderFunc {
 	if !v.IsValid() {
 		return invalidValueEncoder
 	}
 	return newTypeEncoder(v.Type(), attr)
 }
-
-//func typeEncoder(t reflect.Type) encoderFunc {
-//	encoderCache.RLock()
-//	f := encoderCache.m[t]
-//	encoderCache.RUnlock()
-//	if f != nil {
-//		return f
-//	}
-//
-//	// To deal with recursive types, populate the map with an
-//	// indirect func before we build it. This type waits on the
-//	// real func (f) to be ready and then calls it. This indirect
-//	// func is only used for recursive types.
-//	encoderCache.Lock()
-//	if encoderCache.m == nil {
-//		encoderCache.m = make(map[reflect.Type]encoderFunc)
-//	}
-//	var wg sync.WaitGroup
-//	wg.Add(1)
-//	encoderCache.m[t] = func(e *encodeState, v reflect.Value, opts encOpts) {
-//		wg.Wait()
-//		f(e, v, opts)
-//	}
-//	encoderCache.Unlock()
-//
-//	// Compute fields without lock.
-//	// Might duplicate effort but won't hold other computations back.
-//	f = newTypeEncoder(t, true)
-//	wg.Done()
-//	encoderCache.Lock()
-//	encoderCache.m[t] = f
-//	encoderCache.Unlock()
-//	return f
-//}
 
 func newTypeEncoder(t reflect.Type, attr *resource.Attribute) encoderFunc {
 	if t.Kind() == reflect.Interface {
@@ -659,40 +627,7 @@ func isValidNumber(s string) bool {
 }
 
 // errors
-type UnsupportedTypeError struct {
-	Type reflect.Type
-	Attr *resource.Attribute
-}
-
-func (e *UnsupportedTypeError) Error() string {
-	var expects string = ""
-	switch e.Attr.Type {
-	case resource.String, resource.Binary, resource.Reference, resource.DateTime:
-		expects = "string"
-	case resource.Integer:
-		expects = "integer"
-	case resource.Decimal:
-		expects = "decimal"
-	case resource.Boolean:
-		expects = "boolean"
-	case resource.Complex:
-		expects = "complex"
-	}
-	if e.Attr.MultiValued {
-		expects += " array"
-	}
-	return "json expected type: " + expects + ", unsupported type: " + e.Type.String()
-}
-
-type UnsupportedValueError struct {
-	Value reflect.Value
-	Str   string
-}
-
-func (e *UnsupportedValueError) Error() string {
-	return "json: unsupported value: " + e.Str
-}
 
 func unsupportedTypeEncoder(e *encodeState, v reflect.Value, _ encOpts, a *resource.Attribute) {
-	e.error(&UnsupportedTypeError{v.Type(), a})
+	e.error(&UnexpectedTypeError{v.Type(), a})
 }

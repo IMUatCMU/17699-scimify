@@ -18,15 +18,17 @@ type ProcessorContext struct {
 type AName string
 
 const (
-	ArgResource  = AName("resource")
-	ArgReference = AName("reference")
-	ArgSchema    = AName("schema")
-	ArgFilter    = AName("filter")
-	ArgSortBy    = AName("sortBy")
-	ArgSortOrder = AName("sortOrder")
-	ArgPageStart = AName("pageStart")
-	ArgPageSize  = AName("pageSize")
-	ArgError     = AName("error")
+	ArgResource     = AName("resource")
+	ArgReference    = AName("reference")
+	ArgSchema       = AName("schema")
+	ArgFilter       = AName("filter")
+	ArgSortBy       = AName("sortBy")
+	ArgSortOrder    = AName("sortOrder")
+	ArgPageStart    = AName("pageStart")
+	ArgPageSize     = AName("pageSize")
+	ArgIncludePaths = AName("includePaths")
+	ArgExcludePaths = AName("excludePaths")
+	ArgError        = AName("error")
 )
 
 type RName string
@@ -35,7 +37,7 @@ const (
 	RSingleResource = RName("singleResource")
 	RAllResources   = RName("allResources")
 	RFinalError     = RName("finalError")
-	RBodyBytes 	= RName("bodyBytes")
+	RBodyBytes      = RName("bodyBytes")
 )
 
 type Processor interface {

@@ -55,6 +55,18 @@ func getString(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValu
 	}
 }
 
+func getStringArray(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue []string) []string {
+	if val, ok := ctx.MiscArgs[key].([]string); !ok {
+		if panicIfAbsent {
+			panic(&MissingContextValueError{string(key)})
+		} else {
+			return defaultValue
+		}
+	} else {
+		return val
+	}
+}
+
 func getInt(ctx *ProcessorContext, key AName, panicIfAbsent bool, defaultValue int) int {
 	if val, ok := ctx.MiscArgs[key].(int); !ok {
 		if panicIfAbsent {

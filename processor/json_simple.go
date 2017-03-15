@@ -5,7 +5,7 @@ import (
 )
 
 type simpleJsonSerializationProcessor struct {
-	argSlot 	RName
+	argSlot RName
 }
 
 func (sjp *simpleJsonSerializationProcessor) Process(ctx *ProcessorContext) error {

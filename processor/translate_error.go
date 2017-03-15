@@ -9,7 +9,8 @@ func (etp *errorTranslatingProcessor) Process(ctx *ProcessorContext) error {
 	err := getError(ctx, true)
 	switch err.(type) {
 
-	case *TypeMismatchError, *FormatError, *TypeUnsupportedError, *RequiredMissingError, *RequiredUnassignedError, *NoDefinedAttributeError:
+	case *TypeMismatchError, *FormatError, *TypeUnsupportedError, *RequiredMissingError,
+		*RequiredUnassignedError, *NoDefinedAttributeError, *UnexpectedTypeError, *UnsupportedValueError:
 		finalError = resource.CreateError(resource.InvalidValue, err.Error())
 
 	case *ValueChangedError:
