@@ -13,30 +13,41 @@ import (
 	"unicode/utf8"
 )
 
-type assistedJsonSerializationProcessor struct {
-	argSlot RName
-}
+type assistedJsonSerializationProcessor struct {}
 
 func (ajp *assistedJsonSerializationProcessor) Process(ctx *ProcessorContext) error {
-	target := getR(ctx, ajp.argSlot, true, nil)
-	schema := getSchema(ctx, true)
-	include := getStringArray(ctx, ArgIncludePaths, false, []string{})
-	exclude := getStringArray(ctx, ArgExcludePaths, false, []string{})
+	target := ajp.getTarget(ctx)
+	schema := ajp.getSchema(ctx)
 
 	switch target.(type) {
 	case resource.ScimObject:
-		bytes, err := ajp.serialize(target.(resource.ScimObject), include, exclude, schema)
-		ctx.Results[RBodyBytes] = bytes
+		bytes, err := ajp.serialize(target.(resource.ScimObject), ctx.Inclusion, ctx.Exclusion, schema)
+		ctx.ResponseBody = bytes
 		return err
 
 	case []resource.ScimObject:
-		bytes, err := ajp.serializeArray(target.([]resource.ScimObject), include, exclude, schema)
-		ctx.Results[RBodyBytes] = bytes
+		bytes, err := ajp.serializeArray(target.([]resource.ScimObject), ctx.Inclusion, ctx.Exclusion, schema)
+		ctx.ResponseBody = bytes
 		return err
 
 	default:
 		return &PrerequisiteFailedError{reporter: "assisted json serializer", requirement: "single or array of scim object"}
 	}
+}
+
+func (ajp *assistedJsonSerializationProcessor) getTarget(ctx *ProcessorContext) interface{} {
+	target := ctx.SerializationTargetFunc()
+	if target == nil {
+		panic(&MissingContextValueError{"serialization target"})
+	}
+	return target
+}
+
+func (ajp *assistedJsonSerializationProcessor) getSchema(ctx *ProcessorContext) *resource.Schema {
+	if ctx.Schema == nil {
+		panic(&MissingContextValueError{"schema"})
+	}
+	return ctx.Schema
 }
 
 var hex = "0123456789abcdef"

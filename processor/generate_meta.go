@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"strings"
+	"github.com/go-scim/scimify/resource"
 )
 
 type generateMetaProcessor struct {
@@ -12,7 +13,7 @@ type generateMetaProcessor struct {
 }
 
 func (gmp *generateMetaProcessor) Process(ctx *ProcessorContext) error {
-	r := getResource(ctx, true)
+	r := gmp.getResource(ctx)
 
 	id, ok := r.Attributes["id"].(string)
 	if !ok || len(id) == 0 {
@@ -34,4 +35,11 @@ func (gmp *generateMetaProcessor) Process(ctx *ProcessorContext) error {
 	r.Attributes["meta"] = meta
 
 	return nil
+}
+
+func (gmp *generateMetaProcessor) getResource(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Resource == nil {
+		panic(&MissingContextValueError{"resource"})
+	}
+	return ctx.Resource
 }

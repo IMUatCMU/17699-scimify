@@ -14,7 +14,10 @@ func (hjp *hybridJsonSerializationProcessor) Process(ctx *ProcessorContext) erro
 		return err
 	}
 
-	ctx.Results[hjp.sjp.argSlot] = hjp.f(ctx.Results[RBodyBytes].([]byte), ctx)
+	intermediate := hjp.f(ctx.ResponseBody, ctx)
+	ctx.SerializationTargetFunc = func() interface{} {
+		return intermediate
+	}
 
 	return hjp.sjp.Process(ctx)
 }

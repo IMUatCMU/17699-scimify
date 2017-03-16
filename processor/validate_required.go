@@ -21,14 +21,28 @@ func (rvp *requiredValidationProcessor) Process(ctx *ProcessorContext) (err erro
 		}
 	}()
 
-	r := getResource(ctx, true)
-	schema := getSchema(ctx, true)
+	r := rvp.getResource(ctx)
+	schema := rvp.getSchema(ctx)
 	delegate := &requiredCheckDelegate{enforceReadOnlyAttributes: false} // TODO turn into configuration option
 
 	helper.TraverseWithSchema(r, schema, []helper.ResourceTraversalDelegate{delegate})
 
 	err = nil
 	return
+}
+
+func (rvp *requiredValidationProcessor) getResource(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Resource == nil {
+		panic(&MissingContextValueError{"resource"})
+	}
+	return ctx.Resource
+}
+
+func (rvp *requiredValidationProcessor) getSchema(ctx *ProcessorContext) *resource.Schema {
+	if ctx.Schema == nil {
+		panic(&MissingContextValueError{"schema"})
+	}
+	return ctx.Schema
 }
 
 type requiredCheckDelegate struct {

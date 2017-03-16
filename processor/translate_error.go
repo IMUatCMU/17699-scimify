@@ -5,24 +5,31 @@ import "github.com/go-scim/scimify/resource"
 type errorTranslatingProcessor struct{}
 
 func (etp *errorTranslatingProcessor) Process(ctx *ProcessorContext) error {
-	var finalError resource.Error
-	err := getError(ctx, true)
-	switch err.(type) {
+	var translatedErr resource.Error
+	err := etp.getError(ctx)
 
+	switch err.(type) {
 	case *TypeMismatchError, *FormatError, *TypeUnsupportedError, *RequiredMissingError,
 		*RequiredUnassignedError, *NoDefinedAttributeError, *UnexpectedTypeError, *UnsupportedValueError:
-		finalError = resource.CreateError(resource.InvalidValue, err.Error())
+		translatedErr = resource.CreateError(resource.InvalidValue, err.Error())
 
 	case *ValueChangedError:
-		finalError = resource.CreateError(resource.Mutability, err.Error())
+		translatedErr = resource.CreateError(resource.Mutability, err.Error())
 
 	case *MissingContextValueError, *AttributeMismatchWithKeyError, *PrerequisiteFailedError:
-		finalError = resource.CreateError(resource.ServerError, err.Error())
+		translatedErr = resource.CreateError(resource.ServerError, err.Error())
 
 	default:
-		finalError = resource.CreateError(resource.ServerError, err.Error())
+		translatedErr = resource.CreateError(resource.ServerError, err.Error())
 	}
+	ctx.Err = translatedErr
 
-	ctx.Results[RFinalError] = finalError
 	return nil
+}
+
+func (etp *errorTranslatingProcessor) getError(ctx *ProcessorContext) error {
+	if ctx.Err == nil {
+		panic(&MissingContextValueError{"error thrown"})
+	}
+	return ctx.Err
 }

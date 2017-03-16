@@ -8,7 +8,7 @@ import (
 )
 
 func TestAssistedJsonSerializationProcessor_Process(t *testing.T) {
-	processor := &assistedJsonSerializationProcessor{argSlot: RSingleResource}
+	processor := &assistedJsonSerializationProcessor{}
 
 	// prepare schema
 	schema, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
@@ -28,14 +28,14 @@ func TestAssistedJsonSerializationProcessor_Process(t *testing.T) {
 
 	ctx := &ProcessorContext{
 		Schema: schema,
-		Results: map[RName]interface{}{
-			RSingleResource: target,
+		SerializationTargetFunc: func()interface{} {
+			return target
 		},
 	}
 
 	err = processor.Process(ctx)
 	assert.Nil(t, err)
-	assert.JSONEq(t, json, string(ctx.Results[RBodyBytes].([]byte)))
+	assert.JSONEq(t, json, string(ctx.ResponseBody))
 }
 
 func BenchmarkAssistedJsonSerializationProcessor_Process(b *testing.B) {
@@ -51,13 +51,13 @@ func BenchmarkAssistedJsonSerializationProcessor_Process(b *testing.B) {
 
 	// serializer
 	b.ResetTimer()
-	processor := &assistedJsonSerializationProcessor{argSlot: RSingleResource}
+	processor := &assistedJsonSerializationProcessor{}
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			err := processor.Process(&ProcessorContext{
 				Schema: schema,
-				Results: map[RName]interface{}{
-					RSingleResource: resource,
+				SerializationTargetFunc: func()interface{} {
+					return resource
 				},
 			})
 			if nil != err {

@@ -6,40 +6,41 @@ import (
 )
 
 type ProcessorContext struct {
+	// basic
 	Identity  string
 	Resource  *resource.Resource
 	Reference *resource.Resource
 	Schema    *resource.Schema
 	Request   *http.Request
-	MiscArgs  map[AName]interface{}
-	Results   map[RName]interface{}
+
+	// query args
+	QueryFilter	string
+	QuerySortBy	string
+	QuerySortOrder	bool
+	QueryPageStart	int
+	QueryPageSize	int
+	ParsedFilter 	interface{}
+
+	// inclusion and exclusion
+	Inclusion	[]string
+	Exclusion	[]string
+
+	// Serialization
+	SerializationTargetFunc func() interface{}
+
+	// Error
+	Err 		error
+
+	// Results
+	SingleResult	resource.ScimObject
+	MultiResults	[]resource.ScimObject
+	ListResponse 	*resource.ListResponse
+
+	// HTTP Response
+	ResponseStatus	int
+	ResponseHeaders	map[string]string
+	ResponseBody	[]byte
 }
-
-type AName string
-
-const (
-	ArgResource     = AName("resource")
-	ArgReference    = AName("reference")
-	ArgSchema       = AName("schema")
-	ArgFilter       = AName("filter")
-	ArgSortBy       = AName("sortBy")
-	ArgSortOrder    = AName("sortOrder")
-	ArgPageStart    = AName("pageStart")
-	ArgPageSize     = AName("pageSize")
-	ArgIncludePaths = AName("includePaths")
-	ArgExcludePaths = AName("excludePaths")
-	ArgError        = AName("error")
-)
-
-type RName string
-
-const (
-	RSingleResource = RName("singleResource")
-	RAllResources   = RName("allResources")
-	RListResponse   = RName("listResponse")
-	RFinalError     = RName("finalError")
-	RBodyBytes      = RName("bodyBytes")
-)
 
 type Processor interface {
 	Process(ctx *ProcessorContext) error
@@ -76,7 +77,7 @@ func (ehp *ErrorHandlingProcessor) Process(ctx *ProcessorContext) error {
 	for _, op := range ehp.opProcessors {
 		err := op.Process(ctx)
 		if nil != err {
-			ctx.MiscArgs[ArgError] = err
+			ctx.Err = err
 			for _, ep := range ehp.errProcessors {
 				err := ep.Process(ctx)
 				if nil != err {

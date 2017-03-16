@@ -22,14 +22,28 @@ func (tvp *typeValidationProcessor) Process(ctx *ProcessorContext) (err error) {
 		}
 	}()
 
-	r := getResource(ctx, true)
-	schema := getSchema(ctx, true)
+	r := tvp.getResource(ctx)
+	schema := tvp.getSchema(ctx)
 	delegate := &typeCheckDelegate{}
 
 	helper.TraverseWithSchema(r, schema, []helper.ResourceTraversalDelegate{delegate})
 
 	err = nil
 	return
+}
+
+func (tvp *typeValidationProcessor) getResource(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Resource == nil {
+		panic(&MissingContextValueError{"resource"})
+	}
+	return ctx.Resource
+}
+
+func (tvp *typeValidationProcessor) getSchema(ctx *ProcessorContext) *resource.Schema {
+	if ctx.Schema == nil {
+		panic(&MissingContextValueError{"schema"})
+	}
+	return ctx.Schema
 }
 
 type typeCheckDelegate struct{}

@@ -12,8 +12,8 @@ import (
 
 func TestHybridJsonSerializationProcessor_Process(t *testing.T) {
 	processor := &hybridJsonSerializationProcessor{
-		sjp: &simpleJsonSerializationProcessor{argSlot: RListResponse},
-		ajp: &assistedJsonSerializationProcessor{argSlot: RAllResources},
+		sjp: &simpleJsonSerializationProcessor{},
+		ajp: &assistedJsonSerializationProcessor{},
 		f: func(bytes []byte, _ *ProcessorContext) interface{} {
 			raw := json.RawMessage(bytes)
 			return resource.NewListResponse(&raw, 0, 10, 2)
@@ -34,8 +34,8 @@ func TestHybridJsonSerializationProcessor_Process(t *testing.T) {
 
 	ctx := &ProcessorContext{
 		Schema: schema,
-		Results: map[RName]interface{}{
-			RAllResources: []resource.ScimObject{david, david},
+		SerializationTargetFunc:func() interface{} {
+			return []resource.ScimObject{david, david}
 		},
 	}
 
@@ -47,5 +47,5 @@ func TestHybridJsonSerializationProcessor_Process(t *testing.T) {
 		"itemsPerPage":10,
 		"startIndex":0,
 		"Resources":[%s, %s]
-	}`, json, json), string(ctx.Results[RBodyBytes].([]byte)))
+	}`, json, json), string(ctx.ResponseBody))
 }

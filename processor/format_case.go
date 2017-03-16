@@ -5,6 +5,7 @@ import (
 	"github.com/go-scim/scimify/helper"
 	"reflect"
 	"strings"
+	"github.com/go-scim/scimify/resource"
 )
 
 type formatCaseProcessor struct{}
@@ -22,14 +23,28 @@ func (fcp *formatCaseProcessor) Process(ctx *ProcessorContext) (err error) {
 		}
 	}()
 
-	r := getResource(ctx, true)
-	schema := getSchema(ctx, true)
+	r := fcp.getResource(ctx)
+	schema := fcp.getSchema(ctx)
 	delegate := &formatCaseDelegate{}
 
 	helper.Traverse(r, schema, delegate)
 
 	err = nil
 	return
+}
+
+func (fcp *formatCaseProcessor) getResource(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Resource == nil {
+		panic(&MissingContextValueError{"resource"})
+	}
+	return ctx.Resource
+}
+
+func (fcp *formatCaseProcessor) getSchema(ctx *ProcessorContext) *resource.Schema {
+	if ctx.Schema == nil {
+		panic(&MissingContextValueError{"schema"})
+	}
+	return ctx.Schema
 }
 
 type formatCaseDelegate struct{}

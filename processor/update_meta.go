@@ -1,9 +1,11 @@
 package processor
 
+import "github.com/go-scim/scimify/resource"
+
 type updateMetaProcessor struct{}
 
 func (ump *updateMetaProcessor) Process(ctx *ProcessorContext) error {
-	r := getResource(ctx, true)
+	r := ump.getResource(ctx)
 
 	if meta, ok := r.Attributes["meta"].(map[string]interface{}); !ok {
 		panic(&PrerequisiteFailedError{reporter: "meta update", requirement: "meta"})
@@ -21,4 +23,11 @@ func (ump *updateMetaProcessor) Process(ctx *ProcessorContext) error {
 
 		return nil
 	}
+}
+
+func (ump *updateMetaProcessor) getResource(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Resource == nil {
+		panic(&MissingContextValueError{"resource"})
+	}
+	return ctx.Resource
 }

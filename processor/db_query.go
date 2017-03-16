@@ -7,13 +7,18 @@ type dbQueryProcessor struct {
 }
 
 func (dqp *dbQueryProcessor) Process(ctx *ProcessorContext) error {
-	filter := getA(ctx, ArgFilter, true, nil)
-	sortBy := getString(ctx, ArgSortBy, true, "")
-	sortOrder := getBool(ctx, ArgSortOrder, true, false)
-	pageStart := getInt(ctx, ArgPageStart, true, 0)
-	pageSize := getInt(ctx, ArgPageSize, true, 0)
+	filter := dqp.getFilter(ctx)
 
-	all, err := dqp.repo.Query(filter, sortBy, sortOrder, pageStart, pageSize)
-	ctx.Results[RAllResources] = all
+	all, err := dqp.repo.Query(filter, ctx.QuerySortBy, ctx.QuerySortOrder, ctx.QueryPageStart, ctx.QueryPageSize)
+
+	ctx.MultiResults = all
+
 	return err
+}
+
+func (dqp *dbQueryProcessor) getFilter(ctx *ProcessorContext) interface{} {
+	if ctx.ParsedFilter == nil {
+		panic(&MissingContextValueError{"parsed filter"})
+	}
+	return ctx.ParsedFilter
 }

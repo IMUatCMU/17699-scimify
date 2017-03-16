@@ -8,6 +8,6 @@ type dbGetProcessor struct {
 
 func (dgp *dbGetProcessor) Process(ctx *ProcessorContext) error {
 	r, err := dgp.repo.Get(ctx.Identity)
-	ctx.Results[RSingleResource] = r
+	ctx.SingleResult = r
 	return err
 }

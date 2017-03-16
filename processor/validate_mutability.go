@@ -21,15 +21,36 @@ func (mvp *mutabilityValidationProcessor) Process(ctx *ProcessorContext) (err er
 		}
 	}()
 
-	r := getResource(ctx, true)
-	schema := getSchema(ctx, true)
-	ref := getReference(ctx, true)
+	r := mvp.getResource(ctx)
+	schema := mvp.getSchema(ctx)
+	ref := mvp.getReference(ctx)
 	delegate := &mutabilityCheckState{PerformCopy: true, inArray: false} // TODO turn into configuration option
 
 	helper.TraverseWithReference(r, ref, schema, []helper.TraversalWithReferenceDelegate{delegate})
 
 	err = nil
 	return
+}
+
+func (mvp *mutabilityValidationProcessor) getResource(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Resource == nil {
+		panic(&MissingContextValueError{"resource"})
+	}
+	return ctx.Resource
+}
+
+func (mvp *mutabilityValidationProcessor) getSchema(ctx *ProcessorContext) *resource.Schema {
+	if ctx.Schema == nil {
+		panic(&MissingContextValueError{"schema"})
+	}
+	return ctx.Schema
+}
+
+func (mvp *mutabilityValidationProcessor) getReference(ctx *ProcessorContext) *resource.Resource {
+	if ctx.Reference == nil {
+		panic(&MissingContextValueError{"reference"})
+	}
+	return ctx.Reference
 }
 
 type mutabilityCheckState struct {
