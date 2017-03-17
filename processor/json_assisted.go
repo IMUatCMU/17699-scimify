@@ -13,7 +13,7 @@ import (
 	"unicode/utf8"
 )
 
-type assistedJsonSerializationProcessor struct {}
+type assistedJsonSerializationProcessor struct{}
 
 func (ajp *assistedJsonSerializationProcessor) Process(ctx *ProcessorContext) error {
 	target := ajp.getTarget(ctx)

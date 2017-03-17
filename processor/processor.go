@@ -14,32 +14,32 @@ type ProcessorContext struct {
 	Request   *http.Request
 
 	// query args
-	QueryFilter	string
-	QuerySortBy	string
-	QuerySortOrder	bool
-	QueryPageStart	int
-	QueryPageSize	int
-	ParsedFilter 	interface{}
+	QueryFilter    string
+	QuerySortBy    string
+	QuerySortOrder bool
+	QueryPageStart int
+	QueryPageSize  int
+	ParsedFilter   interface{}
 
 	// inclusion and exclusion
-	Inclusion	[]string
-	Exclusion	[]string
+	Inclusion []string
+	Exclusion []string
 
 	// Serialization
 	SerializationTargetFunc func() interface{}
 
 	// Error
-	Err 		error
+	Err error
 
 	// Results
-	SingleResult	resource.ScimObject
-	MultiResults	[]resource.ScimObject
-	ListResponse 	*resource.ListResponse
+	SingleResult resource.ScimObject
+	MultiResults []resource.ScimObject
+	ListResponse *resource.ListResponse
 
 	// HTTP Response
-	ResponseStatus	int
-	ResponseHeaders	map[string]string
-	ResponseBody	[]byte
+	ResponseStatus  int
+	ResponseHeaders map[string]string
+	ResponseBody    []byte
 }
 
 type Processor interface {

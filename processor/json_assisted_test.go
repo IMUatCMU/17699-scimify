@@ -28,7 +28,7 @@ func TestAssistedJsonSerializationProcessor_Process(t *testing.T) {
 
 	ctx := &ProcessorContext{
 		Schema: schema,
-		SerializationTargetFunc: func()interface{} {
+		SerializationTargetFunc: func() interface{} {
 			return target
 		},
 	}
@@ -56,7 +56,7 @@ func BenchmarkAssistedJsonSerializationProcessor_Process(b *testing.B) {
 		for pb.Next() {
 			err := processor.Process(&ProcessorContext{
 				Schema: schema,
-				SerializationTargetFunc: func()interface{} {
+				SerializationTargetFunc: func() interface{} {
 					return resource
 				},
 			})

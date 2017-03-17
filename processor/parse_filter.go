@@ -6,7 +6,7 @@ import (
 	"github.com/go-scim/scimify/resource"
 )
 
-type parseFilterProcessor struct {}
+type parseFilterProcessor struct{}
 
 func (pfp *parseFilterProcessor) Process(ctx *ProcessorContext) error {
 	schema := pfp.getSchema(ctx)

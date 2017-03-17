@@ -1,6 +1,6 @@
 package processor
 
-type setSingleResultAsJsonTargetProcessor struct {}
+type setSingleResultAsJsonTargetProcessor struct{}
 
 func (_ *setSingleResultAsJsonTargetProcessor) Process(ctx *ProcessorContext) error {
 	ctx.SerializationTargetFunc = func() interface{} {
@@ -9,7 +9,7 @@ func (_ *setSingleResultAsJsonTargetProcessor) Process(ctx *ProcessorContext) er
 	return nil
 }
 
-type setMultipleResultAsJsonTargetProcessor struct {}
+type setMultipleResultAsJsonTargetProcessor struct{}
 
 func (_ *setMultipleResultAsJsonTargetProcessor) Process(ctx *ProcessorContext) error {
 	ctx.SerializationTargetFunc = func() interface{} {

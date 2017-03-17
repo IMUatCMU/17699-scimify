@@ -34,7 +34,7 @@ func TestHybridJsonSerializationProcessor_Process(t *testing.T) {
 
 	ctx := &ProcessorContext{
 		Schema: schema,
-		SerializationTargetFunc:func() interface{} {
+		SerializationTargetFunc: func() interface{} {
 			return []resource.ScimObject{david, david}
 		},
 	}

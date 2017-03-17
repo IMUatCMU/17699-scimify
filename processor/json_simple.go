@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-type simpleJsonSerializationProcessor struct {}
+type simpleJsonSerializationProcessor struct{}
 
 func (sjp *simpleJsonSerializationProcessor) Process(ctx *ProcessorContext) error {
 	target := sjp.getTarget(ctx)

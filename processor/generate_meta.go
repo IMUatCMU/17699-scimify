@@ -2,9 +2,9 @@ package processor
 
 import (
 	"fmt"
+	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
 	"strings"
-	"github.com/go-scim/scimify/resource"
 )
 
 type generateMetaProcessor struct {

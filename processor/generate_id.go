@@ -1,9 +1,9 @@
 package processor
 
 import (
+	"github.com/go-scim/scimify/resource"
 	"github.com/satori/go.uuid"
 	"strings"
-	"github.com/go-scim/scimify/resource"
 )
 
 type generateIdProcessor struct{}

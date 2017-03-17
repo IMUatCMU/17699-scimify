@@ -3,9 +3,9 @@ package processor
 import (
 	"github.com/go-scim/scimify/adt"
 	"github.com/go-scim/scimify/helper"
+	"github.com/go-scim/scimify/resource"
 	"reflect"
 	"strings"
-	"github.com/go-scim/scimify/resource"
 )
 
 type formatCaseProcessor struct{}
