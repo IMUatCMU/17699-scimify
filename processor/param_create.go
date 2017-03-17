@@ -4,9 +4,39 @@ import (
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
+
+var (
+	oneParseUserCreate,
+	oneParseGroupCreate sync.Once
+
+	parseUserCreate,
+	parseGroupCreate Processor
+)
+
+func ParseParamForUserCreateEndpointProcessor() Processor {
+	oneParseUserCreate.Do(func() {
+		parseUserCreate = &parseParamForCreateEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.user"),
+		}
+	})
+	return parseUserCreate
+}
+
+func ParseParamForGroupCreateEndpointProcessor() Processor {
+	oneParseGroupCreate.Do(func() {
+		parseGroupCreate = &parseParamForCreateEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.group"),
+		}
+	})
+	return parseGroupCreate
+}
 
 type parseParamForCreateEndpointProcessor struct {
 	internalSchemaRepo persistence.Repository

@@ -4,7 +4,20 @@ import (
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
+	"sync"
 )
+
+var (
+	oneRequiredValidation sync.Once
+	requiredValidator     Processor
+)
+
+func RequiredValidationProcessor() Processor {
+	oneRequiredValidation.Do(func() {
+		requiredValidator = &requiredValidationProcessor{}
+	})
+	return requiredValidator
+}
 
 type requiredValidationProcessor struct{}
 

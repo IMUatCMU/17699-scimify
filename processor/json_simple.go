@@ -2,7 +2,20 @@ package processor
 
 import (
 	"encoding/json"
+	"sync"
 )
+
+var (
+	oneSimpleJson sync.Once
+	simpleJson    Processor
+)
+
+func SimpleJsonSerializationProcessor() Processor {
+	oneSimpleJson.Do(func() {
+		simpleJson = &simpleJsonSerializationProcessor{}
+	})
+	return simpleJson
+}
 
 type simpleJsonSerializationProcessor struct{}
 

@@ -3,7 +3,34 @@ package processor
 import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
+	"sync"
 )
+
+var (
+	oneUserCreateProcessor,
+	oneGroupCreateProcessor sync.Once
+
+	userCreateProcessor,
+	groupCreateProcessor Processor
+)
+
+func DBUserCreateProcessor() Processor {
+	oneUserCreateProcessor.Do(func() {
+		userCreateProcessor = &dbCreateProcessor{
+			repo: persistence.GetUserRepository(),
+		}
+	})
+	return userCreateProcessor
+}
+
+func DBGroupCreateProcessor() Processor {
+	oneGroupCreateProcessor.Do(func() {
+		groupCreateProcessor = &dbCreateProcessor{
+			repo: persistence.GetGroupRepository(),
+		}
+	})
+	return groupCreateProcessor
+}
 
 type dbCreateProcessor struct {
 	repo persistence.Repository

@@ -4,7 +4,20 @@ import (
 	"github.com/go-scim/scimify/filter"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
+	"sync"
 )
+
+var (
+	oneFilter   sync.Once
+	parseFilter Processor
+)
+
+func ParseFilterProcessor() Processor {
+	oneFilter.Do(func() {
+		parseFilter = &parseFilterProcessor{}
+	})
+	return parseFilter
+}
 
 type parseFilterProcessor struct{}
 

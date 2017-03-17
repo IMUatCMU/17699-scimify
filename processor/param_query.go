@@ -8,7 +8,48 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var (
+	oneUserQueryParser,
+	oneGroupQueryParser,
+	oneRootQueryParser sync.Once
+
+	userQueryParser,
+	groupQueryParser,
+	rootQueryParser Processor
+)
+
+func ParseParamForUserQueryEndpointProcessor() Processor {
+	oneUserQueryParser.Do(func() {
+		userQueryParser = &parseParamForQueryEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.user"),
+		}
+	})
+	return userQueryParser
+}
+
+func ParseParamForGroupQueryEndpointProcessor() Processor {
+	oneGroupQueryParser.Do(func() {
+		groupQueryParser = &parseParamForQueryEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.group"),
+		}
+	})
+	return groupQueryParser
+}
+
+func ParseParamForRootQueryEndpointProcessor() Processor {
+	oneRootQueryParser.Do(func() {
+		rootQueryParser = &parseParamForQueryEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.root"),
+		}
+	})
+	return rootQueryParser
+}
 
 type parseParamForQueryEndpointProcessor struct {
 	internalSchemaRepo persistence.Repository

@@ -1,6 +1,21 @@
 package processor
 
-import "github.com/go-scim/scimify/resource"
+import (
+	"github.com/go-scim/scimify/resource"
+	"sync"
+)
+
+var (
+	oneError       sync.Once
+	errorTranslate Processor
+)
+
+func ErrorTranslatingProcessor() Processor {
+	oneError.Do(func() {
+		errorTranslate = &errorTranslatingProcessor{}
+	})
+	return errorTranslate
+}
 
 type errorTranslatingProcessor struct{}
 

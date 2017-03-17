@@ -13,6 +13,19 @@ import (
 	"unicode/utf8"
 )
 
+var (
+	oneAssistedJson sync.Once
+
+	assistedJsonInstance Processor
+)
+
+func AssistedJsonSerializationProcessor() Processor {
+	oneAssistedJson.Do(func() {
+		assistedJsonInstance = &assistedJsonSerializationProcessor{}
+	})
+	return assistedJsonInstance
+}
+
 type assistedJsonSerializationProcessor struct{}
 
 func (ajp *assistedJsonSerializationProcessor) Process(ctx *ProcessorContext) error {

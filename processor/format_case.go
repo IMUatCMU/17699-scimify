@@ -6,7 +6,20 @@ import (
 	"github.com/go-scim/scimify/resource"
 	"reflect"
 	"strings"
+	"sync"
 )
+
+var (
+	oneFormatCase               sync.Once
+	formatCaseProcessorInstance Processor
+)
+
+func FormatCaseProcessor() Processor {
+	oneFormatCase.Do(func() {
+		formatCaseProcessorInstance = &formatCaseProcessor{}
+	})
+	return formatCaseProcessorInstance
+}
 
 type formatCaseProcessor struct{}
 

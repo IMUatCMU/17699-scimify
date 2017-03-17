@@ -3,7 +3,34 @@ package processor
 import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
+	"sync"
 )
+
+var (
+	oneUserReplace,
+	oneGroupReplace sync.Once
+
+	userReplaceProcessor,
+	groupReplaceProcessor Processor
+)
+
+func DBUserReplaceProcessor() Processor {
+	oneUserReplace.Do(func() {
+		userReplaceProcessor = &dbReplaceProcessor{
+			repo: persistence.GetUserRepository(),
+		}
+	})
+	return userReplaceProcessor
+}
+
+func DBGroupReplaceProcessor() Processor {
+	oneGroupReplace.Do(func() {
+		groupReplaceProcessor = &dbReplaceProcessor{
+			repo: persistence.GetGroupRepository(),
+		}
+	})
+	return groupReplaceProcessor
+}
 
 type dbReplaceProcessor struct {
 	repo persistence.Repository

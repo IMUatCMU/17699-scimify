@@ -2,17 +2,47 @@ package persistence
 
 import (
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"sync"
 )
 
 var (
 	oneSchemaRepo,
+	oneInternalSchemaRepo,
 	oneResourceTypeRepo,
-	oneServiceProviderRepo sync.Once
+	oneServiceProviderRepo,
+	oneUserRepo,
+	oneGroupRepo sync.Once
+
 	schemaRepository,
+	internalSchemaRepository,
 	resourceTypeRepository,
-	serviceProviderRepository Repository
+	serviceProviderRepository,
+	userRepository,
+	groupRepository Repository
 )
+
+func GetUserRepository() Repository {
+	oneUserRepo.Do(func() {
+		userRepository = NewMongoRepository(
+			viper.GetString("mongo.address"),
+			viper.GetString("mongo.database"),
+			viper.GetString("mongo.userCollectionName"),
+		)
+	})
+	return userRepository
+}
+
+func GetGroupRepository() Repository {
+	oneGroupRepo.Do(func() {
+		groupRepository = NewMongoRepository(
+			viper.GetString("mongo.address"),
+			viper.GetString("mongo.database"),
+			viper.GetString("mongo.groupCollectionName"),
+		)
+	})
+	return groupRepository
+}
 
 func GetSchemaRepository() Repository {
 	oneSchemaRepo.Do(func() {
@@ -21,6 +51,15 @@ func GetSchemaRepository() Repository {
 		}
 	})
 	return schemaRepository
+}
+
+func GetInternalSchemaRepository() Repository {
+	oneInternalSchemaRepo.Do(func() {
+		internalSchemaRepository = &SimpleRepository{
+			repo: make(map[string]resource.ScimObject, 0),
+		}
+	})
+	return internalSchemaRepository
 }
 
 func GetResourceTypeRepository() Repository {

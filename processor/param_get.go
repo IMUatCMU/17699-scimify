@@ -5,13 +5,45 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-zoo/bone"
+	"github.com/spf13/viper"
 	"net/http"
+	"sync"
 )
+
+var (
+	oneUserGet,
+	oneGroupGet sync.Once
+
+	userGet,
+	groupGet Processor
+)
+
+func ParseParamForGetUserEndpointProcessor() Processor {
+	oneUserGet.Do(func() {
+		userGet = &parseParamForGetEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.user"),
+			resourceIdUrlParam: viper.GetString("scim.api.userIdUrlParam"),
+		}
+	})
+	return userGet
+}
+
+func ParseParamFprGetGroupEndpointProcessor() Processor {
+	oneGroupGet.Do(func() {
+		groupGet = &parseParamForGetEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.group"),
+			resourceIdUrlParam: viper.GetString("scim.api.groupIdUrlParam"),
+		}
+	})
+	return groupGet
+}
 
 type parseParamForGetEndpointProcessor struct {
 	internalSchemaRepo persistence.Repository
 	schemaId           string
-	userIdUrlParam     string
+	resourceIdUrlParam string
 }
 
 func (gep *parseParamForGetEndpointProcessor) Process(ctx *ProcessorContext) error {
@@ -23,7 +55,7 @@ func (gep *parseParamForGetEndpointProcessor) Process(ctx *ProcessorContext) err
 		ctx.Schema = sch
 	}
 
-	if id, err := gep.getUserId(httpRequest); len(id) == 0 {
+	if id, err := gep.getResourceId(httpRequest); len(id) == 0 {
 		return err
 	} else {
 		ctx.Identity = id
@@ -43,8 +75,8 @@ func (gep *parseParamForGetEndpointProcessor) getSchema() (*resource.Schema, err
 	}
 }
 
-func (gep *parseParamForGetEndpointProcessor) getUserId(req *http.Request) (string, error) {
-	if id := bone.GetValue(req, gep.userIdUrlParam); len(id) == 0 {
+func (gep *parseParamForGetEndpointProcessor) getResourceId(req *http.Request) (string, error) {
+	if id := bone.GetValue(req, gep.resourceIdUrlParam); len(id) == 0 {
 		return "", resource.CreateError(resource.InvalidSyntax, "failed to obtain resource id from url")
 	} else {
 		return id, nil

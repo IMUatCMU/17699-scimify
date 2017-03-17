@@ -1,6 +1,35 @@
 package processor
 
-import "github.com/go-scim/scimify/persistence"
+import (
+	"github.com/go-scim/scimify/persistence"
+	"sync"
+)
+
+var (
+	oneUserQuery,
+	oneGroupQuery sync.Once
+
+	userQueryProcessor,
+	groupQueryProcessor Processor
+)
+
+func DBUserQueryProcessor() Processor {
+	oneUserQuery.Do(func() {
+		userQueryProcessor = &dbQueryProcessor{
+			repo: persistence.GetUserRepository(),
+		}
+	})
+	return userQueryProcessor
+}
+
+func DBGroupQueryProcessor() Processor {
+	oneGroupQuery.Do(func() {
+		groupQueryProcessor = &dbQueryProcessor{
+			repo: persistence.GetGroupRepository(),
+		}
+	})
+	return groupQueryProcessor
+}
 
 type dbQueryProcessor struct {
 	repo persistence.Repository

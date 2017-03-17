@@ -5,14 +5,46 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-zoo/bone"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
+
+var (
+	oneUserReplaceParser,
+	oneGroupReplaceParser sync.Once
+
+	userReplaceParser,
+	groupReplaceParser Processor
+)
+
+func ParseParamForReplaceUserEndpointProcessor() Processor {
+	oneUserReplaceParser.Do(func() {
+		userReplaceParser = &parseParamForReplaceEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.user"),
+			resourceIdUrlParam: viper.GetString("scim.api.userIdUrlParam"),
+		}
+	})
+	return userReplaceParser
+}
+
+func ParseParamForReplaceGroupEndpointProcessor() Processor {
+	oneGroupReplaceParser.Do(func() {
+		groupReplaceParser = &parseParamForReplaceEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.group"),
+			resourceIdUrlParam: viper.GetString("scim.api.groupIdUrlParam"),
+		}
+	})
+	return groupReplaceParser
+}
 
 type parseParamForReplaceEndpointProcessor struct {
 	internalSchemaRepo persistence.Repository
 	schemaId           string
-	userIdUrlParam     string
+	resourceIdUrlParam string
 }
 
 func (rep *parseParamForReplaceEndpointProcessor) Process(ctx *ProcessorContext) error {
@@ -24,7 +56,7 @@ func (rep *parseParamForReplaceEndpointProcessor) Process(ctx *ProcessorContext)
 		ctx.Schema = sch
 	}
 
-	if id, err := rep.getUserId(httpRequest); len(id) == 0 {
+	if id, err := rep.getResourceId(httpRequest); len(id) == 0 {
 		return err
 	} else {
 		ctx.Identity = id
@@ -53,8 +85,8 @@ func (rep *parseParamForReplaceEndpointProcessor) parseResource(req *http.Reques
 	return r, nil
 }
 
-func (rep *parseParamForReplaceEndpointProcessor) getUserId(req *http.Request) (string, error) {
-	if id := bone.GetValue(req, rep.userIdUrlParam); len(id) == 0 {
+func (rep *parseParamForReplaceEndpointProcessor) getResourceId(req *http.Request) (string, error) {
+	if id := bone.GetValue(req, rep.resourceIdUrlParam); len(id) == 0 {
 		return "", resource.CreateError(resource.InvalidSyntax, "failed to obtain resource id from url")
 	} else {
 		return id, nil

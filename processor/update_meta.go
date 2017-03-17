@@ -1,6 +1,21 @@
 package processor
 
-import "github.com/go-scim/scimify/resource"
+import (
+	"github.com/go-scim/scimify/resource"
+	"sync"
+)
+
+var (
+	oneUpdateMeta sync.Once
+	updateMeta    Processor
+)
+
+func UpdateMetaProcessor() Processor {
+	oneUpdateMeta.Do(func() {
+		updateMeta = &updateMetaProcessor{}
+	})
+	return updateMeta
+}
 
 type updateMetaProcessor struct{}
 

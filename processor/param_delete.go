@@ -5,13 +5,45 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/go-zoo/bone"
+	"github.com/spf13/viper"
 	"net/http"
+	"sync"
 )
+
+var (
+	oneUserDelete,
+	oneGroupDelete sync.Once
+
+	userDelete,
+	groupDelete Processor
+)
+
+func ParseParamForUserDeleteEndpointProcessor() Processor {
+	oneUserDelete.Do(func() {
+		userDelete = &parseParamForDeleteEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.user"),
+			resourceIdUrlParam: viper.GetString("scim.api.userIdUrlParam"),
+		}
+	})
+	return userDelete
+}
+
+func ParseParamForGroupDeleteEndpointProcessor() Processor {
+	oneGroupDelete.Do(func() {
+		groupDelete = &parseParamForDeleteEndpointProcessor{
+			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
+			schemaId:           viper.GetString("scim.internalSchemaId.group"),
+			resourceIdUrlParam: viper.GetString("scim.api.groupIdUrlParam"),
+		}
+	})
+	return groupDelete
+}
 
 type parseParamForDeleteEndpointProcessor struct {
 	internalSchemaRepo persistence.Repository
 	schemaId           string
-	userIdUrlParam     string
+	resourceIdUrlParam string
 }
 
 func (dep *parseParamForDeleteEndpointProcessor) Process(ctx *ProcessorContext) error {
@@ -23,7 +55,7 @@ func (dep *parseParamForDeleteEndpointProcessor) Process(ctx *ProcessorContext) 
 		ctx.Schema = sch
 	}
 
-	if id, err := dep.getUserId(httpRequest); len(id) == 0 {
+	if id, err := dep.getResourceId(httpRequest); len(id) == 0 {
 		return err
 	} else {
 		ctx.Identity = id
@@ -43,8 +75,8 @@ func (dep *parseParamForDeleteEndpointProcessor) getSchema() (*resource.Schema, 
 	}
 }
 
-func (dep *parseParamForDeleteEndpointProcessor) getUserId(req *http.Request) (string, error) {
-	if id := bone.GetValue(req, dep.userIdUrlParam); len(id) == 0 {
+func (dep *parseParamForDeleteEndpointProcessor) getResourceId(req *http.Request) (string, error) {
+	if id := bone.GetValue(req, dep.resourceIdUrlParam); len(id) == 0 {
 		return "", resource.CreateError(resource.InvalidSyntax, "failed to obtain resource id from url")
 	} else {
 		return id, nil

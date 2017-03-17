@@ -4,8 +4,21 @@ import (
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
+	"sync"
 	"time"
 )
+
+var (
+	oneTypeValidation sync.Once
+	typeValidator     Processor
+)
+
+func TypeValidationProcessor() Processor {
+	oneTypeValidation.Do(func() {
+		typeValidator = &typeValidationProcessor{}
+	})
+	return typeValidator
+}
 
 type typeValidationProcessor struct{}
 

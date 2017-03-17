@@ -4,7 +4,20 @@ import (
 	"github.com/go-scim/scimify/resource"
 	"github.com/satori/go.uuid"
 	"strings"
+	"sync"
 )
+
+var (
+	oneGenerateId      sync.Once
+	generateIdInstance Processor
+)
+
+func GenerateIdProcessor() Processor {
+	oneGenerateId.Do(func() {
+		generateIdInstance = &generateIdProcessor{}
+	})
+	return generateIdInstance
+}
 
 type generateIdProcessor struct{}
 

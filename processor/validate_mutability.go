@@ -4,7 +4,20 @@ import (
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
 	"reflect"
+	"sync"
 )
+
+var (
+	oneMutabilityValidation sync.Once
+	mutabilityValidator     Processor
+)
+
+func MutabilityValidationProcessor() Processor {
+	oneMutabilityValidation.Do(func() {
+		mutabilityValidator = &mutabilityValidationProcessor{}
+	})
+	return mutabilityValidator
+}
 
 type mutabilityValidationProcessor struct{}
 
