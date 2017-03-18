@@ -102,10 +102,10 @@ type dbGetProcessor struct {
 
 func (dgp *dbGetProcessor) Process(ctx *ProcessorContext) error {
 	r, err := dgp.repo.Get(ctx.Identity)
-	if err != nil {
-		return err
-	} else if r == nil {
+	if r == nil {
 		return resource.CreateError(resource.NotFound, fmt.Sprintf("resource by id %s is not found", ctx.Identity))
+	} else if err != nil {
+		return err
 	}
 
 	dgp.f(r, ctx)

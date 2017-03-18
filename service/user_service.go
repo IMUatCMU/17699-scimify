@@ -67,9 +67,8 @@ func (srv *userService) getCreateUserProcessor() p.Processor {
 		srv.createUserProcessor = &p.ErrorHandlingProcessor{
 			Op: []p.Processor{
 				p.GetWorkerBean(p.ParamUserCreate),
+				p.GetWorkerBean(p.ValidateType),
 				p.GetWorkerBean(p.ValidateRequired),
-				p.GetWorkerBean(p.ValidateRequired),
-				p.GetWorkerBean(p.ValidateMutability),
 				p.GetWorkerBean(p.GenerateId),
 				p.GetWorkerBean(p.GenerateUserMeta),
 				p.GetWorkerBean(p.DbUserCreate),

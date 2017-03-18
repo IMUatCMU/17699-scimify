@@ -99,6 +99,7 @@ func Bootstrap() *bone.Mux {
 		schemaSrv = &schemaService{}
 		resourceTypeSrv = &resourceTypeService{}
 		userSrv = &userService{}
+		spConfigSrv = &spConfigService{}
 
 		mux = bone.New()
 		mux.Prefix("/v2")

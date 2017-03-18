@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"github.com/go-scim/scimify/resource"
 	"sync"
 )
@@ -38,6 +39,7 @@ func (etp *errorTranslatingProcessor) Process(ctx *ProcessorContext) error {
 		translatedErr = resource.CreateError(resource.ServerError, err.Error())
 
 	default:
+		fmt.Printf("%T", err)
 		translatedErr = resource.CreateError(resource.ServerError, err.Error())
 	}
 	ctx.Err = translatedErr
