@@ -24,6 +24,9 @@ func (etp *errorTranslatingProcessor) Process(ctx *ProcessorContext) error {
 	err := etp.getError(ctx)
 
 	switch err.(type) {
+	case resource.Error:
+		translatedErr = err.(resource.Error)
+
 	case *TypeMismatchError, *FormatError, *TypeUnsupportedError, *RequiredMissingError,
 		*RequiredUnassignedError, *NoDefinedAttributeError, *UnexpectedTypeError, *UnsupportedValueError:
 		translatedErr = resource.CreateError(resource.InvalidValue, err.Error())
