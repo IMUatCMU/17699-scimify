@@ -19,7 +19,7 @@ var (
 	groupReplaceParser Processor
 )
 
-func ParseParamForReplaceUserEndpointProcessor() Processor {
+func ParseParamForUserReplaceEndpointProcessor() Processor {
 	oneUserReplaceParser.Do(func() {
 		userReplaceParser = &parseParamForReplaceEndpointProcessor{
 			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
@@ -30,7 +30,7 @@ func ParseParamForReplaceUserEndpointProcessor() Processor {
 	return userReplaceParser
 }
 
-func ParseParamForReplaceGroupEndpointProcessor() Processor {
+func ParseParamForGroupReplaceEndpointProcessor() Processor {
 	oneGroupReplaceParser.Do(func() {
 		groupReplaceParser = &parseParamForReplaceEndpointProcessor{
 			internalSchemaRepo: persistence.GetInternalSchemaRepository(),

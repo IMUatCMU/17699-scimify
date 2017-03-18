@@ -3,41 +3,75 @@ package processor
 import "sync"
 
 var (
+	oneSetResource,
 	oneSingleResult,
-	oneMultipleResult sync.Once
+	oneMultipleResult,
+	oneSetError sync.Once
 
+	setResourceInstance,
 	singleResultInstance,
-	multipleResultInstance Processor
+	multipleResultInstance,
+	setErrorInstance Processor
 )
+
+func ResourceAsJsonTargetProcessor() Processor {
+	oneSetResource.Do(func() {
+		setResourceInstance = &setAsJsonTargetProcessor{
+			f: func(ctx *ProcessorContext) func() interface{} {
+				ctx.SingleResult = ctx.Resource
+				return func() interface{} {
+					return ctx.SingleResult
+				}
+			},
+		}
+	})
+	return setResourceInstance
+}
+
+func ErrorAsJsonTargetProcessor() Processor {
+	oneSetError.Do(func() {
+		setErrorInstance = &setAsJsonTargetProcessor{
+			f: func(ctx *ProcessorContext) func() interface{} {
+				return func() interface{} {
+					return ctx.Err
+				}
+			},
+		}
+	})
+	return setErrorInstance
+}
 
 func SingleResultAsJsonTargetProcessor() Processor {
 	oneSingleResult.Do(func() {
-		singleResultInstance = &setSingleResultAsJsonTargetProcessor{}
+		singleResultInstance = &setAsJsonTargetProcessor{
+			f: func(ctx *ProcessorContext) func() interface{} {
+				return func() interface{} {
+					return ctx.SingleResult
+				}
+			},
+		}
 	})
 	return singleResultInstance
 }
 
 func MultipleResultAsJsonTargetProcessor() Processor {
 	oneMultipleResult.Do(func() {
-		multipleResultInstance = &setMultipleResultAsJsonTargetProcessor{}
+		multipleResultInstance = &setAsJsonTargetProcessor{
+			f: func(ctx *ProcessorContext) func() interface{} {
+				return func() interface{} {
+					return ctx.MultiResults
+				}
+			},
+		}
 	})
 	return multipleResultInstance
 }
 
-type setSingleResultAsJsonTargetProcessor struct{}
-
-func (_ *setSingleResultAsJsonTargetProcessor) Process(ctx *ProcessorContext) error {
-	ctx.SerializationTargetFunc = func() interface{} {
-		return ctx.SingleResult
-	}
-	return nil
+type setAsJsonTargetProcessor struct {
+	f func(ctx *ProcessorContext) func() interface{}
 }
 
-type setMultipleResultAsJsonTargetProcessor struct{}
-
-func (_ *setMultipleResultAsJsonTargetProcessor) Process(ctx *ProcessorContext) error {
-	ctx.SerializationTargetFunc = func() interface{} {
-		return ctx.MultiResults
-	}
+func (jtp *setAsJsonTargetProcessor) Process(ctx *ProcessorContext) error {
+	ctx.SerializationTargetFunc = jtp.f(ctx)
 	return nil
 }

@@ -65,20 +65,20 @@ func (sp *SerialProcessor) Process(ctx *ProcessorContext) error {
 }
 
 func NewErrorHandlingProcessor(opProc []Processor, errProc []Processor) Processor {
-	return &ErrorHandlingProcessor{opProcessors: opProc, errProcessors: errProc}
+	return &ErrorHandlingProcessor{Op: opProc, ErrOp: errProc}
 }
 
 type ErrorHandlingProcessor struct {
-	opProcessors  []Processor
-	errProcessors []Processor
+	Op    []Processor
+	ErrOp []Processor
 }
 
 func (ehp *ErrorHandlingProcessor) Process(ctx *ProcessorContext) error {
-	for _, op := range ehp.opProcessors {
+	for _, op := range ehp.Op {
 		err := op.Process(ctx)
 		if nil != err {
 			ctx.Err = err
-			for _, ep := range ehp.errProcessors {
+			for _, ep := range ehp.ErrOp {
 				err := ep.Process(ctx)
 				if nil != err {
 					return err

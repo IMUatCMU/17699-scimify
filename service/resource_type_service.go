@@ -1,31 +1,43 @@
 package service
 
 import (
-	"fmt"
-	"github.com/go-scim/scimify/persistence"
-	"github.com/go-scim/scimify/resource"
-	"github.com/go-scim/scimify/worker"
-	"github.com/spf13/viper"
+	p "github.com/go-scim/scimify/processor"
 	"net/http"
+	"sync"
 )
 
-type resourceTypeService struct{}
+type resourceTypeService struct {
+	oneResourceTypeGetAll       sync.Once
+	getAllResourceTypeProcessor p.Processor
+}
 
-func (srv *resourceTypeService) getAllResourceTypes(_ *http.Request) (response, error) {
-	repository := persistence.GetResourceTypeRepository()
-	serializer := worker.GetDefaultJsonSerializerWorker()
+func (srv *resourceTypeService) getGetAllResourceTypeProcessor() p.Processor {
+	srv.oneResourceTypeGetAll.Do(func() {
+		srv.getAllResourceTypeProcessor = &p.ErrorHandlingProcessor{
+			Op: []p.Processor{
+				p.GetWorkerBean(p.DbResourceTypeGetAll),
+				p.GetWorkerBean(p.SetJsonToMultiple),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToOk),
+			},
+			ErrOp: []p.Processor{
+				p.GetWorkerBean(p.TranslateError),
+				p.GetWorkerBean(p.SetJsonToError),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToError),
+			},
+		}
+	})
+	return srv.getAllResourceTypeProcessor
+}
 
-	if allResourceTypes, _ := repository.GetAll(); len(allResourceTypes) == 0 {
-		return nil_response, resource.CreateError(resource.NotFound, "No resource type was found.")
-	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{
-		Target: resource.NewListResponse(allResourceTypes, 1, viper.GetInt("scim.itemsPerPage"), len(allResourceTypes)),
-	}); err != nil {
-		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing resource types: %s", err.Error()))
-	} else {
-		return response{
-			statusCode: http.StatusOK,
-			headers:    nil,
-			body:       bytes.([]byte),
-		}, nil
-	}
+func (srv *resourceTypeService) getAllResourceTypes(req *http.Request) (response, error) {
+	processor := srv.getGetAllResourceTypeProcessor()
+	ctx := &p.ProcessorContext{Request: req}
+	processor.Process(ctx)
+	return response{
+		statusCode: ctx.ResponseStatus,
+		headers:    ctx.ResponseHeaders,
+		body:       ctx.ResponseBody,
+	}, nil
 }

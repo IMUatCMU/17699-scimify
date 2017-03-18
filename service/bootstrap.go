@@ -44,6 +44,7 @@ func Bootstrap() *bone.Mux {
 		viper.SetDefault("scim.internalSchemaId.listResponse", "urn:ietf:params:scim:api:messages:2.0:ListResponse")
 		viper.SetDefault("scim.api.userIdUrlParam", "userId")
 		viper.SetDefault("scim.api.groupIdUrlParam", "groupId")
+		viper.SetDefault("scim.api.schemaIdUrlParam", "schemaId")
 		viper.SetDefault("server.rootPath", "http://localhost:8080/v2/")
 	})
 	oneConfig.Do(func() {
@@ -57,11 +58,21 @@ func Bootstrap() *bone.Mux {
 		}
 	})
 	oneDataInit.Do(func() {
+		internalSchemaRepo := persistence.GetInternalSchemaRepository()
+		internalSchemas := viper.GetStringSlice("scim.stock.internal_schema")
+		for _, v := range internalSchemas {
+			if schema, _, err := helper.LoadSchema(v); err != nil {
+				panic(err)
+			} else if err = internalSchemaRepo.Create(schema); err != nil {
+				panic(err)
+			}
+		}
+
 		schemaRepo := persistence.GetSchemaRepository()
 		for _, path := range viper.GetStringSlice("scim.stock.schema") {
 			if schema, _, err := helper.LoadSchema(path); err != nil {
 				panic(err)
-			} else if err = schemaRepo.Create(schema, nil); err != nil {
+			} else if err = schemaRepo.Create(schema); err != nil {
 				panic(err)
 			}
 		}
@@ -70,7 +81,7 @@ func Bootstrap() *bone.Mux {
 		for _, path := range viper.GetStringSlice("scim.stock.resource_type") {
 			if resource, _, err := helper.LoadResource(path); err != nil {
 				panic(err)
-			} else if err = resourceTypeRepo.Create(resource, nil); err != nil {
+			} else if err = resourceTypeRepo.Create(resource); err != nil {
 				panic(err)
 			}
 		}
@@ -79,7 +90,7 @@ func Bootstrap() *bone.Mux {
 		for _, path := range viper.GetStringSlice("scim.stock.sp_config") {
 			if resource, _, err := helper.LoadResource(path); err != nil {
 				panic(err)
-			} else if err = serviceProviderConfigRepo.Create(resource, nil); err != nil {
+			} else if err = serviceProviderConfigRepo.Create(resource); err != nil {
 				panic(err)
 			}
 		}

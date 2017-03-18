@@ -1,46 +1,78 @@
 package service
 
 import (
-	"fmt"
-	"github.com/go-scim/scimify/persistence"
-	"github.com/go-scim/scimify/resource"
-	"github.com/go-scim/scimify/worker"
-	"github.com/go-zoo/bone"
+	p "github.com/go-scim/scimify/processor"
 	"net/http"
+	"sync"
 )
 
-type schemaService struct{}
+type schemaService struct {
+	oneGetSchema,
+	oneGetAllSchema sync.Once
 
-func (srv *schemaService) getAllSchemas(_ *http.Request) (response, error) {
-	repository := persistence.GetSchemaRepository()
-	serializer := worker.GetDefaultJsonSerializerWorker()
+	getSchemaProcessor,
+	getAllSchemaProcessor p.Processor
+}
 
-	if allSchemas, _ := repository.GetAll(); len(allSchemas) == 0 {
-		return nil_response, resource.CreateError(resource.NotFound, "No schema was found.")
-	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: allSchemas}); err != nil {
-		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
-	} else {
-		return response{
-			statusCode: http.StatusOK,
-			body:       bytes.([]byte),
-		}, nil
-	}
+func (srv *schemaService) getGetSchemaProcessor() p.Processor {
+	srv.oneGetSchema.Do(func() {
+		srv.getSchemaProcessor = &p.ErrorHandlingProcessor{
+			Op: []p.Processor{
+				p.GetWorkerBean(p.ParamSchemaGet),
+				p.GetWorkerBean(p.DbSchemaGet),
+				p.GetWorkerBean(p.SetJsonToSingle),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToOk),
+			},
+			ErrOp: []p.Processor{
+				p.GetWorkerBean(p.TranslateError),
+				p.GetWorkerBean(p.SetJsonToError),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToError),
+			},
+		}
+	})
+	return srv.getSchemaProcessor
+}
+
+func (srv *schemaService) getGetAllSchemaProcessor() p.Processor {
+	srv.oneGetAllSchema.Do(func() {
+		srv.getAllSchemaProcessor = &p.ErrorHandlingProcessor{
+			Op: []p.Processor{
+				p.GetWorkerBean(p.DbSchemaGetAll),
+				p.GetWorkerBean(p.SetJsonToMultiple),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToOk),
+			},
+			ErrOp: []p.Processor{
+				p.GetWorkerBean(p.TranslateError),
+				p.GetWorkerBean(p.SetJsonToError),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToError),
+			},
+		}
+	})
+	return srv.getAllSchemaProcessor
+}
+
+func (srv *schemaService) getAllSchemas(req *http.Request) (response, error) {
+	processor := srv.getGetAllSchemaProcessor()
+	ctx := &p.ProcessorContext{Request: req}
+	processor.Process(ctx)
+	return response{
+		statusCode: ctx.ResponseStatus,
+		headers:    ctx.ResponseHeaders,
+		body:       ctx.ResponseBody,
+	}, nil
 }
 
 func (srv *schemaService) getSchemaById(req *http.Request) (response, error) {
-	schemaId := bone.GetValue(req, "schemaId")
-	repository := persistence.GetSchemaRepository()
-	serializer := worker.GetDefaultJsonSerializerWorker()
-
-	schema, _ := repository.Get(schemaId, nil)
-	if nil == schema {
-		return nil_response, resource.CreateError(resource.NotFound, fmt.Sprintf("Schema by id '%s' does not exist.", schemaId))
-	} else if bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: schema}); nil != err {
-		return nil_response, resource.CreateError(resource.ServerError, fmt.Sprintf("Error occured during serializing schema: %s", err.Error()))
-	} else {
-		return response{
-			statusCode: http.StatusOK,
-			body:       bytes.([]byte),
-		}, nil
-	}
+	processor := srv.getGetSchemaProcessor()
+	ctx := &p.ProcessorContext{Request: req}
+	processor.Process(ctx)
+	return response{
+		statusCode: ctx.ResponseStatus,
+		headers:    ctx.ResponseHeaders,
+		body:       ctx.ResponseBody,
+	}, nil
 }

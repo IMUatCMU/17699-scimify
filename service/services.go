@@ -1,8 +1,8 @@
 package service
 
 import (
+	"github.com/go-scim/scimify/processor"
 	"github.com/go-scim/scimify/resource"
-	"github.com/go-scim/scimify/worker"
 	"net/http"
 )
 
@@ -52,8 +52,13 @@ func handleError(err error) (int, map[string]string, []byte) {
 		scimErr = e
 	}
 
-	serializer := worker.GetDefaultJsonSerializerWorker()
-	bytes, err := serializer.Do(&worker.JsonSerializeInput{Target: scimErr})
+	serializer := processor.SimpleJsonSerializationProcessor()
+	ctx := &processor.ProcessorContext{
+		SerializationTargetFunc: func() interface{} {
+			return scimErr
+		},
+	}
+	err = serializer.Process(ctx)
 	if nil != err {
 		return http.StatusInternalServerError,
 			map[string]string{"Content-Type": "text/plain"},
@@ -61,7 +66,7 @@ func handleError(err error) (int, map[string]string, []byte) {
 	} else {
 		return scimErr.StatusCode,
 			map[string]string{"Content-Type": "application/json+scim"},
-			bytes.([]byte)
+			ctx.ResponseBody
 	}
 }
 

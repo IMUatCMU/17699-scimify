@@ -11,33 +11,44 @@ import (
 )
 
 var (
-	oneUserGet,
-	oneGroupGet sync.Once
+	oneParseUserGet,
+	oneParseGroupGet,
+	oneParseSchemaGet sync.Once
 
-	userGet,
-	groupGet Processor
+	parseUserGet,
+	parseGroupGet,
+	parseSchemaGet Processor
 )
 
-func ParseParamForGetUserEndpointProcessor() Processor {
-	oneUserGet.Do(func() {
-		userGet = &parseParamForGetEndpointProcessor{
+func ParseParamForSchemaGetEndpointProcessor() Processor {
+	oneParseSchemaGet.Do(func() {
+		parseSchemaGet = &parseParamForGetEndpointProcessor{
+			resourceIdUrlParam: viper.GetString("scim.api.schemaIdUrlParam"),
+		}
+	})
+	return parseSchemaGet
+}
+
+func ParseParamForUserGetEndpointProcessor() Processor {
+	oneParseUserGet.Do(func() {
+		parseUserGet = &parseParamForGetEndpointProcessor{
 			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
 			schemaId:           viper.GetString("scim.internalSchemaId.user"),
 			resourceIdUrlParam: viper.GetString("scim.api.userIdUrlParam"),
 		}
 	})
-	return userGet
+	return parseUserGet
 }
 
-func ParseParamFprGetGroupEndpointProcessor() Processor {
-	oneGroupGet.Do(func() {
-		groupGet = &parseParamForGetEndpointProcessor{
+func ParseParamForGroupGetEndpointProcessor() Processor {
+	oneParseGroupGet.Do(func() {
+		parseGroupGet = &parseParamForGetEndpointProcessor{
 			internalSchemaRepo: persistence.GetInternalSchemaRepository(),
 			schemaId:           viper.GetString("scim.internalSchemaId.group"),
 			resourceIdUrlParam: viper.GetString("scim.api.groupIdUrlParam"),
 		}
 	})
-	return groupGet
+	return parseGroupGet
 }
 
 type parseParamForGetEndpointProcessor struct {
@@ -49,10 +60,12 @@ type parseParamForGetEndpointProcessor struct {
 func (gep *parseParamForGetEndpointProcessor) Process(ctx *ProcessorContext) error {
 	httpRequest := gep.getHttpRequest(ctx)
 
-	if sch, err := gep.getSchema(); err != nil {
-		return err
-	} else {
-		ctx.Schema = sch
+	if gep.internalSchemaRepo != nil {
+		if sch, err := gep.getSchema(); err != nil {
+			return err
+		} else {
+			ctx.Schema = sch
+		}
 	}
 
 	if id, err := gep.getResourceId(httpRequest); len(id) == 0 {

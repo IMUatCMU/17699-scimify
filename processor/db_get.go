@@ -11,13 +11,37 @@ var (
 	oneUserGetToSingleResult,
 	oneGroupGetToSingleResult,
 	oneUserGetToReference,
-	oneGroupGetToReference sync.Once
+	oneGroupGetToReference,
+	oneSPConfigGet,
+	oneSchemaGet sync.Once
 
 	userGetToSingleResultProcessor,
 	groupGetToSingleResultProcessor,
 	userGetToReferenceProcessor,
-	groupGetToReferenceProcessor Processor
+	groupGetToReferenceProcessor,
+	spConfigGetProcessor,
+	schemaGetProcessor Processor
 )
+
+func DBSchemaGetProcessor() Processor {
+	oneSchemaGet.Do(func() {
+		schemaGetProcessor = &dbGetProcessor{
+			repo: persistence.GetSchemaRepository(),
+			f:    putToSingleResult,
+		}
+	})
+	return schemaGetProcessor
+}
+
+func DBSPConfigGetProcessor() Processor {
+	oneSPConfigGet.Do(func() {
+		spConfigGetProcessor = &dbGetProcessor{
+			repo: persistence.GetServiceProviderConfigRepository(),
+			f:    putToSingleResult,
+		}
+	})
+	return spConfigGetProcessor
+}
 
 func DBUserGetToSingleResultProcessor() Processor {
 	oneUserGetToSingleResult.Do(func() {
