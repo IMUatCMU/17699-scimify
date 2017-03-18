@@ -52,7 +52,10 @@ func (m *MongoRepository) Replace(id string, resource resource.ScimObject) error
 	session := m.getSession()
 	defer session.Close()
 
-	return nil
+	criteria := bson.M{"id": resource.GetId()}
+	update := bson.M{"$set": resource.Data()}
+
+	return m.getCollection(session).Update(criteria, update)
 }
 
 func (m *MongoRepository) Delete(id string) error {

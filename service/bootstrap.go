@@ -113,8 +113,8 @@ func Bootstrap() *bone.Mux {
 
 		mux.GetFunc("/Users/:userId", endpoint(userSrv.getUserById))
 		mux.PostFunc("/Users", endpoint(userSrv.createUser))
-		mux.PutFunc("/Users/:userId", endpoint(userSrv.replaceUserById))
-		mux.PatchFunc("/Users/:userId", endpoint(userSrv.updateUserById))
+		mux.PutFunc("/Users/:userId", endpoint(userSrv.updateUserById))
+		mux.PatchFunc("/Users/:userId", endpoint(userSrv.patchUserById))
 		mux.DeleteFunc("/Users/:userId", endpoint(userSrv.deleteUserById))
 		mux.GetFunc("/Users", endpoint(userSrv.queryUser))
 		mux.PostFunc("/Users/.search", endpoint(userSrv.queryUser))
