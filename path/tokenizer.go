@@ -11,6 +11,11 @@ import (
 func Tokenize(path string) (adt.Queue, error) {
 	queue := adt.NewQueueWithoutLimit()
 
+	path = strings.TrimSpace(path)
+	if len(path) == 0 {
+		return queue, nil
+	}
+
 	for _, component := range strings.Split(path, ".") {
 		if len(component) == 0 {
 			return nil, errors.New("empty component in path")

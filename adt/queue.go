@@ -5,6 +5,7 @@ type Queue interface {
 	Poll() interface{}
 	Peek() interface{}
 	Size() int
+	Clone() Queue
 	Capacity() int
 }
 
@@ -22,6 +23,14 @@ func NewQueueWithoutLimit() *queue {
 
 func (q *queue) Offer(item interface{}) {
 	q.data = append(q.data, item)
+}
+
+func (q *queue) Clone() Queue {
+	q0 := NewQueueWithoutLimit()
+	for _, elem := range q.data {
+		q0.data = append(q0.data, elem)
+	}
+	return q0
 }
 
 func (q *queue) Poll() interface{} {
