@@ -56,6 +56,43 @@ func (a *Attribute) GetAttribute(path string) *Attribute {
 	return nil
 }
 
+func (a *Attribute) ZeroValue() reflect.Value {
+	switch a.Type {
+	case Integer:
+		if a.MultiValued {
+			return reflect.ValueOf([]int64{})
+		} else {
+			return reflect.ValueOf(int64(0))
+		}
+	case Decimal:
+		if a.MultiValued {
+			return reflect.ValueOf([]float64{})
+		} else {
+			return reflect.ValueOf(float64(0))
+		}
+	case Boolean:
+		if a.MultiValued {
+			return reflect.ValueOf([]bool{})
+		} else {
+			return reflect.ValueOf(false)
+		}
+	case String, Reference, Binary, DateTime:
+		if a.MultiValued {
+			return reflect.ValueOf([]string{})
+		} else {
+			return reflect.ValueOf("")
+		}
+	case Complex:
+		if a.MultiValued {
+			return reflect.ValueOf([]map[string]interface{}{})
+		} else {
+			return reflect.ValueOf(map[string]interface{}{})
+		}
+	default:
+		return reflect.Value{}
+	}
+}
+
 func (a *Attribute) IsValueAssigned(v reflect.Value) bool {
 	if !v.IsValid() {
 		return false
@@ -120,6 +157,14 @@ func (a *Attribute) IsUnassigned(object interface{}) bool {
 	default:
 		return false
 	}
+}
+
+func (a *Attribute) IsComplex() bool {
+	return a.Type == Complex
+}
+
+func (a *Attribute) IsMultiValued() bool {
+	return a.MultiValued
 }
 
 func (a *Attribute) Clone() *Attribute {
