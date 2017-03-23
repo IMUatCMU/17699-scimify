@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"github.com/go-scim/scimify/modify"
 	"github.com/go-scim/scimify/resource"
 	"net/http"
 )
@@ -24,6 +25,9 @@ type ProcessorContext struct {
 	// inclusion and exclusion
 	Inclusion []string
 	Exclusion []string
+
+	// modification
+	Mod *modify.Modification
 
 	// Serialization
 	SerializationTargetFunc func() interface{}

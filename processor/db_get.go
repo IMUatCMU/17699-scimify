@@ -10,6 +10,8 @@ import (
 var (
 	oneUserGetToSingleResult,
 	oneGroupGetToSingleResult,
+	oneUserGetToResource,
+	oneGroupGetToResource,
 	oneUserGetToReference,
 	oneGroupGetToReference,
 	oneSPConfigGet,
@@ -17,6 +19,8 @@ var (
 
 	userGetToSingleResultProcessor,
 	groupGetToSingleResultProcessor,
+	userGetToResourceProcessor,
+	groupGetToResourceProcessor,
 	userGetToReferenceProcessor,
 	groupGetToReferenceProcessor,
 	spConfigGetProcessor,
@@ -63,6 +67,26 @@ func DBGroupGetToSingleResultProcessor() Processor {
 	return groupGetToSingleResultProcessor
 }
 
+func DBUserGetToResourceProcessor() Processor {
+	oneUserGetToResource.Do(func() {
+		userGetToResourceProcessor = &dbGetProcessor{
+			repo: persistence.GetUserRepository(),
+			f:    putToResource,
+		}
+	})
+	return userGetToResourceProcessor
+}
+
+func DBGroupGetToResourceProcessor() Processor {
+	oneGroupGetToResource.Do(func() {
+		groupGetToReferenceProcessor = &dbGetProcessor{
+			repo: persistence.GetGroupRepository(),
+			f:    putToResource,
+		}
+	})
+	return groupGetToResourceProcessor
+}
+
 func DBUserGetToReferenceProcessor() Processor {
 	oneUserGetToReference.Do(func() {
 		userGetToReferenceProcessor = &dbGetProcessor{
@@ -87,6 +111,12 @@ type SingleResultCallback func(obj resource.ScimObject, ctx *ProcessorContext)
 
 var putToSingleResult = func(obj resource.ScimObject, ctx *ProcessorContext) {
 	ctx.SingleResult = obj
+}
+
+var putToResource = func(obj resource.ScimObject, ctx *ProcessorContext) {
+	if r, ok := obj.(*resource.Resource); ok {
+		ctx.Resource = r
+	}
 }
 
 var putToReference = func(obj resource.ScimObject, ctx *ProcessorContext) {

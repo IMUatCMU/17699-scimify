@@ -1,6 +1,9 @@
 package modify
 
-import "github.com/go-scim/scimify/resource"
+import (
+	"fmt"
+	"github.com/go-scim/scimify/resource"
+)
 
 type Modifier interface {
 	Modify(r *resource.Resource, sch *resource.Schema, mod *Modification) error
@@ -13,7 +16,7 @@ const (
 )
 
 type Modification struct {
-	schemas    []string  `json:"schemas"`
+	Schemas    []string  `json:"schemas"`
 	Operations []ModUnit `json:"Operations"`
 }
 
@@ -31,6 +34,10 @@ func (dm *DefaultModifier) Modify(r *resource.Resource, sch *resource.Schema, mo
 			err = &ModificationFailedError{r}
 		}
 	}()
+
+	if len(mod.Schemas) != 1 || mod.Schemas[0] != resource.PathOpUrn {
+		return &InvalidModificationError{fmt.Sprintf("schemas must be [%s]", resource.PathOpUrn)}
+	}
 
 	baseContainer := modMap(r.Data())
 	for _, unit := range mod.Operations {

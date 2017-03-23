@@ -12,12 +12,14 @@ type userService struct {
 	oneDeleteUser sync.Once
 	oneQueryUser  sync.Once
 	oneUpdateUser sync.Once
+	onePatchUser  sync.Once
 
 	getUserProcessor    p.Processor
 	createUserProcessor p.Processor
 	deleteUserProcessor p.Processor
 	queryUserProcessor  p.Processor
 	updateUserProcessor p.Processor
+	patchUserProcessor  p.Processor
 }
 
 func (srv *userService) getQueryUserProcessor() p.Processor {
@@ -117,6 +119,35 @@ func (srv *userService) getUpdateUserProcessor() p.Processor {
 	return srv.updateUserProcessor
 }
 
+func (srv *userService) getPatchUserProcessor() p.Processor {
+	srv.onePatchUser.Do(func() {
+		srv.patchUserProcessor = &p.ErrorHandlingProcessor{
+			Op: []p.Processor{
+				p.GetWorkerBean(p.ParamUserPatch),
+				p.GetWorkerBean(p.DbUserGetToResource),
+				p.GetWorkerBean(p.DbUserGetToReference),
+				p.GetWorkerBean(p.Modification),
+				p.GetWorkerBean(p.ValidateType),
+				p.GetWorkerBean(p.ValidateRequired),
+				p.GetWorkerBean(p.ValidateMutability),
+				p.GetWorkerBean(p.UpdateMeta),
+				p.GetWorkerBean(p.DbUserReplace),
+				p.GetWorkerBean(p.SetJsonToResource),
+				p.GetWorkerBean(p.SetAllHeader),
+				p.GetWorkerBean(p.JsonAssisted),
+				p.GetWorkerBean(p.SetStatusToOk),
+			},
+			ErrOp: []p.Processor{
+				p.GetWorkerBean(p.TranslateError),
+				p.GetWorkerBean(p.SetJsonToError),
+				p.GetWorkerBean(p.JsonSimple),
+				p.GetWorkerBean(p.SetStatusToError),
+			},
+		}
+	})
+	return srv.patchUserProcessor
+}
+
 func (srv *userService) getDeleteUserProcessor() p.Processor {
 	srv.oneDeleteUser.Do(func() {
 		srv.deleteUserProcessor = &p.ErrorHandlingProcessor{
@@ -170,7 +201,14 @@ func (srv *userService) updateUserById(req *http.Request) (response, error) {
 }
 
 func (srv *userService) patchUserById(req *http.Request) (response, error) {
-	return nil_response, nil
+	processor := srv.getPatchUserProcessor()
+	ctx := &p.ProcessorContext{Request: req}
+	processor.Process(ctx)
+	return response{
+		statusCode: ctx.ResponseStatus,
+		headers:    ctx.ResponseHeaders,
+		body:       ctx.ResponseBody,
+	}, nil
 }
 
 func (srv *userService) deleteUserById(req *http.Request) (response, error) {

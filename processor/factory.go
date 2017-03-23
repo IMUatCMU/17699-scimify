@@ -13,8 +13,10 @@ const (
 	DbUserDelete             = BeanName("DbUserDelete")
 	DbGroupDelete            = BeanName("DbGroupDelete")
 	DbUserGetToSingleResult  = BeanName("DbUserGetToSingleResult")
+	DbUserGetToResource      = BeanName("DbUserGetToResource")
 	DbUserGetToReference     = BeanName("DbUserGetToReference")
 	DbGroupGetToSingleResult = BeanName("DbGroupGetToSingleResult")
+	DbGroupGetToResource     = BeanName("DbGroupGetToResource")
 	DbGroupGetToReference    = BeanName("DbGroupGetToReference")
 	DbUserQuery              = BeanName("DbUserQuery")
 	DbGroupQuery             = BeanName("DbGroupQuery")
@@ -30,6 +32,7 @@ const (
 	GenerateUserMeta         = BeanName("GenerateUserMeta")
 	GenerateGroupMeta        = BeanName("GenerateGroupMeta")
 	UpdateMeta               = BeanName("UpdateMeta")
+	Modification             = BeanName("Modification")
 	JsonSimple               = BeanName("JsonSimple")
 	JsonAssisted             = BeanName("JsonAssisted")
 	JsonHybridList           = BeanName("JsonHybridList")
@@ -54,6 +57,8 @@ const (
 	ParamRootQuery           = BeanName("ParamRootQuery")
 	ParamUserReplace         = BeanName("ParamUserReplace")
 	ParamGroupReplace        = BeanName("ParamGroupReplace")
+	ParamUserPatch           = BeanName("ParamUserPatch")
+	ParamGroupPatch          = BeanName("ParamGroupPatch")
 	SetAllHeader             = BeanName("SetAllHeader")
 	SetStatusToError         = BeanName("SetStatusToError")
 	SetStatusToOk            = BeanName("SetStatusToOk")
@@ -81,8 +86,10 @@ func GetWorkerBean(bn BeanName) Worker {
 			DbUserDelete:             {processor: DBUserDeleteProcessor(), num: 2},
 			DbGroupDelete:            {processor: DBGroupDeleteProcessor(), num: 2},
 			DbUserGetToSingleResult:  {processor: DBUserGetToSingleResultProcessor(), num: 2},
+			DbUserGetToResource:      {processor: DBUserGetToResourceProcessor(), num: 2},
 			DbUserGetToReference:     {processor: DBUserGetToReferenceProcessor(), num: 2},
 			DbGroupGetToSingleResult: {processor: DBGroupGetToSingleResultProcessor(), num: 2},
+			DbGroupGetToResource:     {processor: DBUserGetToResourceProcessor(), num: 2},
 			DbGroupGetToReference:    {processor: DBGroupGetToReferenceProcessor(), num: 2},
 			DbUserQuery:              {processor: DBUserQueryProcessor(), num: 2},
 			DbGroupQuery:             {processor: DBGroupQueryProcessor(), num: 2},
@@ -97,6 +104,7 @@ func GetWorkerBean(bn BeanName) Worker {
 			GenerateUserMeta:         {processor: GenerateUserMetaProcessor(), num: 2},
 			GenerateGroupMeta:        {processor: GenerateGroupMetaProcessor(), num: 2},
 			UpdateMeta:               {processor: UpdateMetaProcessor(), num: 2},
+			Modification:             {processor: ModificationProcessor(), num: 2},
 			JsonSimple:               {processor: SimpleJsonSerializationProcessor(), num: 2},
 			JsonAssisted:             {processor: AssistedJsonSerializationProcessor(), num: 2},
 			JsonHybridList:           {processor: ListResponseJsonSerializationProcessor(), num: 2},
@@ -121,6 +129,8 @@ func GetWorkerBean(bn BeanName) Worker {
 			ParamRootQuery:           {processor: ParseParamForRootQueryEndpointProcessor(), num: 2},
 			ParamUserReplace:         {processor: ParseParamForUserReplaceEndpointProcessor(), num: 2},
 			ParamGroupReplace:        {processor: ParseParamForGroupReplaceEndpointProcessor(), num: 2},
+			ParamUserPatch:           {processor: ParseParamForUserPatchEndpointProcessor(), num: 2},
+			ParamGroupPatch:          {processor: ParseParamForGroupPatchEndpointProcessor(), num: 2},
 			SetAllHeader:             {processor: SetAllHeaderProcessor(), num: 2},
 			SetStatusToError:         {processor: SetStatusToErrorProcessor(), num: 2},
 			SetStatusToOk:            {processor: SetStatusToOKProcessor(), num: 2},
