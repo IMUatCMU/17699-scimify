@@ -22,6 +22,38 @@ func TestDefaultModifier_Modify(t *testing.T) {
 		assertion func(*resource.Resource, error)
 	}{
 		{
+			"no existing path",
+			&Modification{
+				Operations: []ModUnit{
+					{
+						Op:    "add",
+						Path:  "foo",
+						Value: "davidqiu",
+					},
+				},
+			},
+			func(r *resource.Resource, err error) {
+				assert.NotNil(t, err)
+				assert.IsType(t, &MissingAttributeForPathError{}, err)
+			},
+		},
+		{
+			"invalid path",
+			&Modification{
+				Operations: []ModUnit{
+					{
+						Op:    "add",
+						Path:  "userName.emails",
+						Value: "davidqiu",
+					},
+				},
+			},
+			func(r *resource.Resource, err error) {
+				assert.NotNil(t, err)
+				assert.IsType(t, &InvalidPathError{}, err)
+			},
+		},
+		{
 			"add simple entry",
 			&Modification{
 				Operations: []ModUnit{

@@ -18,8 +18,8 @@ func tokenize(path string) (adt.Queue, error) {
 	for _, component := range strings.Split(path, ".") {
 		if len(component) == 0 {
 			return nil, &InvalidPathError{
-				path:path,
-				reason:"empty component in path",
+				path:   path,
+				reason: "empty component in path",
 			}
 		}
 
@@ -46,8 +46,8 @@ func tokenize(path string) (adt.Queue, error) {
 
 		default:
 			return nil, &InvalidPathError{
-				path:path,
-				reason:fmt.Sprintf("component %s is invalid", component),
+				path:   path,
+				reason: fmt.Sprintf("component %s is invalid", component),
 			}
 		}
 	}

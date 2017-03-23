@@ -5,7 +5,7 @@ import (
 )
 
 type InvalidModificationError struct {
-	reason 		string
+	reason string
 }
 
 func (ime *InvalidModificationError) Error() string {
@@ -13,7 +13,7 @@ func (ime *InvalidModificationError) Error() string {
 }
 
 type ModificationFailedError struct {
-	cause 		interface{}
+	cause interface{}
 }
 
 func (mfe *ModificationFailedError) Error() string {
@@ -28,8 +28,8 @@ func (mfe *ModificationFailedError) Error() string {
 }
 
 type InvalidPathError struct {
-	path 	string
-	reason 	string
+	path   string
+	reason string
 }
 
 func (ipe *InvalidPathError) Error() string {
@@ -49,7 +49,7 @@ func (ipe *InvalidPathError) Error() string {
 }
 
 type MissingAttributeForPathError struct {
-	path 	string
+	path string
 }
 
 func (mae *MissingAttributeForPathError) Error() string {

@@ -64,8 +64,8 @@ func (m modArray) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit Mo
 			pathTok := paths.Poll().(*adt.Node).Data.(filter.Token) // i.e. emails[<filter>].value
 			if paths.Size() != 0 {
 				return &InvalidPathError{
-					path:pathTok.Value,
-					reason:"complex array is one level only.",
+					path:   pathTok.Value,
+					reason: "complex array is one level only.",
 				}
 			}
 			attr = parentAttr.GetAttribute(pathTok.Value)
@@ -84,7 +84,7 @@ func (m modArray) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit Mo
 
 	default:
 		if paths.Size() != 0 {
-			return &InvalidPathError{reason:"complex array is one level only."}
+			return &InvalidPathError{reason: "complex array is one level only."}
 		}
 
 		attr = parentAttr.GetAttribute(pNode.Data.(filter.Token).Value)
@@ -227,7 +227,7 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 		val := reflect.ValueOf(unit.Value)
 		if val.Kind() != reflect.Map {
 			return &InvalidModificationError{
-				reason:"implicit path modification must use map value",
+				reason: "implicit path modification must use map value",
 			}
 		}
 
@@ -256,8 +256,8 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 		p := paths.Poll().(*adt.Node).Data.(filter.Token)
 		if p.Type != filter.Path {
 			return &InvalidPathError{
-				path:p.Value,
-				reason:fmt.Sprintf("unexpected token type '%s'", p.Type),
+				path:   p.Value,
+				reason: fmt.Sprintf("unexpected token type '%s'", p.Type),
 			}
 		}
 
@@ -283,8 +283,8 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 		p := paths.Poll().(*adt.Node).Data.(filter.Token)
 		if p.Type != filter.Path {
 			return &InvalidPathError{
-				path:p.Value,
-				reason:fmt.Sprintf("unexpected token type '%s'", p.Type),
+				path:   p.Value,
+				reason: fmt.Sprintf("unexpected token type '%s'", p.Type),
 			}
 		}
 
@@ -318,8 +318,8 @@ func (m modMap) nextContainer(p filter.Token, parentAttr *resource.Attribute, un
 			return modNoOp(0), nil, nil
 		default:
 			return nil, nil, &InvalidPathError{
-				path:p.Value,
-				reason:fmt.Sprintf("no value is found at path (component) %s", p.Value),
+				path:   p.Value,
+				reason: fmt.Sprintf("no value is found at path (component) %s", p.Value),
 			}
 		}
 	}
@@ -332,8 +332,8 @@ func (m modMap) nextContainer(p filter.Token, parentAttr *resource.Attribute, un
 	case reflect.Map:
 		if attr.IsMultiValued() || !attr.IsComplex() {
 			return nil, nil, &InvalidPathError{
-				path:p.Value,
-				reason:"unexpected complex object",
+				path:   p.Value,
+				reason: "unexpected complex object",
 			}
 		}
 		return modMap(val.Interface().(map[string]interface{})), attr, nil
@@ -341,16 +341,16 @@ func (m modMap) nextContainer(p filter.Token, parentAttr *resource.Attribute, un
 	case reflect.Array, reflect.Slice:
 		if !attr.IsMultiValued() {
 			return nil, nil, &InvalidPathError{
-				path:p.Value,
-				reason:"unexpected array",
+				path:   p.Value,
+				reason: "unexpected array",
 			}
 		}
 		return modArray(val.Interface().([]interface{})), attr, nil
 
 	default:
 		return nil, nil, &InvalidPathError{
-			path:p.Value,
-			reason:fmt.Sprintf("terminal data type %s encountered in the middle", val.Type()),
+			path:   p.Value,
+			reason: fmt.Sprintf("terminal data type %s encountered in the middle", val.Type()),
 		}
 	}
 }
