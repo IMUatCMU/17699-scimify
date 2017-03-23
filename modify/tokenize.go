@@ -1,7 +1,6 @@
 package modify
 
 import (
-	"errors"
 	"fmt"
 	"github.com/go-scim/scimify/adt"
 	"github.com/go-scim/scimify/filter"
@@ -18,7 +17,10 @@ func tokenize(path string) (adt.Queue, error) {
 
 	for _, component := range strings.Split(path, ".") {
 		if len(component) == 0 {
-			return nil, errors.New("empty component in path")
+			return nil, &InvalidPathError{
+				path:path,
+				reason:"empty component in path",
+			}
 		}
 
 		switch {
@@ -43,7 +45,10 @@ func tokenize(path string) (adt.Queue, error) {
 			}
 
 		default:
-			return nil, fmt.Errorf("invalid component in path: %s", component)
+			return nil, &InvalidPathError{
+				path:path,
+				reason:fmt.Sprintf("component %s is invalid", component),
+			}
 		}
 	}
 

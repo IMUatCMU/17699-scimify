@@ -25,7 +25,13 @@ type ModUnit struct {
 
 type DefaultModifier struct{}
 
-func (dm *DefaultModifier) Modify(r *resource.Resource, sch *resource.Schema, mod *Modification) error {
+func (dm *DefaultModifier) Modify(r *resource.Resource, sch *resource.Schema, mod *Modification) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = &ModificationFailedError{r}
+		}
+	}()
+
 	baseContainer := modMap(r.Data())
 	for _, unit := range mod.Operations {
 		tokens, err := tokenize(unit.Path)
@@ -38,5 +44,6 @@ func (dm *DefaultModifier) Modify(r *resource.Resource, sch *resource.Schema, mo
 			return err
 		}
 	}
+
 	return nil
 }

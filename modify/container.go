@@ -1,7 +1,6 @@
 package modify
 
 import (
-	"errors"
 	"fmt"
 	"github.com/go-scim/scimify/adt"
 	"github.com/go-scim/scimify/filter"
@@ -25,7 +24,7 @@ type modArray []interface{}
 
 func (m modArray) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModUnit, replaceFunc func(reflect.Value)) error {
 	if paths.Size() == 0 {
-		return errors.New("illegal state: nothing for array container to operate on.")
+		panic("illegal state: nothing for array container to operate on.")
 	}
 
 	var attr *resource.Attribute
@@ -46,7 +45,7 @@ func (m modArray) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit Mo
 			})
 		}
 
-		if paths.Size() == 0 { // i.e. emails[<filter>]
+		if paths.Size() == 0 {
 			attr = parentAttr.Clone()
 			attr.MultiValued = false
 			switch unit.Op {
@@ -54,17 +53,24 @@ func (m modArray) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit Mo
 				m.replace(unit.Value, predicate)
 			case opRemove:
 				m.remove(predicate, replaceFunc)
+			case opAdd:
+				return &InvalidModificationError{"cannot add on filtered array"}
 			default:
-				return errors.New("invalid op") // add does not make sense here
+				return &InvalidModificationError{
+					fmt.Sprintf("unsupported op %s", unit.Op),
+				}
 			}
 		} else {
 			pathTok := paths.Poll().(*adt.Node).Data.(filter.Token) // i.e. emails[<filter>].value
 			if paths.Size() != 0 {
-				return errors.New("complex array is one level only.")
+				return &InvalidPathError{
+					path:pathTok.Value,
+					reason:"complex array is one level only.",
+				}
 			}
 			attr = parentAttr.GetAttribute(pathTok.Value)
 			if attr == nil {
-				return fmt.Errorf("no attribute with path %s", pathTok.Value)
+				return &MissingAttributeForPathError{pathTok.Value}
 			}
 			switch unit.Op {
 			case opAdd:
@@ -77,14 +83,13 @@ func (m modArray) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit Mo
 		}
 
 	default:
-		// i.e. emails.value
 		if paths.Size() != 0 {
-			return errors.New("complex array is one level only.")
+			return &InvalidPathError{reason:"complex array is one level only."}
 		}
 
 		attr = parentAttr.GetAttribute(pNode.Data.(filter.Token).Value)
 		if attr == nil {
-			return fmt.Errorf("no attribute with path %s", pNode.Data.(filter.Token).Value)
+			return &MissingAttributeForPathError{pNode.Data.(filter.Token).Value}
 		}
 
 		switch unit.Op {
@@ -200,17 +205,6 @@ func (m modMap) add(val interface{}, attr *resource.Attribute) {
 		entryVal = dataVal
 	}
 
-	//if attr.IsMultiValued() {
-	//	switch dataVal.Kind() {
-	//	case reflect.Slice, reflect.Array:
-	//		entryVal.Set(reflect.AppendSlice(entryVal, dataVal))
-	//	default:
-	//		entryVal.Set(reflect.Append(entryVal, dataVal))
-	//	}
-	//} else {
-	//	entryVal = dataVal
-	//}
-
 	mapVal.SetMapIndex(keyVal, entryVal)
 }
 
@@ -232,7 +226,9 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 	case 0:
 		val := reflect.ValueOf(unit.Value)
 		if val.Kind() != reflect.Map {
-			return errors.New("Implicit path must use map value in modification") // or sth. that makes more sense
+			return &InvalidModificationError{
+				reason:"implicit path modification must use map value",
+			}
 		}
 
 		for _, kVal := range val.MapKeys() {
@@ -259,12 +255,15 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 	case 1:
 		p := paths.Poll().(*adt.Node).Data.(filter.Token)
 		if p.Type != filter.Path {
-			return errors.New("invalid path type")
+			return &InvalidPathError{
+				path:p.Value,
+				reason:fmt.Sprintf("unexpected token type '%s'", p.Type),
+			}
 		}
 
 		attr := parentAttr.GetAttribute(p.Value)
 		if attr == nil {
-			return fmt.Errorf("no attribute with path %s", p.Value)
+			return &MissingAttributeForPathError{p.Value}
 		}
 
 		switch unit.Op {
@@ -275,13 +274,18 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 		case opRemove:
 			m.remove(attr)
 		default:
-			return errors.New("invalid op type")
+			return &InvalidModificationError{
+				fmt.Sprintf("unsupported op %s", unit.Op),
+			}
 		}
 
 	default:
 		p := paths.Poll().(*adt.Node).Data.(filter.Token)
 		if p.Type != filter.Path {
-			return errors.New("invalid path type")
+			return &InvalidPathError{
+				path:p.Value,
+				reason:fmt.Sprintf("unexpected token type '%s'", p.Type),
+			}
 		}
 
 		nextCon, nextPAttr, err := m.nextContainer(p, parentAttr, unit)
@@ -300,7 +304,7 @@ func (m modMap) Apply(paths adt.Queue, parentAttr *resource.Attribute, unit ModU
 func (m modMap) nextContainer(p filter.Token, parentAttr *resource.Attribute, unit ModUnit) (Container, *resource.Attribute, error) {
 	attr := parentAttr.GetAttribute(p.Value)
 	if attr == nil {
-		return nil, nil, fmt.Errorf("no attribute with path %s", p.Value)
+		return nil, nil, &MissingAttributeForPathError{p.Value}
 	}
 
 	cVal := reflect.ValueOf(m)
@@ -313,7 +317,10 @@ func (m modMap) nextContainer(p filter.Token, parentAttr *resource.Attribute, un
 		case opRemove:
 			return modNoOp(0), nil, nil
 		default:
-			return nil, nil, fmt.Errorf("invalid path, no value found at path %s", p.Value)
+			return nil, nil, &InvalidPathError{
+				path:p.Value,
+				reason:fmt.Sprintf("no value is found at path (component) %s", p.Value),
+			}
 		}
 	}
 
@@ -324,17 +331,26 @@ func (m modMap) nextContainer(p filter.Token, parentAttr *resource.Attribute, un
 	switch val.Kind() {
 	case reflect.Map:
 		if attr.IsMultiValued() || !attr.IsComplex() {
-			return nil, nil, fmt.Errorf("data schema mismatch at %s (data is map)", p.Value)
+			return nil, nil, &InvalidPathError{
+				path:p.Value,
+				reason:"unexpected complex object",
+			}
 		}
 		return modMap(val.Interface().(map[string]interface{})), attr, nil
 
 	case reflect.Array, reflect.Slice:
 		if !attr.IsMultiValued() {
-			return nil, nil, fmt.Errorf("data schema mismatch at %s (data is array)", p.Value)
+			return nil, nil, &InvalidPathError{
+				path:p.Value,
+				reason:"unexpected array",
+			}
 		}
 		return modArray(val.Interface().([]interface{})), attr, nil
 
 	default:
-		return nil, nil, fmt.Errorf("invalid data type %v at %s", val.Type(), p.Value)
+		return nil, nil, &InvalidPathError{
+			path:p.Value,
+			reason:fmt.Sprintf("terminal data type %s encountered in the middle", val.Type()),
+		}
 	}
 }
