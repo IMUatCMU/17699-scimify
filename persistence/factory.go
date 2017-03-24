@@ -12,15 +12,31 @@ var (
 	oneResourceTypeRepo,
 	oneServiceProviderRepo,
 	oneUserRepo,
-	oneGroupRepo sync.Once
+	oneGroupRepo,
+	oneRootQueryRepo sync.Once
 
 	schemaRepository,
 	internalSchemaRepository,
 	resourceTypeRepository,
 	serviceProviderRepository,
 	userRepository,
-	groupRepository Repository
+	groupRepository,
+	rootQueryRepository Repository
 )
+
+func GetRootQueryRepository() Repository {
+	oneRootQueryRepo.Do(func() {
+		rootQueryRepository = &MongoRootQueryRepository{
+			address:      viper.GetString("mongo.address"),
+			databaseName: viper.GetString("mongo.database"),
+			collectionNames: []string{
+				viper.GetString("mongo.userCollectionName"),
+				viper.GetString("mongo.groupCollectionName"),
+			},
+		}
+	})
+	return rootQueryRepository
+}
 
 func GetUserRepository() Repository {
 	oneUserRepo.Do(func() {

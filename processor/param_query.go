@@ -13,58 +13,6 @@ import (
 	"sync"
 )
 
-type SearchRequest struct {
-	Schemas            []string `json:"schemas"`
-	Attributes         []string `json:"attributes"`
-	ExcludedAttributes []string `json:"excludedAttributes"`
-	Filter             string   `json:"filter"`
-	SortBy             string   `json:"sortBy"`
-	SortOrder          string   `json:"sortOrder"`
-	StartIndex         int      `json:"startIndex"`
-	Count              int      `json:"count"`
-}
-
-func (sr *SearchRequest) validate() error {
-	if len(sr.Schemas) != 1 || sr.Schemas[0] != resource.SearchUrn {
-		return resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("search request must have urn '%s'", resource.SearchUrn))
-	}
-
-	if len(sr.Filter) == 0 {
-		sr.Filter = "id pr"
-	}
-
-	if sr.StartIndex < 1 {
-		sr.StartIndex = 1
-	}
-
-	if sr.Count < 0 {
-		sr.Count = 0
-	}
-
-	switch sr.SortOrder {
-	case "", "ascending", "descending":
-	default:
-		return resource.CreateError(resource.InvalidValue, "sortOrder param should have value [ascending] or [descending].")
-	}
-
-	return nil
-}
-
-func (sr *SearchRequest) copyToContext(ctx *ProcessorContext) {
-	ctx.Inclusion = sr.Attributes
-	ctx.Exclusion = sr.ExcludedAttributes
-	ctx.QueryFilter = sr.Filter
-	ctx.QuerySortBy = sr.SortBy
-	switch sr.SortOrder {
-	case "", "ascending":
-		ctx.QuerySortOrder = true
-	case "descending":
-		ctx.QuerySortOrder = false
-	}
-	ctx.QueryPageStart = sr.StartIndex
-	ctx.QueryPageSize = sr.Count
-}
-
 var (
 	oneUserQueryParser,
 	oneGroupQueryParser,
@@ -220,4 +168,56 @@ func (qep *parseParamForQueryEndpointProcessor) getHttpRequest(ctx *ProcessorCon
 		panic(&MissingContextValueError{"http request"})
 	}
 	return ctx.Request
+}
+
+type SearchRequest struct {
+	Schemas            []string `json:"schemas"`
+	Attributes         []string `json:"attributes"`
+	ExcludedAttributes []string `json:"excludedAttributes"`
+	Filter             string   `json:"filter"`
+	SortBy             string   `json:"sortBy"`
+	SortOrder          string   `json:"sortOrder"`
+	StartIndex         int      `json:"startIndex"`
+	Count              int      `json:"count"`
+}
+
+func (sr *SearchRequest) validate() error {
+	if len(sr.Schemas) != 1 || sr.Schemas[0] != resource.SearchUrn {
+		return resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("search request must have urn '%s'", resource.SearchUrn))
+	}
+
+	if len(sr.Filter) == 0 {
+		sr.Filter = "id pr"
+	}
+
+	if sr.StartIndex < 1 {
+		sr.StartIndex = 1
+	}
+
+	if sr.Count < 0 {
+		sr.Count = 0
+	}
+
+	switch sr.SortOrder {
+	case "", "ascending", "descending":
+	default:
+		return resource.CreateError(resource.InvalidValue, "sortOrder param should have value [ascending] or [descending].")
+	}
+
+	return nil
+}
+
+func (sr *SearchRequest) copyToContext(ctx *ProcessorContext) {
+	ctx.Inclusion = sr.Attributes
+	ctx.Exclusion = sr.ExcludedAttributes
+	ctx.QueryFilter = sr.Filter
+	ctx.QuerySortBy = sr.SortBy
+	switch sr.SortOrder {
+	case "", "ascending":
+		ctx.QuerySortOrder = true
+	case "descending":
+		ctx.QuerySortOrder = false
+	}
+	ctx.QueryPageStart = sr.StartIndex
+	ctx.QueryPageSize = sr.Count
 }

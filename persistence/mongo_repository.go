@@ -107,7 +107,6 @@ func (m *MongoRepository) Query(filter interface{}, sortBy string, ascending boo
 	// parse data
 	resources := make([]resource.ScimObject, 0, len(rawData))
 	for _, data := range rawData {
-		//resources = append(resources, parseResource(data))
 		resources = append(resources, resource.NewResourceFromMap(data))
 	}
 

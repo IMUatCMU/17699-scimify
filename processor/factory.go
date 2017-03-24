@@ -93,6 +93,7 @@ func GetWorkerBean(bn BeanName) Worker {
 			DbGroupGetToReference:    {processor: DBGroupGetToReferenceProcessor(), num: 2},
 			DbUserQuery:              {processor: DBUserQueryProcessor(), num: 2},
 			DbGroupQuery:             {processor: DBGroupQueryProcessor(), num: 2},
+			DbRootQuery:              {processor: DBRootQueryProcessor(), num: 2},
 			DbUserReplace:            {processor: DBUserReplaceProcessor(), num: 2},
 			DbGroupReplace:           {processor: DBGroupReplaceProcessor(), num: 2},
 			DbSPConfigGet:            {processor: DBSPConfigGetProcessor(), num: 1},

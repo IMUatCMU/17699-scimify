@@ -7,11 +7,22 @@ import (
 
 var (
 	oneUserQuery,
-	oneGroupQuery sync.Once
+	oneGroupQuery,
+	oneRootQuery sync.Once
 
 	userQueryProcessor,
-	groupQueryProcessor Processor
+	groupQueryProcessor,
+	rootQueryProcessor Processor
 )
+
+func DBRootQueryProcessor() Processor {
+	oneRootQuery.Do(func() {
+		rootQueryProcessor = &dbQueryProcessor{
+			repo: persistence.GetRootQueryRepository(),
+		}
+	})
+	return rootQueryProcessor
+}
 
 func DBUserQueryProcessor() Processor {
 	oneUserQuery.Do(func() {

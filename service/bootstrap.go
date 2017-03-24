@@ -20,6 +20,7 @@ var (
 	spConfigSrv     *spConfigService
 	userSrv         *userService
 	groupSrv        *groupService
+	rootSrv         *rootService
 
 	mux *bone.Mux
 )
@@ -106,6 +107,7 @@ func Bootstrap() *bone.Mux {
 		spConfigSrv = &spConfigService{}
 		userSrv = &userService{}
 		groupSrv = &groupService{}
+		rootSrv = &rootService{}
 
 		mux = bone.New()
 		mux.Prefix("/v2")
@@ -130,6 +132,9 @@ func Bootstrap() *bone.Mux {
 		mux.DeleteFunc("/Groups/:groupId", endpoint(groupSrv.deleteGroupById))
 		mux.GetFunc("/Groups", endpoint(groupSrv.queryGroup))
 		mux.PostFunc("/Groups/.search", endpoint(groupSrv.queryGroup))
+
+		mux.GetFunc("/", endpoint(rootSrv.query))
+		mux.PostFunc("/.search", endpoint(rootSrv.query))
 	})
 	return mux
 }

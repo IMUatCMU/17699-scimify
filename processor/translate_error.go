@@ -2,9 +2,9 @@ package processor
 
 import (
 	"fmt"
+	"github.com/go-scim/scimify/modify"
 	"github.com/go-scim/scimify/resource"
 	"sync"
-	"github.com/go-scim/scimify/modify"
 )
 
 var (
