@@ -11,6 +11,7 @@ const (
 	ErrorUrn                 = "urn:ietf:params:scim:api:messages:2.0:Error"
 	ListResponseUrn          = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
 	PathOpUrn                = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+	SearchUrn                = "urn:ietf:params:scim:api:messages:2.0:SearchRequest"
 )
 
 // TODO consider make this a configuration options

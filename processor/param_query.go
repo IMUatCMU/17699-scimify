@@ -56,6 +56,17 @@ type parseParamForQueryEndpointProcessor struct {
 	schemaId           string
 }
 
+func (qep *parseParamForQueryEndpointProcessor) parseParam(req *http.Request, name string) string {
+	switch req.Method {
+	case http.MethodGet:
+		return req.URL.Query().Get(name)
+	case http.MethodPost:
+		return req.FormValue(name)
+	default:
+		return ""
+	}
+}
+
 func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) error {
 	httpRequest := qep.getHttpRequest(ctx)
 
@@ -66,16 +77,16 @@ func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) e
 	}
 
 	// filter
-	ctx.QueryFilter = httpRequest.URL.Query().Get("filter")
+	ctx.QueryFilter = qep.parseParam(httpRequest, "filter")
 	if len(ctx.QueryFilter) == 0 {
 		return resource.CreateError(resource.InvalidValue, "filter param is required.")
 	}
 
 	// sortBy
-	ctx.QuerySortBy = httpRequest.URL.Query().Get("sortBy")
+	ctx.QuerySortBy = qep.parseParam(httpRequest, "sortBy")
 
 	// sortOrder
-	switch httpRequest.URL.Query().Get("sortOrder") {
+	switch qep.parseParam(httpRequest, "sortOrder") {
 	case "", "ascending":
 		ctx.QuerySortOrder = true
 	case "descending":
@@ -85,7 +96,7 @@ func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) e
 	}
 
 	// startIndex
-	if v := httpRequest.URL.Query().Get("startIndex"); len(v) > 0 {
+	if v := qep.parseParam(httpRequest, "startIndex"); len(v) > 0 {
 		if i, err := strconv.Atoi(v); err != nil {
 			return resource.CreateError(resource.InvalidValue, "startIndex param must be a 1-based integer.")
 		} else {
@@ -100,7 +111,7 @@ func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) e
 	}
 
 	// count
-	if v := httpRequest.URL.Query().Get("count"); len(v) > 0 {
+	if v := qep.parseParam(httpRequest, "count"); len(v) > 0 {
 		if i, err := strconv.Atoi(v); err != nil {
 			return resource.CreateError(resource.InvalidValue, "count param must be a non-negative integer.")
 		} else {
@@ -115,10 +126,10 @@ func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) e
 	}
 
 	// attributes
-	ctx.Inclusion = strings.Split(httpRequest.URL.Query().Get("attributes"), ",")
+	ctx.Inclusion = strings.Split(qep.parseParam(httpRequest, "attributes"), ",")
 
 	// excludedAttributes
-	ctx.Exclusion = strings.Split(httpRequest.URL.Query().Get("excludedAttributes"), ",")
+	ctx.Exclusion = strings.Split(qep.parseParam(httpRequest, "excludedAttributes"), ",")
 
 	return nil
 }
