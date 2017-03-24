@@ -12,8 +12,6 @@ type response struct {
 	body       []byte
 }
 
-var nil_response response
-
 type service func(*http.Request) (response, error)
 
 // TODO use recover() to handle panics

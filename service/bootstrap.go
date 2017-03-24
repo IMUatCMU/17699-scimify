@@ -19,6 +19,7 @@ var (
 	resourceTypeSrv *resourceTypeService
 	spConfigSrv     *spConfigService
 	userSrv         *userService
+	groupSrv        *groupService
 
 	mux *bone.Mux
 )
@@ -61,9 +62,13 @@ func Bootstrap() *bone.Mux {
 		internalSchemaRepo := persistence.GetInternalSchemaRepository()
 		internalSchemas := viper.GetStringSlice("scim.stock.internal_schema")
 		for _, v := range internalSchemas {
-			if schema, _, err := helper.LoadSchema(v); err != nil {
+			schema, _, err := helper.LoadSchema(v)
+			if err != nil {
 				panic(err)
-			} else if err = internalSchemaRepo.Create(schema); err != nil {
+			}
+			schema.ConstructAttributeIndex()
+			err = internalSchemaRepo.Create(schema)
+			if err != nil {
 				panic(err)
 			}
 		}
@@ -98,17 +103,16 @@ func Bootstrap() *bone.Mux {
 	oneServer.Do(func() {
 		schemaSrv = &schemaService{}
 		resourceTypeSrv = &resourceTypeService{}
-		userSrv = &userService{}
 		spConfigSrv = &spConfigService{}
+		userSrv = &userService{}
+		groupSrv = &groupService{}
 
 		mux = bone.New()
 		mux.Prefix("/v2")
 
 		mux.GetFunc("/Schemas", endpoint(schemaSrv.getAllSchemas))
 		mux.GetFunc("/Schemas/:schemaId", endpoint(schemaSrv.getSchemaById))
-
 		mux.GetFunc("/ResourceTypes", endpoint(resourceTypeSrv.getAllResourceTypes))
-
 		mux.GetFunc("/ServiceProviderConfig", endpoint(spConfigSrv.getServiceProviderConfig))
 
 		mux.GetFunc("/Users/:userId", endpoint(userSrv.getUserById))
@@ -118,6 +122,14 @@ func Bootstrap() *bone.Mux {
 		mux.DeleteFunc("/Users/:userId", endpoint(userSrv.deleteUserById))
 		mux.GetFunc("/Users", endpoint(userSrv.queryUser))
 		mux.PostFunc("/Users/.search", endpoint(userSrv.queryUser))
+
+		mux.GetFunc("/Groups/:groupId", endpoint(groupSrv.getGroupById))
+		mux.PostFunc("/Groups", endpoint(groupSrv.createGroup))
+		mux.PutFunc("/Groups/:groupId", endpoint(groupSrv.updateGroupById))
+		mux.PatchFunc("/Groups/:groupId", endpoint(groupSrv.patchGroupById))
+		mux.DeleteFunc("/Groups/:groupId", endpoint(groupSrv.deleteGroupById))
+		mux.GetFunc("/Groups", endpoint(groupSrv.queryGroup))
+		mux.PostFunc("/Groups/.search", endpoint(groupSrv.queryGroup))
 	})
 	return mux
 }

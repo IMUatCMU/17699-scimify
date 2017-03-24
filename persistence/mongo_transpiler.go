@@ -41,13 +41,6 @@ func TranspileToMongoQuery(root *adt.Node, schema *resource.Schema) (bson.M, err
 			}
 
 			pathName := root.Left.Data.(filter.Token).Value
-			//if strings.HasPrefix(strings.ToLower(pathName), strings.ToLower(resource.UserUrn+":")) {
-			//	pathName = pathName[len(resource.UserUrn+":"):]
-			//} else if strings.HasPrefix(strings.ToLower(pathName), strings.ToLower(resource.GroupUrn+":")) {
-			//	pathName = pathName[len(resource.GroupUrn+":"):]
-			//}
-
-			//attribute = schema.GetAttribute(strings.ToLower(pathName))
 			attribute = schema.GetAttribute(pathName)
 			if nil == attribute {
 				return nil, resource.CreateError(resource.InvalidFilter, fmt.Sprintf("Unknown path name '%s'", pathName))
