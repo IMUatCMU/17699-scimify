@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-scim/scimify/resource"
 	"sync"
+	"github.com/go-scim/scimify/modify"
 )
 
 var (
@@ -27,6 +28,12 @@ func (etp *errorTranslatingProcessor) Process(ctx *ProcessorContext) error {
 	switch err.(type) {
 	case resource.Error:
 		translatedErr = err.(resource.Error)
+
+	case *modify.InvalidModificationError:
+		translatedErr = resource.CreateError(resource.InvalidSyntax, err.Error())
+
+	case *modify.ModificationFailedError, *modify.InvalidPathError, *modify.MissingAttributeForPathError:
+		translatedErr = resource.CreateError(resource.InvalidPath, err.Error())
 
 	case *TypeMismatchError, *FormatError, *TypeUnsupportedError, *RequiredMissingError,
 		*RequiredUnassignedError, *NoDefinedAttributeError, *UnexpectedTypeError, *UnsupportedValueError:
