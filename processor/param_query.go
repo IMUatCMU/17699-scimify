@@ -1,15 +1,69 @@
 package processor
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 )
+
+type SearchRequest struct {
+	Schemas            []string `json:"schemas"`
+	Attributes         []string `json:"attributes"`
+	ExcludedAttributes []string `json:"excludedAttributes"`
+	Filter             string   `json:"filter"`
+	SortBy             string   `json:"sortBy"`
+	SortOrder          string   `json:"sortOrder"`
+	StartIndex         int      `json:"startIndex"`
+	Count              int      `json:"count"`
+}
+
+func (sr *SearchRequest) validate() error {
+	if len(sr.Schemas) != 1 || sr.Schemas[0] != resource.SearchUrn {
+		return resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("search request must have urn '%s'", resource.SearchUrn))
+	}
+
+	if len(sr.Filter) == 0 {
+		sr.Filter = "id pr"
+	}
+
+	if sr.StartIndex < 1 {
+		sr.StartIndex = 1
+	}
+
+	if sr.Count < 0 {
+		sr.Count = 0
+	}
+
+	switch sr.SortOrder {
+	case "", "ascending", "descending":
+	default:
+		return resource.CreateError(resource.InvalidValue, "sortOrder param should have value [ascending] or [descending].")
+	}
+
+	return nil
+}
+
+func (sr *SearchRequest) copyToContext(ctx *ProcessorContext) {
+	ctx.Inclusion = sr.Attributes
+	ctx.Exclusion = sr.ExcludedAttributes
+	ctx.QueryFilter = sr.Filter
+	ctx.QuerySortBy = sr.SortBy
+	switch sr.SortOrder {
+	case "", "ascending":
+		ctx.QuerySortOrder = true
+	case "descending":
+		ctx.QuerySortOrder = false
+	}
+	ctx.QueryPageStart = sr.StartIndex
+	ctx.QueryPageSize = sr.Count
+}
 
 var (
 	oneUserQueryParser,
@@ -56,15 +110,66 @@ type parseParamForQueryEndpointProcessor struct {
 	schemaId           string
 }
 
-func (qep *parseParamForQueryEndpointProcessor) parseParam(req *http.Request, name string) string {
-	switch req.Method {
-	case http.MethodGet:
-		return req.URL.Query().Get(name)
-	case http.MethodPost:
-		return req.FormValue(name)
-	default:
-		return ""
+type parseFunc func(*http.Request) (*SearchRequest, error)
+
+func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpGet(httpRequest *http.Request) (*SearchRequest, error) {
+	sr := &SearchRequest{
+		Schemas:    []string{resource.SearchUrn},
+		StartIndex: 1,
+		Count:      viper.GetInt("scim.itemsPerPage"),
 	}
+
+	sr.Attributes = strings.Split(httpRequest.URL.Query().Get("attributes"), ",")
+	sr.ExcludedAttributes = strings.Split(httpRequest.URL.Query().Get("excludedAttributes"), ",")
+	sr.Filter = httpRequest.URL.Query().Get("filter")
+	sr.SortBy = httpRequest.URL.Query().Get("sortBy")
+	sr.SortOrder = httpRequest.URL.Query().Get("sortOrder")
+	if v := httpRequest.URL.Query().Get("startIndex"); len(v) > 0 {
+		if i, err := strconv.Atoi(v); err != nil {
+			return nil, resource.CreateError(resource.InvalidValue, "startIndex param must be a 1-based integer.")
+		} else {
+			if i < 1 {
+				sr.StartIndex = 1
+			} else {
+				sr.StartIndex = i
+			}
+		}
+	} else {
+		sr.StartIndex = 1
+	}
+	if v := httpRequest.URL.Query().Get("count"); len(v) > 0 {
+		if i, err := strconv.Atoi(v); err != nil {
+			return nil, resource.CreateError(resource.InvalidValue, "count param must be a non-negative integer.")
+		} else {
+			if i < 0 {
+				sr.Count = 0
+			} else {
+				sr.Count = i
+			}
+		}
+	} else {
+		sr.Count = viper.GetInt("scim.itemsPerPage")
+	}
+
+	return sr, nil
+}
+
+func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpPost(httpRequest *http.Request) (*SearchRequest, error) {
+	sr := &SearchRequest{
+		StartIndex: 1,
+		Count:      viper.GetInt("scim.itemsPerPage"),
+	}
+	bodyBytes, err := ioutil.ReadAll(httpRequest.Body)
+	if err != nil {
+		return nil, resource.CreateError(resource.ServerError, fmt.Sprintf("failed to read request body: %s", err.Error()))
+	}
+
+	err = json.Unmarshal(bodyBytes, sr)
+	if err != nil {
+		return nil, resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("failed to deserialize request body: %s", err.Error()))
+	}
+
+	return sr, nil
 }
 
 func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) error {
@@ -76,60 +181,27 @@ func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) e
 		ctx.Schema = sch
 	}
 
-	// filter
-	ctx.QueryFilter = qep.parseParam(httpRequest, "filter")
-	if len(ctx.QueryFilter) == 0 {
-		return resource.CreateError(resource.InvalidValue, "filter param is required.")
-	}
-
-	// sortBy
-	ctx.QuerySortBy = qep.parseParam(httpRequest, "sortBy")
-
-	// sortOrder
-	switch qep.parseParam(httpRequest, "sortOrder") {
-	case "", "ascending":
-		ctx.QuerySortOrder = true
-	case "descending":
-		ctx.QuerySortOrder = false
+	var f parseFunc
+	switch httpRequest.Method {
+	case http.MethodGet:
+		f = qep.parseParamsFromHttpGet
+	case http.MethodPost:
+		f = qep.parseParamsFromHttpPost
 	default:
-		return resource.CreateError(resource.InvalidValue, "sortOrder param should have value [ascending] or [descending].")
+		return resource.CreateError(resource.NotImplemented, fmt.Sprintf("resource query by http method %s is not supported.", httpRequest.Method))
 	}
 
-	// startIndex
-	if v := qep.parseParam(httpRequest, "startIndex"); len(v) > 0 {
-		if i, err := strconv.Atoi(v); err != nil {
-			return resource.CreateError(resource.InvalidValue, "startIndex param must be a 1-based integer.")
-		} else {
-			if i < 1 {
-				ctx.QueryPageStart = 1
-			} else {
-				ctx.QueryPageStart = i
-			}
-		}
-	} else {
-		ctx.QueryPageStart = 1
+	sr, err := f(httpRequest)
+	if err != nil {
+		return err
 	}
 
-	// count
-	if v := qep.parseParam(httpRequest, "count"); len(v) > 0 {
-		if i, err := strconv.Atoi(v); err != nil {
-			return resource.CreateError(resource.InvalidValue, "count param must be a non-negative integer.")
-		} else {
-			if i < 0 {
-				ctx.QueryPageSize = 0
-			} else {
-				ctx.QueryPageSize = i
-			}
-		}
-	} else {
-		ctx.QueryPageSize = viper.GetInt("scim.itemsPerPage")
+	err = sr.validate()
+	if err != nil {
+		return err
 	}
 
-	// attributes
-	ctx.Inclusion = strings.Split(qep.parseParam(httpRequest, "attributes"), ",")
-
-	// excludedAttributes
-	ctx.Exclusion = strings.Split(qep.parseParam(httpRequest, "excludedAttributes"), ",")
+	sr.copyToContext(ctx)
 
 	return nil
 }
