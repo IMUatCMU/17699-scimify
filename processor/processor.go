@@ -31,6 +31,9 @@ type ProcessorContext struct {
 	// modification
 	Mod *modify.Modification
 
+	// bulk
+	Bulk *BulkRequest
+
 	// Serialization
 	SerializationTargetFunc func() interface{}
 
