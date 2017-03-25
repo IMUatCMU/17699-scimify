@@ -21,6 +21,7 @@ var (
 	userSrv         *userService
 	groupSrv        *groupService
 	rootSrv         *rootService
+	bulkSrv 	*bulkService
 
 	mux *bone.Mux
 )
@@ -108,6 +109,7 @@ func Bootstrap() *bone.Mux {
 		userSrv = &userService{}
 		groupSrv = &groupService{}
 		rootSrv = &rootService{}
+		bulkSrv = &bulkService{}
 
 		mux = bone.New()
 		mux.Prefix("/v2")
@@ -135,6 +137,8 @@ func Bootstrap() *bone.Mux {
 
 		mux.GetFunc("/", endpoint(rootSrv.query))
 		mux.PostFunc("/.search", endpoint(rootSrv.query))
+
+		mux.PostFunc("/Bulk", endpoint(bulkSrv.doBulk))
 	})
 	return mux
 }

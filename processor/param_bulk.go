@@ -8,7 +8,20 @@ import (
 	"net/http"
 	"strings"
 	"github.com/spf13/viper"
+	"sync"
 )
+
+var (
+	oneBulkParamParser	sync.Once
+	bulkParamParser 	Processor
+)
+
+func ParseParamForBulkEndpointProcessor() Processor {
+	oneBulkParamParser.Do(func() {
+		bulkParamParser = &parseParamForBulkEndpointProcessor{}
+	})
+	return bulkParamParser
+}
 
 type BulkRequest struct {
 	Schemas 	[]string		`json:"schemas"`
@@ -19,11 +32,6 @@ type BulkRequest struct {
 func (br BulkRequest) validate() error {
 	if len(br.Schemas) != 1 || br.Schemas[0] != resource.BulkRequestUrn {
 		return resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("bulk request must have schema '%s'", resource.BulkRequestUrn))
-	}
-	for _, op := range br.Operations {
-		if err := op.validate(); err != nil {
-			return err
-		}
 	}
 	return nil
 }

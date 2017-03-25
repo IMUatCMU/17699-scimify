@@ -71,6 +71,8 @@ const (
 	ParamGroupReplace        = BeanName("ParamGroupReplace")
 	ParamUserPatch           = BeanName("ParamUserPatch")
 	ParamGroupPatch          = BeanName("ParamGroupPatch")
+	ParamBulk 		 = BeanName("ParamBulk")
+	BulkDispatch 		 = BeanName("BulkDispatch")
 	SetAllHeader             = BeanName("SetAllHeader")
 	SetStatusToError         = BeanName("SetStatusToError")
 	SetStatusToOk            = BeanName("SetStatusToOk")
@@ -156,6 +158,8 @@ func GetWorkerBean(bn BeanName) Worker {
 			ParamGroupReplace:        {processor: ParseParamForGroupReplaceEndpointProcessor(), num: 2},
 			ParamUserPatch:           {processor: ParseParamForUserPatchEndpointProcessor(), num: 2},
 			ParamGroupPatch:          {processor: ParseParamForGroupPatchEndpointProcessor(), num: 2},
+			ParamBulk: 		  {processor: ParseParamForBulkEndpointProcessor(), num: 2},
+			BulkDispatch: 		  {processor: BulkDispatchProcessor(), num: 2},
 			SetAllHeader:             {processor: SetAllHeaderProcessor(), num: 2},
 			SetStatusToError:         {processor: SetStatusToErrorProcessor(), num: 2},
 			SetStatusToOk:            {processor: SetStatusToOKProcessor(), num: 2},
