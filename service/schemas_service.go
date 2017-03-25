@@ -57,7 +57,7 @@ func (srv *schemaService) getGetAllSchemaProcessor() p.Processor {
 
 func (srv *schemaService) getAllSchemas(req *http.Request) (response, error) {
 	processor := srv.getGetAllSchemaProcessor()
-	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req: req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -68,7 +68,7 @@ func (srv *schemaService) getAllSchemas(req *http.Request) (response, error) {
 
 func (srv *schemaService) getSchemaById(req *http.Request) (response, error) {
 	processor := srv.getGetSchemaProcessor()
-	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req: req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,

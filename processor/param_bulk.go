@@ -2,18 +2,18 @@ package processor
 
 import (
 	"encoding/json"
-	"github.com/go-scim/scimify/resource"
 	"fmt"
+	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"math"
 	"net/http"
 	"strings"
-	"github.com/spf13/viper"
 	"sync"
 )
 
 var (
-	oneBulkParamParser	sync.Once
-	bulkParamParser 	Processor
+	oneBulkParamParser sync.Once
+	bulkParamParser    Processor
 )
 
 func ParseParamForBulkEndpointProcessor() Processor {
@@ -24,9 +24,9 @@ func ParseParamForBulkEndpointProcessor() Processor {
 }
 
 type BulkRequest struct {
-	Schemas 	[]string		`json:"schemas"`
-	FailOnErrors	int 			`json:"failOnErrors"`
-	Operations 	[]BulkRequestOperation	`json:"Operations"`
+	Schemas      []string               `json:"schemas"`
+	FailOnErrors int                    `json:"failOnErrors"`
+	Operations   []BulkRequestOperation `json:"Operations"`
 }
 
 func (br BulkRequest) validate() error {
@@ -37,15 +37,15 @@ func (br BulkRequest) validate() error {
 }
 
 type BulkOperation struct {
-	Method 		string 			`json:"method"`
-	BulkId 		string 			`json:"bulkId"`
-	Version 	string 			`json:"version"`
+	Method  string `json:"method"`
+	BulkId  string `json:"bulkId"`
+	Version string `json:"version"`
 }
 
 type BulkRequestOperation struct {
 	BulkOperation
-	Path 		string 			`json:"path"`
-	Data 		json.RawMessage		`json:"data"`
+	Path string          `json:"path"`
+	Data json.RawMessage `json:"data"`
 }
 
 func (op BulkRequestOperation) validate() error {
@@ -75,8 +75,8 @@ func (op BulkRequestOperation) validate() error {
 		}
 	} else {
 		switch {
-		case strings.HasPrefix(op.Path, userUri + "/"):
-		case strings.HasPrefix(op.Path, groupUri + "/"):
+		case strings.HasPrefix(op.Path, userUri+"/"):
+		case strings.HasPrefix(op.Path, groupUri+"/"):
 		default:
 			return resource.CreateError(
 				resource.InvalidPath,
@@ -98,7 +98,7 @@ func (op BulkRequestOperation) validate() error {
 	return nil
 }
 
-type parseParamForBulkEndpointProcessor struct {}
+type parseParamForBulkEndpointProcessor struct{}
 
 func (p *parseParamForBulkEndpointProcessor) Process(ctx *ProcessorContext) error {
 	req := p.getRequestSource(ctx)
@@ -123,7 +123,7 @@ func (p *parseParamForBulkEndpointProcessor) parseBulkRequest(req RequestSource)
 		return nil, resource.CreateError(resource.ServerError, fmt.Sprintf("failed to read request body: %s", err.Error()))
 	}
 
-	bulk := &BulkRequest{FailOnErrors:math.MaxInt64}
+	bulk := &BulkRequest{FailOnErrors: math.MaxInt64}
 	err = json.Unmarshal(bodyBytes, bulk)
 	if err != nil {
 		return nil, resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("failed to read serialize request body: %s", err.Error()))

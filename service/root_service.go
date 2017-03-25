@@ -35,7 +35,7 @@ func (srv *rootService) getQueryRootProcessor() p.Processor {
 
 func (srv *rootService) query(req *http.Request) (response, error) {
 	processor := srv.getQueryRootProcessor()
-	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req: req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,

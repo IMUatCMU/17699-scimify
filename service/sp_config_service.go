@@ -33,7 +33,7 @@ func (srv *spConfigService) getGetSpConfigProcessor() p.Processor {
 
 func (srv *spConfigService) getServiceProviderConfig(req *http.Request) (response, error) {
 	processor := srv.getGetSpConfigProcessor()
-	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req: req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,

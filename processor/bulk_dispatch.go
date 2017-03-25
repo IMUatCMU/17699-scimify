@@ -2,22 +2,22 @@ package processor
 
 import (
 	"encoding/json"
-	"strings"
-	"net/http"
-	"github.com/spf13/viper"
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
+	"net/http"
+	"strings"
 	"sync"
 )
 
 var (
-	oneBulkDispatch 	sync.Once
-	bulkDispatch 	Processor
+	oneBulkDispatch sync.Once
+	bulkDispatch    Processor
 )
 
 func BulkDispatchProcessor() Processor {
 	oneBulkDispatch.Do(func() {
 		bulkDispatch = &bulkDispatchProcessor{
-			validationErrProcessor:NewSerialProcessor(
+			validationErrProcessor: NewSerialProcessor(
 				GetWorkerBean(TranslateError),
 				GetWorkerBean(SetJsonToError),
 				GetWorkerBean(JsonSimple),
@@ -29,24 +29,23 @@ func BulkDispatchProcessor() Processor {
 }
 
 type bulkDispatchProcessor struct {
-	validationErrProcessor 		Processor
+	validationErrProcessor Processor
 }
 
 func (p *bulkDispatchProcessor) Process(ctx *ProcessorContext) error {
 	bulk := p.getBulk(ctx)
+
+	for _, op := range bulk.Operations {
+		if err := op.validate(); err != nil {
+			return err
+		}
+	}
 
 	errCount := 0
 	allResponses := make([]*BulkResponseOperation, 0, len(bulk.Operations))
 	for _, op := range bulk.Operations {
 		if errCount > bulk.FailOnErrors {
 			break
-		}
-
-		if err := op.validate(); err != nil {
-			errCount++
-			ctx, _ := p.createValidationErrorContext(err)
-			allResponses = append(allResponses, p.createBulkResponse(op, ctx))
-			continue
 		}
 
 		ctx, _ := p.createContext(op)
@@ -58,8 +57,8 @@ func (p *bulkDispatchProcessor) Process(ctx *ProcessorContext) error {
 	}
 
 	bulkResponse := &BulkResponse{
-		Schemas: []string{resource.BulkResponseUrn},
-		Operations:allResponses,
+		Schemas:    []string{resource.BulkResponseUrn},
+		Operations: allResponses,
 	}
 	ctx.SerializationTargetFunc = func() interface{} {
 		return bulkResponse
@@ -96,30 +95,30 @@ func (p *bulkDispatchProcessor) dispatch(op BulkRequestOperation, ctx *Processor
 	case http.MethodPost:
 		switch {
 		case strings.HasPrefix(op.Path, userUri):
-			processor = GetWorkerBean(SrvUserCreate)
+			processor = GetServiceBean(SrvUserCreate)
 		case strings.HasPrefix(op.Path, groupUri):
-			processor = GetWorkerBean(SrvGroupCreate)
+			processor = GetServiceBean(SrvGroupCreate)
 		}
 	case http.MethodPut:
 		switch {
 		case strings.HasPrefix(op.Path, userUri):
-			processor = GetWorkerBean(SrvUserReplace)
+			processor = GetServiceBean(SrvUserReplace)
 		case strings.HasPrefix(op.Path, groupUri):
-			processor = GetWorkerBean(SrvGroupReplace)
+			processor = GetServiceBean(SrvGroupReplace)
 		}
 	case http.MethodPatch:
 		switch {
 		case strings.HasPrefix(op.Path, userUri):
-			processor = GetWorkerBean(SrvUserPatch)
+			processor = GetServiceBean(SrvUserPatch)
 		case strings.HasPrefix(op.Path, groupUri):
-			processor = GetWorkerBean(SrvGroupPatch)
+			processor = GetServiceBean(SrvGroupPatch)
 		}
 	case http.MethodDelete:
 		switch {
 		case strings.HasPrefix(op.Path, userUri):
-			processor = GetWorkerBean(SrvUserDelete)
+			processor = GetServiceBean(SrvUserDelete)
 		case strings.HasPrefix(op.Path, groupUri):
-			processor = GetWorkerBean(SrvGroupDelete)
+			processor = GetServiceBean(SrvGroupDelete)
 		}
 	default:
 		return resource.CreateError(resource.InvalidSyntax, "unsupported bulk operation")
@@ -140,7 +139,7 @@ func (p *bulkDispatchProcessor) createContext(op BulkRequestOperation) (*Process
 }
 
 func (p *bulkDispatchProcessor) createValidationErrorContext(err error) (*ProcessorContext, error) {
-	ctx := &ProcessorContext{Err:err}
+	ctx := &ProcessorContext{Err: err}
 	e := p.validationErrProcessor.Process(ctx)
 	return ctx, e
 }
@@ -153,24 +152,25 @@ func (p *bulkDispatchProcessor) getBulk(ctx *ProcessorContext) *BulkRequest {
 }
 
 type BulkResponse struct {
-	Schemas 	[]string			`json:"schemas"`
-	Operations 	[]*BulkResponseOperation	`json:"Operations"`
+	Schemas    []string                 `json:"schemas"`
+	Operations []*BulkResponseOperation `json:"Operations"`
 }
 
 type BulkResponseOperation struct {
 	BulkOperation
-	Location	string			`json:"location"`
-	Response 	json.RawMessage		`json:"response,omitempty"`
-	Status 		int 			`json:"status"`
+	Location string          `json:"location"`
+	Response json.RawMessage `json:"response,omitempty"`
+	Status   int             `json:"status"`
 }
 
 type BulkRequestSource struct {
-	target 		string
-	method 		string
-	urlParams 	map[string]string
-	params 		map[string]string
-	body 		[]byte
+	target    string
+	method    string
+	urlParams map[string]string
+	params    map[string]string
+	body      []byte
 }
+
 func (rs *BulkRequestSource) Target() string {
 	return rs.target
 }
@@ -196,10 +196,10 @@ func (rs *BulkRequestSource) populate(op BulkRequestOperation) {
 	rs.urlParams = make(map[string]string, 0)
 	switch rs.method {
 	case http.MethodPut, http.MethodPatch, http.MethodDelete:
-		if strings.HasPrefix(rs.target, userUri + "/") {
-			rs.urlParams[viper.GetString("scim.api.userIdUrlParam")] = strings.TrimPrefix(rs.target, userUri + "/")
-		} else if strings.HasPrefix(rs.target, groupUri + "/") {
-			rs.urlParams[viper.GetString("scim.api.groupIdUrlParam")] = strings.TrimPrefix(rs.target, groupUri + "/")
+		if strings.HasPrefix(rs.target, userUri+"/") {
+			rs.urlParams[viper.GetString("scim.api.userIdUrlParam")] = strings.TrimPrefix(rs.target, userUri+"/")
+		} else if strings.HasPrefix(rs.target, groupUri+"/") {
+			rs.urlParams[viper.GetString("scim.api.groupIdUrlParam")] = strings.TrimPrefix(rs.target, groupUri+"/")
 		}
 	}
 

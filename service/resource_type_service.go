@@ -33,7 +33,7 @@ func (srv *resourceTypeService) getGetAllResourceTypeProcessor() p.Processor {
 
 func (srv *resourceTypeService) getAllResourceTypes(req *http.Request) (response, error) {
 	processor := srv.getGetAllResourceTypeProcessor()
-	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req: req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,

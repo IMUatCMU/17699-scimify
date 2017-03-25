@@ -21,7 +21,7 @@ var (
 	userSrv         *userService
 	groupSrv        *groupService
 	rootSrv         *rootService
-	bulkSrv 	*bulkService
+	bulkSrv         *bulkService
 
 	mux *bone.Mux
 )

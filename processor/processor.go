@@ -3,9 +3,9 @@ package processor
 import (
 	"github.com/go-scim/scimify/modify"
 	"github.com/go-scim/scimify/resource"
-	"net/http"
-	"io/ioutil"
 	"github.com/go-zoo/bone"
+	"io/ioutil"
+	"net/http"
 )
 
 type ProcessorContext struct {

@@ -8,18 +8,18 @@ import (
 type BeanName string
 
 const (
-	SrvUserCreate 		 = BeanName("SrvUserCreate")
-	SrvUserReplace 		 = BeanName("SrvUserReplace")
-	SrvUserPatch 		 = BeanName("SrvUserPatch")
-	SrvUserGet 		 = BeanName("SrvUserGet")
-	SrvUserQuery 		 = BeanName("SrvUserQuery")
-	SrvUserDelete 		 = BeanName("SrvUserDelete")
-	SrvGroupCreate 		 = BeanName("SrvGroupCreate")
-	SrvGroupReplace 	 = BeanName("SrvGroupReplace")
-	SrvGroupPatch 		 = BeanName("SrvGroupPatch")
-	SrvGroupGet 		 = BeanName("SrvGroupGet")
-	SrvGroupQuery 		 = BeanName("SrvGroupQuery")
-	SrvGroupDelete 		 = BeanName("SrvGroupDelete")
+	SrvUserCreate            = BeanName("SrvUserCreate")
+	SrvUserReplace           = BeanName("SrvUserReplace")
+	SrvUserPatch             = BeanName("SrvUserPatch")
+	SrvUserGet               = BeanName("SrvUserGet")
+	SrvUserQuery             = BeanName("SrvUserQuery")
+	SrvUserDelete            = BeanName("SrvUserDelete")
+	SrvGroupCreate           = BeanName("SrvGroupCreate")
+	SrvGroupReplace          = BeanName("SrvGroupReplace")
+	SrvGroupPatch            = BeanName("SrvGroupPatch")
+	SrvGroupGet              = BeanName("SrvGroupGet")
+	SrvGroupQuery            = BeanName("SrvGroupQuery")
+	SrvGroupDelete           = BeanName("SrvGroupDelete")
 	DbUserCreate             = BeanName("DbUserCreate")
 	DbGroupCreate            = BeanName("DbGroupCreate")
 	DbUserDelete             = BeanName("DbUserDelete")
@@ -71,8 +71,8 @@ const (
 	ParamGroupReplace        = BeanName("ParamGroupReplace")
 	ParamUserPatch           = BeanName("ParamUserPatch")
 	ParamGroupPatch          = BeanName("ParamGroupPatch")
-	ParamBulk 		 = BeanName("ParamBulk")
-	BulkDispatch 		 = BeanName("BulkDispatch")
+	ParamBulk                = BeanName("ParamBulk")
+	BulkDispatch             = BeanName("BulkDispatch")
 	SetAllHeader             = BeanName("SetAllHeader")
 	SetStatusToError         = BeanName("SetStatusToError")
 	SetStatusToOk            = BeanName("SetStatusToOk")
@@ -88,25 +88,46 @@ type bean struct {
 }
 
 var (
-	beanMaps   map[BeanName]bean
-	oneBeanMap sync.Once
+	workerBeanMap    map[BeanName]bean
+	oneWorkerBeanMap sync.Once
+
+	serviceBeanMap    map[BeanName]bean
+	oneServiceBeanMap sync.Once
 )
 
+func GetServiceBean(bn BeanName) Worker {
+	oneServiceBeanMap.Do(func() {
+		serviceBeanMap = map[BeanName]bean{
+			SrvUserCreate:   {processor: CreateUserServiceProcessor(), num: 2},
+			SrvUserReplace:  {processor: UpdateUserServiceProcessor(), num: 2},
+			SrvUserPatch:    {processor: PatchUserServiceProcessor(), num: 2},
+			SrvUserGet:      {processor: GetUserServiceProcessor(), num: 2},
+			SrvUserQuery:    {processor: QueryUserServiceProcessor(), num: 2},
+			SrvUserDelete:   {processor: DeleteUserServiceProcessor(), num: 2},
+			SrvGroupCreate:  {processor: CreateGroupServiceProcessor(), num: 2},
+			SrvGroupReplace: {processor: UpdateGroupServiceProcessor(), num: 2},
+			SrvGroupPatch:   {processor: PatchGroupServiceProcessor(), num: 2},
+			SrvGroupGet:     {processor: GetGroupServiceProcessor(), num: 2},
+			SrvGroupQuery:   {processor: QueryGroupServiceProcessor(), num: 2},
+			SrvGroupDelete:  {processor: DeleteGroupServiceProcessor(), num: 2},
+			BulkDispatch:    {processor: BulkDispatchProcessor(), num: 2},
+		}
+	})
+	if b, ok := serviceBeanMap[bn]; !ok {
+		log.Panicf("No bean by the name %s", bn)
+		return nil
+	} else {
+		b.once.Do(func() {
+			b.worker = &WorkerWrapper{processor: b.processor}
+			b.worker.initialize(b.num)
+		})
+		return b.worker
+	}
+}
+
 func GetWorkerBean(bn BeanName) Worker {
-	oneBeanMap.Do(func() {
-		beanMaps = map[BeanName]bean{
-			SrvUserCreate:		  {processor: CreateUserServiceProcessor(), num: 2},
-			SrvUserReplace: 	  {processor: UpdateUserServiceProcessor(), num: 2},
-			SrvUserPatch: 		  {processor: PatchUserServiceProcessor(), num: 2},
-			SrvUserGet: 		  {processor: GetUserServiceProcessor(), num: 2},
-			SrvUserQuery: 		  {processor: QueryUserServiceProcessor(), num: 2},
-			SrvUserDelete: 		  {processor: DeleteUserServiceProcessor(), num: 2},
-			SrvGroupCreate: 	  {processor: CreateGroupServiceProcessor(), num: 2},
-			SrvGroupReplace: 	  {processor: UpdateGroupServiceProcessor(), num: 2},
-			SrvGroupPatch: 		  {processor: PatchGroupServiceProcessor(), num: 2},
-			SrvGroupGet: 		  {processor: GetGroupServiceProcessor(), num: 2},
-			SrvGroupQuery: 		  {processor: QueryGroupServiceProcessor(), num: 2},
-			SrvGroupDelete: 	  {processor: DeleteGroupServiceProcessor(), num: 2},
+	oneWorkerBeanMap.Do(func() {
+		workerBeanMap = map[BeanName]bean{
 			DbUserCreate:             {processor: DBUserCreateProcessor(), num: 2},
 			DbGroupCreate:            {processor: DBGroupCreateProcessor(), num: 2},
 			DbUserDelete:             {processor: DBUserDeleteProcessor(), num: 2},
@@ -158,8 +179,7 @@ func GetWorkerBean(bn BeanName) Worker {
 			ParamGroupReplace:        {processor: ParseParamForGroupReplaceEndpointProcessor(), num: 2},
 			ParamUserPatch:           {processor: ParseParamForUserPatchEndpointProcessor(), num: 2},
 			ParamGroupPatch:          {processor: ParseParamForGroupPatchEndpointProcessor(), num: 2},
-			ParamBulk: 		  {processor: ParseParamForBulkEndpointProcessor(), num: 2},
-			BulkDispatch: 		  {processor: BulkDispatchProcessor(), num: 2},
+			ParamBulk:                {processor: ParseParamForBulkEndpointProcessor(), num: 2},
 			SetAllHeader:             {processor: SetAllHeaderProcessor(), num: 2},
 			SetStatusToError:         {processor: SetStatusToErrorProcessor(), num: 2},
 			SetStatusToOk:            {processor: SetStatusToOKProcessor(), num: 2},
@@ -167,7 +187,7 @@ func GetWorkerBean(bn BeanName) Worker {
 			SetStatusToNoContent:     {processor: SetStatusToNoContentProcessor(), num: 2},
 		}
 	})
-	if b, ok := beanMaps[bn]; !ok {
+	if b, ok := workerBeanMap[bn]; !ok {
 		log.Panicf("No bean by the name %s", bn)
 		return nil
 	} else {

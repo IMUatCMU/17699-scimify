@@ -2,13 +2,13 @@ package service
 
 import (
 	p "github.com/go-scim/scimify/processor"
-	"sync"
 	"net/http"
+	"sync"
 )
 
 type bulkService struct {
-	oneBulk 	sync.Once
-	bulkProcessor 	p.Processor
+	oneBulk       sync.Once
+	bulkProcessor p.Processor
 }
 
 func (srv *bulkService) getBulkProcessor() p.Processor {
@@ -16,7 +16,7 @@ func (srv *bulkService) getBulkProcessor() p.Processor {
 		srv.bulkProcessor = &p.ErrorHandlingProcessor{
 			Op: []p.Processor{
 				p.GetWorkerBean(p.ParamBulk),
-				p.GetWorkerBean(p.BulkDispatch),
+				p.GetServiceBean(p.BulkDispatch),
 				p.GetWorkerBean(p.JsonSimple),
 				p.GetWorkerBean(p.SetStatusToOk),
 			},
@@ -33,7 +33,7 @@ func (srv *bulkService) getBulkProcessor() p.Processor {
 
 func (srv *bulkService) doBulk(req *http.Request) (response, error) {
 	processor := srv.getBulkProcessor()
-	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req: req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
