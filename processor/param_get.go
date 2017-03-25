@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
-	"github.com/go-zoo/bone"
 	"github.com/spf13/viper"
-	"net/http"
 	"sync"
 )
 
@@ -58,7 +56,7 @@ type parseParamForGetEndpointProcessor struct {
 }
 
 func (gep *parseParamForGetEndpointProcessor) Process(ctx *ProcessorContext) error {
-	httpRequest := gep.getHttpRequest(ctx)
+	req := gep.getRequestSource(ctx)
 
 	if gep.internalSchemaRepo != nil {
 		if sch, err := gep.getSchema(); err != nil {
@@ -68,7 +66,7 @@ func (gep *parseParamForGetEndpointProcessor) Process(ctx *ProcessorContext) err
 		}
 	}
 
-	if id, err := gep.getResourceId(httpRequest); len(id) == 0 {
+	if id, err := gep.getResourceId(req); len(id) == 0 {
 		return err
 	} else {
 		ctx.Identity = id
@@ -88,17 +86,17 @@ func (gep *parseParamForGetEndpointProcessor) getSchema() (*resource.Schema, err
 	}
 }
 
-func (gep *parseParamForGetEndpointProcessor) getResourceId(req *http.Request) (string, error) {
-	if id := bone.GetValue(req, gep.resourceIdUrlParam); len(id) == 0 {
+func (gep *parseParamForGetEndpointProcessor) getResourceId(req RequestSource) (string, error) {
+	if id := req.UrlParam(gep.resourceIdUrlParam); len(id) == 0 {
 		return "", resource.CreateError(resource.InvalidSyntax, "failed to obtain resource id from url")
 	} else {
 		return id, nil
 	}
 }
 
-func (gep *parseParamForGetEndpointProcessor) getHttpRequest(ctx *ProcessorContext) *http.Request {
+func (gep *parseParamForGetEndpointProcessor) getRequestSource(ctx *ProcessorContext) RequestSource {
 	if ctx.Request == nil {
-		panic(&MissingContextValueError{"http request"})
+		panic(&MissingContextValueError{"request source"})
 	}
 	return ctx.Request
 }

@@ -169,7 +169,7 @@ func (srv *userService) getDeleteUserProcessor() p.Processor {
 
 func (srv *userService) getUserById(req *http.Request) (response, error) {
 	processor := srv.getGetUserProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -180,7 +180,7 @@ func (srv *userService) getUserById(req *http.Request) (response, error) {
 
 func (srv *userService) createUser(req *http.Request) (response, error) {
 	processor := srv.getCreateUserProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -191,7 +191,7 @@ func (srv *userService) createUser(req *http.Request) (response, error) {
 
 func (srv *userService) updateUserById(req *http.Request) (response, error) {
 	processor := srv.getUpdateUserProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -202,7 +202,7 @@ func (srv *userService) updateUserById(req *http.Request) (response, error) {
 
 func (srv *userService) patchUserById(req *http.Request) (response, error) {
 	processor := srv.getPatchUserProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -213,7 +213,7 @@ func (srv *userService) patchUserById(req *http.Request) (response, error) {
 
 func (srv *userService) deleteUserById(req *http.Request) (response, error) {
 	processor := srv.getDeleteUserProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -224,7 +224,7 @@ func (srv *userService) deleteUserById(req *http.Request) (response, error) {
 
 func (srv *userService) queryUser(req *http.Request) (response, error) {
 	processor := srv.getQueryUserProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,

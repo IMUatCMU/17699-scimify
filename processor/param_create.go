@@ -5,8 +5,6 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
-	"io/ioutil"
-	"net/http"
 	"sync"
 )
 
@@ -44,7 +42,7 @@ type parseParamForCreateEndpointProcessor struct {
 }
 
 func (cep *parseParamForCreateEndpointProcessor) Process(ctx *ProcessorContext) error {
-	httpRequest := cep.getHttpRequest(ctx)
+	requestSource := cep.getRequestSource(ctx)
 
 	if sch, err := cep.getSchema(); err != nil {
 		return err
@@ -52,7 +50,7 @@ func (cep *parseParamForCreateEndpointProcessor) Process(ctx *ProcessorContext) 
 		ctx.Schema = sch
 	}
 
-	if r, err := cep.parseResource(httpRequest); err != nil {
+	if r, err := cep.parseResource(requestSource); err != nil {
 		return err
 	} else {
 		ctx.Resource = r
@@ -70,8 +68,8 @@ func (cep *parseParamForCreateEndpointProcessor) getSchema() (*resource.Schema, 
 	}
 }
 
-func (cep *parseParamForCreateEndpointProcessor) parseResource(req *http.Request) (*resource.Resource, error) {
-	bodyBytes, err := ioutil.ReadAll(req.Body)
+func (cep *parseParamForCreateEndpointProcessor) parseResource(req RequestSource) (*resource.Resource, error) {
+	bodyBytes, err := req.Body()
 	if err != nil {
 		return nil, resource.CreateError(resource.ServerError, fmt.Sprintf("failed to read request body: %s", err.Error()))
 	}
@@ -84,9 +82,9 @@ func (cep *parseParamForCreateEndpointProcessor) parseResource(req *http.Request
 	return r, nil
 }
 
-func (cep *parseParamForCreateEndpointProcessor) getHttpRequest(ctx *ProcessorContext) *http.Request {
+func (cep *parseParamForCreateEndpointProcessor) getRequestSource(ctx *ProcessorContext) RequestSource {
 	if ctx.Request == nil {
-		panic(&MissingContextValueError{"http request"})
+		panic(&MissingContextValueError{"request source"})
 	}
 	return ctx.Request
 }

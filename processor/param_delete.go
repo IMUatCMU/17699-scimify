@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
-	"github.com/go-zoo/bone"
 	"github.com/spf13/viper"
-	"net/http"
 	"sync"
 )
 
@@ -47,7 +45,7 @@ type parseParamForDeleteEndpointProcessor struct {
 }
 
 func (dep *parseParamForDeleteEndpointProcessor) Process(ctx *ProcessorContext) error {
-	httpRequest := dep.getHttpRequest(ctx)
+	req := dep.getRequestSource(ctx)
 
 	if sch, err := dep.getSchema(); err != nil {
 		return err
@@ -55,7 +53,7 @@ func (dep *parseParamForDeleteEndpointProcessor) Process(ctx *ProcessorContext) 
 		ctx.Schema = sch
 	}
 
-	if id, err := dep.getResourceId(httpRequest); len(id) == 0 {
+	if id, err := dep.getResourceId(req); len(id) == 0 {
 		return err
 	} else {
 		ctx.Identity = id
@@ -75,17 +73,17 @@ func (dep *parseParamForDeleteEndpointProcessor) getSchema() (*resource.Schema, 
 	}
 }
 
-func (dep *parseParamForDeleteEndpointProcessor) getResourceId(req *http.Request) (string, error) {
-	if id := bone.GetValue(req, dep.resourceIdUrlParam); len(id) == 0 {
+func (dep *parseParamForDeleteEndpointProcessor) getResourceId(req RequestSource) (string, error) {
+	if id := req.UrlParam(dep.resourceIdUrlParam); len(id) == 0 {
 		return "", resource.CreateError(resource.InvalidSyntax, "failed to obtain resource id from url")
 	} else {
 		return id, nil
 	}
 }
 
-func (dep *parseParamForDeleteEndpointProcessor) getHttpRequest(ctx *ProcessorContext) *http.Request {
+func (dep *parseParamForDeleteEndpointProcessor) getRequestSource(ctx *ProcessorContext) RequestSource {
 	if ctx.Request == nil {
-		panic(&MissingContextValueError{"http request"})
+		panic(&MissingContextValueError{"request source"})
 	}
 	return ctx.Request
 }

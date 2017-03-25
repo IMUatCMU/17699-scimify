@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
-	"github.com/go-zoo/bone"
 	"github.com/spf13/viper"
-	"io/ioutil"
-	"net/http"
 	"sync"
 )
 
@@ -48,7 +45,7 @@ type parseParamForReplaceEndpointProcessor struct {
 }
 
 func (rep *parseParamForReplaceEndpointProcessor) Process(ctx *ProcessorContext) error {
-	httpRequest := rep.getHttpRequest(ctx)
+	req := rep.getRequestSource(ctx)
 
 	if sch, err := rep.getSchema(); err != nil {
 		return err
@@ -56,13 +53,13 @@ func (rep *parseParamForReplaceEndpointProcessor) Process(ctx *ProcessorContext)
 		ctx.Schema = sch
 	}
 
-	if id, err := rep.getResourceId(httpRequest); len(id) == 0 {
+	if id, err := rep.getResourceId(req); len(id) == 0 {
 		return err
 	} else {
 		ctx.Identity = id
 	}
 
-	if r, err := rep.parseResource(httpRequest); err != nil {
+	if r, err := rep.parseResource(req); err != nil {
 		return err
 	} else {
 		ctx.Resource = r
@@ -71,8 +68,8 @@ func (rep *parseParamForReplaceEndpointProcessor) Process(ctx *ProcessorContext)
 	return nil
 }
 
-func (rep *parseParamForReplaceEndpointProcessor) parseResource(req *http.Request) (*resource.Resource, error) {
-	bodyBytes, err := ioutil.ReadAll(req.Body)
+func (rep *parseParamForReplaceEndpointProcessor) parseResource(req RequestSource) (*resource.Resource, error) {
+	bodyBytes, err := req.Body()
 	if err != nil {
 		return nil, resource.CreateError(resource.ServerError, fmt.Sprintf("failed to read request body: %s", err.Error()))
 	}
@@ -85,8 +82,8 @@ func (rep *parseParamForReplaceEndpointProcessor) parseResource(req *http.Reques
 	return r, nil
 }
 
-func (rep *parseParamForReplaceEndpointProcessor) getResourceId(req *http.Request) (string, error) {
-	if id := bone.GetValue(req, rep.resourceIdUrlParam); len(id) == 0 {
+func (rep *parseParamForReplaceEndpointProcessor) getResourceId(req RequestSource) (string, error) {
+	if id := req.UrlParam(rep.resourceIdUrlParam); len(id) == 0 {
 		return "", resource.CreateError(resource.InvalidSyntax, "failed to obtain resource id from url")
 	} else {
 		return id, nil
@@ -102,9 +99,9 @@ func (rep *parseParamForReplaceEndpointProcessor) getSchema() (*resource.Schema,
 	}
 }
 
-func (rep *parseParamForReplaceEndpointProcessor) getHttpRequest(ctx *ProcessorContext) *http.Request {
+func (rep *parseParamForReplaceEndpointProcessor) getRequestSource(ctx *ProcessorContext) RequestSource {
 	if ctx.Request == nil {
-		panic(&MissingContextValueError{"http request"})
+		panic(&MissingContextValueError{"request source"})
 	}
 	return ctx.Request
 }

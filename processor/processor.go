@@ -4,6 +4,8 @@ import (
 	"github.com/go-scim/scimify/modify"
 	"github.com/go-scim/scimify/resource"
 	"net/http"
+	"io/ioutil"
+	"github.com/go-zoo/bone"
 )
 
 type ProcessorContext struct {
@@ -12,7 +14,7 @@ type ProcessorContext struct {
 	Resource  *resource.Resource
 	Reference *resource.Resource
 	Schema    *resource.Schema
-	Request   *http.Request
+	Request   RequestSource
 
 	// query args
 	QueryFilter    string
@@ -44,6 +46,38 @@ type ProcessorContext struct {
 	ResponseStatus  int
 	ResponseHeaders map[string]string
 	ResponseBody    []byte
+}
+
+type RequestSource interface {
+	Target() string
+	Method() string
+	UrlParam(string) string
+	Param(string) string
+	Body() ([]byte, error)
+}
+
+type HttpRequestSource struct {
+	Req *http.Request
+}
+
+func (s *HttpRequestSource) Target() string {
+	return s.Req.RequestURI
+}
+
+func (s *HttpRequestSource) Method() string {
+	return s.Req.Method
+}
+
+func (s *HttpRequestSource) UrlParam(name string) string {
+	return bone.GetValue(s.Req, name)
+}
+
+func (s *HttpRequestSource) Param(name string) string {
+	return s.Req.URL.Query().Get(name)
+}
+
+func (s *HttpRequestSource) Body() ([]byte, error) {
+	return ioutil.ReadAll(s.Req.Body)
 }
 
 type Processor interface {

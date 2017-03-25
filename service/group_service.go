@@ -169,7 +169,7 @@ func (srv *groupService) getPatchGroupProcessor() p.Processor {
 
 func (srv *groupService) getGroupById(req *http.Request) (response, error) {
 	processor := srv.getGetGroupProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -180,7 +180,7 @@ func (srv *groupService) getGroupById(req *http.Request) (response, error) {
 
 func (srv *groupService) createGroup(req *http.Request) (response, error) {
 	processor := srv.getCreateGroupProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -191,7 +191,7 @@ func (srv *groupService) createGroup(req *http.Request) (response, error) {
 
 func (srv *groupService) updateGroupById(req *http.Request) (response, error) {
 	processor := srv.getUpdateGroupProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -202,7 +202,7 @@ func (srv *groupService) updateGroupById(req *http.Request) (response, error) {
 
 func (srv *groupService) patchGroupById(req *http.Request) (response, error) {
 	processor := srv.getPatchGroupProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -213,7 +213,7 @@ func (srv *groupService) patchGroupById(req *http.Request) (response, error) {
 
 func (srv *groupService) deleteGroupById(req *http.Request) (response, error) {
 	processor := srv.getDeleteGroupProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,
@@ -224,7 +224,7 @@ func (srv *groupService) deleteGroupById(req *http.Request) (response, error) {
 
 func (srv *groupService) queryGroup(req *http.Request) (response, error) {
 	processor := srv.getQueryGroupProcessor()
-	ctx := &p.ProcessorContext{Request: req}
+	ctx := &p.ProcessorContext{Request: &p.HttpRequestSource{Req:req}}
 	processor.Process(ctx)
 	return response{
 		statusCode: ctx.ResponseStatus,

@@ -6,7 +6,6 @@ import (
 	"github.com/go-scim/scimify/persistence"
 	"github.com/go-scim/scimify/resource"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -58,21 +57,21 @@ type parseParamForQueryEndpointProcessor struct {
 	schemaId           string
 }
 
-type parseFunc func(*http.Request) (*SearchRequest, error)
+type parseFunc func(RequestSource) (*SearchRequest, error)
 
-func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpGet(httpRequest *http.Request) (*SearchRequest, error) {
+func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpGet(req RequestSource) (*SearchRequest, error) {
 	sr := &SearchRequest{
 		Schemas:    []string{resource.SearchUrn},
 		StartIndex: 1,
 		Count:      viper.GetInt("scim.itemsPerPage"),
 	}
 
-	sr.Attributes = strings.Split(httpRequest.URL.Query().Get("attributes"), ",")
-	sr.ExcludedAttributes = strings.Split(httpRequest.URL.Query().Get("excludedAttributes"), ",")
-	sr.Filter = httpRequest.URL.Query().Get("filter")
-	sr.SortBy = httpRequest.URL.Query().Get("sortBy")
-	sr.SortOrder = httpRequest.URL.Query().Get("sortOrder")
-	if v := httpRequest.URL.Query().Get("startIndex"); len(v) > 0 {
+	sr.Attributes = strings.Split(req.Param("attributes"), ",")
+	sr.ExcludedAttributes = strings.Split(req.Param("excludedAttributes"), ",")
+	sr.Filter = req.Param("filter")
+	sr.SortBy = req.Param("sortBy")
+	sr.SortOrder = req.Param("sortOrder")
+	if v := req.Param("startIndex"); len(v) > 0 {
 		if i, err := strconv.Atoi(v); err != nil {
 			return nil, resource.CreateError(resource.InvalidValue, "startIndex param must be a 1-based integer.")
 		} else {
@@ -85,7 +84,7 @@ func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpGet(httpReque
 	} else {
 		sr.StartIndex = 1
 	}
-	if v := httpRequest.URL.Query().Get("count"); len(v) > 0 {
+	if v := req.Param("count"); len(v) > 0 {
 		if i, err := strconv.Atoi(v); err != nil {
 			return nil, resource.CreateError(resource.InvalidValue, "count param must be a non-negative integer.")
 		} else {
@@ -102,12 +101,12 @@ func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpGet(httpReque
 	return sr, nil
 }
 
-func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpPost(httpRequest *http.Request) (*SearchRequest, error) {
+func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpPost(req RequestSource) (*SearchRequest, error) {
 	sr := &SearchRequest{
 		StartIndex: 1,
 		Count:      viper.GetInt("scim.itemsPerPage"),
 	}
-	bodyBytes, err := ioutil.ReadAll(httpRequest.Body)
+	bodyBytes, err := req.Body()
 	if err != nil {
 		return nil, resource.CreateError(resource.ServerError, fmt.Sprintf("failed to read request body: %s", err.Error()))
 	}
@@ -121,7 +120,7 @@ func (qep *parseParamForQueryEndpointProcessor) parseParamsFromHttpPost(httpRequ
 }
 
 func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) error {
-	httpRequest := qep.getHttpRequest(ctx)
+	req := qep.getRequestSource(ctx)
 
 	if sch, err := qep.getSchema(); err != nil {
 		return err
@@ -130,16 +129,16 @@ func (qep *parseParamForQueryEndpointProcessor) Process(ctx *ProcessorContext) e
 	}
 
 	var f parseFunc
-	switch httpRequest.Method {
+	switch req.Method() {
 	case http.MethodGet:
 		f = qep.parseParamsFromHttpGet
 	case http.MethodPost:
 		f = qep.parseParamsFromHttpPost
 	default:
-		return resource.CreateError(resource.NotImplemented, fmt.Sprintf("resource query by http method %s is not supported.", httpRequest.Method))
+		return resource.CreateError(resource.NotImplemented, fmt.Sprintf("resource query by http method %s is not supported.", req.Method()))
 	}
 
-	sr, err := f(httpRequest)
+	sr, err := f(req)
 	if err != nil {
 		return err
 	}
@@ -163,7 +162,7 @@ func (qep *parseParamForQueryEndpointProcessor) getSchema() (*resource.Schema, e
 	}
 }
 
-func (qep *parseParamForQueryEndpointProcessor) getHttpRequest(ctx *ProcessorContext) *http.Request {
+func (qep *parseParamForQueryEndpointProcessor) getRequestSource(ctx *ProcessorContext) RequestSource {
 	if ctx.Request == nil {
 		panic(&MissingContextValueError{"http request"})
 	}

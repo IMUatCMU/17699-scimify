@@ -12,9 +12,10 @@ const (
 	ListResponseUrn          = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
 	PathOpUrn                = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
 	SearchUrn                = "urn:ietf:params:scim:api:messages:2.0:SearchRequest"
+	BulkRequestUrn 		 = "urn:ietf:params:scim:api:messages:2.0:BulkRequest"
+	BulkResponseUrn 	 = "urn:ietf:params:scim:api:messages:2.0:BulkResponse"
 )
 
-// TODO consider make this a configuration options
 var AllResourceUrns = []string{
 	UserUrn, GroupUrn, ResourceTypeUrn, ServiceProviderConfigUrn, SchemaUrn,
 }
