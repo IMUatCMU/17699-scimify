@@ -123,7 +123,7 @@ func (p *parseParamForBulkEndpointProcessor) parseBulkRequest(req RequestSource)
 		return nil, resource.CreateError(resource.ServerError, fmt.Sprintf("failed to read request body: %s", err.Error()))
 	}
 
-	bulk := &BulkRequest{FailOnErrors: math.MaxInt64}
+	bulk := &BulkRequest{FailOnErrors: math.MaxInt32}
 	err = json.Unmarshal(bodyBytes, bulk)
 	if err != nil {
 		return nil, resource.CreateError(resource.InvalidSyntax, fmt.Sprintf("failed to read serialize request body: %s", err.Error()))
