@@ -90,7 +90,7 @@ type bean struct {
 }
 
 var (
-	workerBeanMap    map[BeanName]bean
+	workerBeanMap    map[BeanName]*bean
 	oneWorkerBeanMap sync.Once
 
 	serviceBeanMap    map[BeanName]bean
@@ -131,7 +131,7 @@ func poolSize(name BeanName) int { return viper.GetInt(fmt.Sprintf("scim.threadP
 
 func GetWorkerBean(bn BeanName) Worker {
 	oneWorkerBeanMap.Do(func() {
-		workerBeanMap = map[BeanName]bean{
+		workerBeanMap = map[BeanName]*bean{
 			DbUserCreate:             {processor: DBUserCreateProcessor(), num: poolSize(DbUserCreate)},
 			DbGroupCreate:            {processor: DBGroupCreateProcessor(), num: poolSize(DbGroupCreate)},
 			DbUserDelete:             {processor: DBUserDeleteProcessor(), num: poolSize(DbUserDelete)},
@@ -196,12 +196,8 @@ func GetWorkerBean(bn BeanName) Worker {
 		return nil
 	} else {
 		b.once.Do(func() {
-			if b.num == 1 {
-				b.worker = &SimpleWorker{processor: b.processor}
-			} else {
-				b.worker = &WorkerWrapper{processor: b.processor}
-				b.worker.initialize(b.num)
-			}
+			b.worker = &WorkerWrapper{processor: b.processor}
+			b.worker.initialize(b.num)
 		})
 		return b.worker
 	}
