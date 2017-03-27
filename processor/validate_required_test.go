@@ -1,7 +1,9 @@
 package processor
 
 import (
+	"fmt"
 	"github.com/go-scim/scimify/helper"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,6 +13,75 @@ type requiredValidationProcessorTest struct {
 	schemaPath   string
 	resourcePath string
 	assertion    func(error)
+}
+
+func benchmarkRequiredValidationProcessor(poolSize int, b *testing.B) {
+	viper.Set(fmt.Sprintf("scim.threadPool.%s", ValidateRequired), poolSize)
+
+	sch, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	r, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	processor := GetWorkerBean(ValidateRequired)
+	makeContext := func() *ProcessorContext {
+		return &ProcessorContext{
+			Schema:   sch,
+			Resource: r,
+		}
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			context := makeContext()
+			err := processor.Process(context)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize1(b *testing.B) {
+	benchmarkRequiredValidationProcessor(1, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize2(b *testing.B) {
+	benchmarkRequiredValidationProcessor(2, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize3(b *testing.B) {
+	benchmarkRequiredValidationProcessor(3, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize4(b *testing.B) {
+	benchmarkRequiredValidationProcessor(4, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize5(b *testing.B) {
+	benchmarkRequiredValidationProcessor(5, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize6(b *testing.B) {
+	benchmarkRequiredValidationProcessor(6, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize7(b *testing.B) {
+	benchmarkRequiredValidationProcessor(7, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize8(b *testing.B) {
+	benchmarkRequiredValidationProcessor(8, b)
+}
+
+func BenchmarkRequiredValidationProcessorWithPoolSize9(b *testing.B) {
+	benchmarkRequiredValidationProcessor(9, b)
 }
 
 func BenchmarkRequiredValidationProcessor_Process(b *testing.B) {

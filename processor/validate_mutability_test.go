@@ -1,8 +1,10 @@
 package processor
 
 import (
+	"fmt"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -12,6 +14,76 @@ type mutabilityValidationProcessorTest struct {
 	name         string
 	resourcePath string
 	assertion    func(err error, r *resource.Resource, ref *resource.Resource)
+}
+
+func benchmarkMutabilityValidationProcessor(poolSize int, b *testing.B) {
+	viper.Set(fmt.Sprintf("scim.threadPool.%s", ValidateMutability), poolSize)
+
+	sch, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	r, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	processor := GetWorkerBean(ValidateMutability)
+	makeContext := func() *ProcessorContext {
+		return &ProcessorContext{
+			Schema:    sch,
+			Resource:  r,
+			Reference: r,
+		}
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			context := makeContext()
+			err := processor.Process(context)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize1(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(1, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize2(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(2, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize3(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(3, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize4(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(4, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize5(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(5, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize6(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(6, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize7(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(7, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize8(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(8, b)
+}
+
+func BenchmarkMutabilityValidationProcessorWithPoolSize9(b *testing.B) {
+	benchmarkMutabilityValidationProcessor(9, b)
 }
 
 func BenchmarkMutabilityValidationProcessor_Process(b *testing.B) {

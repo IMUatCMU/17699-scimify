@@ -1,8 +1,10 @@
 package processor
 
 import (
+	"fmt"
 	"github.com/go-scim/scimify/helper"
 	"github.com/go-scim/scimify/resource"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,6 +13,75 @@ type typeValidationProcessorTest struct {
 	name         string
 	resourcePath string
 	assertion    func(*resource.Resource, error)
+}
+
+func benchmarkTypeValidationProcessor(poolSize int, b *testing.B) {
+	viper.Set(fmt.Sprintf("scim.threadPool.%s", ValidateType), poolSize)
+
+	sch, _, err := helper.LoadSchema("../test_data/test_user_schema_all.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	r, _, err := helper.LoadResource("../test_data/single_test_user_david.json")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	processor := GetWorkerBean(ValidateType)
+	makeContext := func() *ProcessorContext {
+		return &ProcessorContext{
+			Schema:   sch,
+			Resource: r,
+		}
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			context := makeContext()
+			err := processor.Process(context)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize1(b *testing.B) {
+	benchmarkTypeValidationProcessor(1, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize2(b *testing.B) {
+	benchmarkTypeValidationProcessor(2, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize3(b *testing.B) {
+	benchmarkTypeValidationProcessor(3, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize4(b *testing.B) {
+	benchmarkTypeValidationProcessor(4, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize5(b *testing.B) {
+	benchmarkTypeValidationProcessor(5, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize6(b *testing.B) {
+	benchmarkTypeValidationProcessor(6, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize7(b *testing.B) {
+	benchmarkTypeValidationProcessor(7, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize8(b *testing.B) {
+	benchmarkTypeValidationProcessor(8, b)
+}
+
+func BenchmarkTypeValidationProcessorWithPoolSize9(b *testing.B) {
+	benchmarkTypeValidationProcessor(9, b)
 }
 
 func BenchmarkTypeValidationProcessor_Process(b *testing.B) {
