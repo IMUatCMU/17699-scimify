@@ -1,10 +1,10 @@
 package processor
 
 import (
+	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"sync"
-	"github.com/spf13/viper"
-	"fmt"
 )
 
 type BeanName string
@@ -196,8 +196,12 @@ func GetWorkerBean(bn BeanName) Worker {
 		return nil
 	} else {
 		b.once.Do(func() {
-			b.worker = &WorkerWrapper{processor: b.processor}
-			b.worker.initialize(b.num)
+			if b.num == 1 {
+				b.worker = &SimpleWorker{processor: b.processor}
+			} else {
+				b.worker = &WorkerWrapper{processor: b.processor}
+				b.worker.initialize(b.num)
+			}
 		})
 		return b.worker
 	}

@@ -10,6 +10,16 @@ type Worker interface {
 	Close()
 }
 
+type SimpleWorker struct {
+	processor Processor
+}
+
+func (sw *SimpleWorker) initialize(num int) {}
+func (sw *SimpleWorker) Close()             {}
+func (sw *SimpleWorker) Process(ctx *ProcessorContext) error {
+	return sw.processor.Process(ctx)
+}
+
 type WorkerWrapper struct {
 	processor Processor
 	pool      *tunny.WorkPool

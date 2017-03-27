@@ -59,6 +59,20 @@ type RequestSource interface {
 	Body() ([]byte, error)
 }
 
+type MockRequestSource struct {
+	T  string
+	M  string
+	UP map[string]string
+	P  map[string]string
+	B  []byte
+}
+
+func (s *MockRequestSource) Target() string           { return s.T }
+func (s *MockRequestSource) Method() string           { return s.M }
+func (s *MockRequestSource) UrlParam(n string) string { return s.UP[n] }
+func (s *MockRequestSource) Param(n string) string    { return s.P[n] }
+func (s *MockRequestSource) Body() ([]byte, error)    { return s.B, nil }
+
 type HttpRequestSource struct {
 	Req *http.Request
 }
